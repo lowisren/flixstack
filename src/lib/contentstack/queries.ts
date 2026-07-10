@@ -1,0 +1,279 @@
+// ============================================================
+// ContentStack Data Fetchers
+// Every function creates a fresh Stack per call (see client.ts) and,
+// when a `livePreview` param is supplied (forwarded from a page's
+// searchParams via `parseLivePreviewParams`), queries draft content
+// through the Preview API instead of the published Delivery API.
+// ============================================================
+
+import type { LivePreviewQuery } from "@contentstack/delivery-sdk";
+import { createStack } from "./client";
+import {
+  normalizeFooter,
+  normalizeGenre,
+  normalizeHeader,
+  normalizeHeroBanner,
+  normalizeHomepageRail,
+  normalizeMovie,
+  normalizeNavigation,
+  normalizePageMeta,
+  normalizeSiteConfig,
+  normalizeTvSeries,
+} from "./normalize";
+import type {
+  Footer,
+  Genre,
+  Header,
+  HeroBanner,
+  HomepageRail,
+  ModularBlock,
+  Movie,
+  Navigation,
+  Page,
+  SiteConfig,
+  Title,
+  TvSeries,
+} from "../types";
+
+const MOVIE_REFERENCES = ["genres", "cast", "director"];
+const TV_SERIES_REFERENCES = ["genres", "cast", "creator", "seasons.season_block.episodes"];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type RawEntry = Record<string, any>;
+
+function stack(livePreview?: LivePreviewQuery) {
+  const s = createStack();
+  if (livePreview) s.livePreviewQuery(livePreview);
+  return s;
+}
+
+/** Reads the `live_preview`/`entry_uid`/`content_type_uid` query params Contentstack's
+ * preview iframe appends to every request, per its documented SSR contract. */
+export function parseLivePreviewParams(
+  searchParams: Record<string, string | string[] | undefined>
+): LivePreviewQuery | undefined {
+  const live_preview = searchParams.live_preview;
+  if (!live_preview || Array.isArray(live_preview)) return undefined;
+  const contentTypeUid = searchParams.content_type_uid;
+  const entryUid = searchParams.entry_uid;
+  return {
+    live_preview,
+    contentTypeUid: typeof contentTypeUid === "string" ? contentTypeUid : undefined,
+    entryUid: typeof entryUid === "string" ? entryUid : undefined,
+  };
+}
+
+export async function getAllMovies(livePreview?: LivePreviewQuery): Promise<Movie[]> {
+  const result = await stack(livePreview)
+    .contentType("movie")
+    .entry()
+    .includeReference(...MOVIE_REFERENCES)
+    .query()
+    .find<RawEntry>();
+  return (result.entries ?? []).map(normalizeMovie);
+}
+
+export async function getAllSeries(livePreview?: LivePreviewQuery): Promise<TvSeries[]> {
+  const result = await stack(livePreview)
+    .contentType("tv_series")
+    .entry()
+    .includeReference(...TV_SERIES_REFERENCES)
+    .query()
+    .find<RawEntry>();
+  return (result.entries ?? []).map(normalizeTvSeries);
+}
+
+export async function getAllTitles(livePreview?: LivePreviewQuery): Promise<Title[]> {
+  const [movies, series] = await Promise.all([getAllMovies(livePreview), getAllSeries(livePreview)]);
+  return [...movies, ...series];
+}
+
+export async function getTitleBySlug(slug: string, livePreview?: LivePreviewQuery): Promise<Title | undefined> {
+  const url = `/${slug}`;
+  const [movieResult, seriesResult] = await Promise.all([
+    stack(livePreview)
+      .contentType("movie")
+      .entry()
+      .includeReference(...MOVIE_REFERENCES)
+      .query()
+      .equalTo("url", url)
+      .find<RawEntry>(),
+    stack(livePreview)
+      .contentType("tv_series")
+      .entry()
+      .includeReference(...TV_SERIES_REFERENCES)
+      .query()
+      .equalTo("url", url)
+      .find<RawEntry>(),
+  ]);
+  const movie = movieResult.entries?.[0];
+  if (movie) return normalizeMovie(movie);
+  const series = seriesResult.entries?.[0];
+  if (series) return normalizeTvSeries(series);
+  return undefined;
+}
+
+export async function getAllGenres(livePreview?: LivePreviewQuery): Promise<Genre[]> {
+  const result = await stack(livePreview).contentType("genre").entry().query().find<RawEntry>();
+  return (result.entries ?? []).map(normalizeGenre);
+}
+
+export async function getGenreBySlug(slug: string, livePreview?: LivePreviewQuery): Promise<Genre | undefined> {
+  const result = await stack(livePreview)
+    .contentType("genre")
+    .entry()
+    .query()
+    .equalTo("slug", slug)
+    .find<RawEntry>();
+  const genre = result.entries?.[0];
+  return genre ? normalizeGenre(genre) : undefined;
+}
+
+export async function getTitlesByGenre(genreSlug: string, livePreview?: LivePreviewQuery): Promise<Title[]> {
+  const all = await getAllTitles(livePreview);
+  return all.filter((t) => t.genres.some((g) => g.slug === genreSlug));
+}
+
+export async function getHeroBanners(livePreview?: LivePreviewQuery): Promise<HeroBanner[]> {
+  const result = await stack(livePreview)
+    .contentType("hero_banner")
+    .entry()
+    .includeReference("linked_title")
+    .query()
+    .find<RawEntry>();
+  return (result.entries ?? []).map(normalizeHeroBanner);
+}
+
+export async function getHomepageRails(livePreview?: LivePreviewQuery): Promise<HomepageRail[]> {
+  const result = await stack(livePreview)
+    .contentType("homepage_rail")
+    .entry()
+    .includeReference("items")
+    .query()
+    .find<RawEntry>();
+  return (result.entries ?? []).map(normalizeHomepageRail);
+}
+
+export async function searchTitles(query: string, livePreview?: LivePreviewQuery): Promise<Title[]> {
+  if (!query.trim()) return [];
+  const [movieResult, seriesResult] = await Promise.all([
+    stack(livePreview)
+      .contentType("movie")
+      .entry()
+      .includeReference(...MOVIE_REFERENCES)
+      .query()
+      .search(query)
+      .find<RawEntry>(),
+    stack(livePreview)
+      .contentType("tv_series")
+      .entry()
+      .includeReference(...TV_SERIES_REFERENCES)
+      .query()
+      .search(query)
+      .find<RawEntry>(),
+  ]);
+  return [
+    ...(movieResult.entries ?? []).map(normalizeMovie),
+    ...(seriesResult.entries ?? []).map(normalizeTvSeries),
+  ];
+}
+
+export async function getFeaturedTitles(livePreview?: LivePreviewQuery): Promise<Title[]> {
+  const rails = await getHomepageRails(livePreview);
+  return rails[0]?.items ?? [];
+}
+
+export async function getTrendingTitles(livePreview?: LivePreviewQuery): Promise<Title[]> {
+  const all = await getAllTitles(livePreview);
+  return [...all].sort((a, b) => b.score - a.score).slice(0, 10);
+}
+
+const DEFAULT_SITE_CONFIG: SiteConfig = {
+  site_name: "Flixstack",
+  feature_flags: {},
+};
+
+export async function getSiteConfig(livePreview?: LivePreviewQuery): Promise<SiteConfig> {
+  const result = await stack(livePreview).contentType("site_config").entry().query().find<RawEntry>();
+  const raw = result.entries?.[0];
+  return raw ? normalizeSiteConfig(raw) : DEFAULT_SITE_CONFIG;
+}
+
+export async function getHeader(livePreview?: LivePreviewQuery): Promise<Header | undefined> {
+  const result = await stack(livePreview)
+    .contentType("header")
+    .entry()
+    .includeReference("main_navigation")
+    .query()
+    .find<RawEntry>();
+  const raw = result.entries?.[0];
+  return raw ? normalizeHeader(raw) : undefined;
+}
+
+export async function getFooter(livePreview?: LivePreviewQuery): Promise<Footer | undefined> {
+  const result = await stack(livePreview)
+    .contentType("footer")
+    .entry()
+    .includeReference("columns.links")
+    .query()
+    .find<RawEntry>();
+  const raw = result.entries?.[0];
+  return raw ? normalizeFooter(raw) : undefined;
+}
+
+export async function getNavigationByTitle(
+  title: string,
+  livePreview?: LivePreviewQuery
+): Promise<Navigation | undefined> {
+  const result = await stack(livePreview)
+    .contentType("navigation")
+    .entry()
+    .query()
+    .equalTo("title", title)
+    .find<RawEntry>();
+  const raw = result.entries?.[0];
+  return raw ? normalizeNavigation(raw) : undefined;
+}
+
+/** Fetches a single homepage_rail entry by its known UID, with items (and their
+ * genres) fully resolved — used to hydrate a `page`'s rail_block sections. */
+export async function getHomepageRailByUid(
+  uid: string,
+  livePreview?: LivePreviewQuery
+): Promise<HomepageRail | undefined> {
+  try {
+    const raw = await stack(livePreview)
+      .contentType("homepage_rail")
+      .entry(uid)
+      .includeReference("items", "items.genres")
+      .fetch<RawEntry>();
+    return raw ? normalizeHomepageRail(raw) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Fetches a CMS-composed landing page (e.g. /movie, /tv-show) by slug and
+ * resolves its `sections`. Currently resolves `rail_block` sections fully;
+ * other block types are skipped since no page uses them yet. */
+export async function getPageBySlug(slug: string, livePreview?: LivePreviewQuery): Promise<Page | undefined> {
+  const result = await stack(livePreview)
+    .contentType("page")
+    .entry()
+    .includeReference("sections.rail_block.rail")
+    .query()
+    .equalTo("slug", slug)
+    .find<RawEntry>();
+  const raw = result.entries?.[0];
+  if (!raw) return undefined;
+
+  const sections: ModularBlock[] = [];
+  for (const block of raw.sections ?? []) {
+    if (block.rail_block?.rail?.[0]?.uid) {
+      const rail = await getHomepageRailByUid(block.rail_block.rail[0].uid, livePreview);
+      if (rail) sections.push({ block_type: "rail_block", data: rail });
+    }
+  }
+
+  return normalizePageMeta(raw, sections);
+}
