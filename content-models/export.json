@@ -1,219 +1,2315 @@
 {
-  "_version": "1.0.0",
-  "_note": "Import this file via ContentStack Dashboard → Stack → Settings → Import/Export → Import Stack",
   "content_types": [
     {
-      "uid": "movie",
-      "title": "Movie",
-      "description": "A feature film entry with full metadata, cast references, and genre taxonomy.",
-      "schema": [
-        { "uid": "title", "data_type": "text", "display_name": "Title", "mandatory": true, "unique": true },
-        { "uid": "url", "data_type": "text", "display_name": "URL", "mandatory": true, "field_metadata": { "_default": true } },
-        { "uid": "slug", "data_type": "text", "display_name": "Slug", "mandatory": true, "unique": true },
-        { "uid": "synopsis", "data_type": "text", "display_name": "Synopsis", "mandatory": true, "field_metadata": { "allow_rich_text": true, "description": "", "multiline": false, "rich_text_type": "advanced", "options": [], "version": 3 } },
-        { "uid": "release_date", "data_type": "isodate", "display_name": "Release Date" },
-        { "uid": "runtime", "data_type": "number", "display_name": "Runtime (minutes)" },
-        { "uid": "rating", "data_type": "text", "display_name": "Rating", "display_type": "dropdown", "enum": { "advanced": true, "choices": [{ "key": "G", "value": "G" }, { "key": "PG", "value": "PG" }, { "key": "PG-13", "value": "PG-13" }, { "key": "R", "value": "R" }] } },
-        { "uid": "genres", "data_type": "reference", "display_name": "Genres", "reference_to": ["genre"], "field_metadata": { "ref_multiple": true } },
-        { "uid": "cast", "data_type": "reference", "display_name": "Cast", "reference_to": ["person"], "field_metadata": { "ref_multiple": true } },
-        { "uid": "director", "data_type": "reference", "display_name": "Director", "reference_to": ["person"], "field_metadata": { "ref_multiple": false } },
-        { "uid": "hero_image", "data_type": "file", "display_name": "Hero Image" },
-        { "uid": "thumbnail", "data_type": "file", "display_name": "Thumbnail" },
-        { "uid": "trailer_url", "data_type": "text", "display_name": "Trailer URL" },
-        { "uid": "content_tier", "data_type": "text", "display_name": "Content Tier", "display_type": "dropdown", "enum": { "advanced": true, "choices": [{ "key": "free", "value": "free" }, { "key": "premium", "value": "premium" }] } },
-        { "uid": "content_tags", "data_type": "text", "display_name": "Tags", "multiple": true },
-        { "uid": "score", "data_type": "number", "display_name": "Audience Score (0-100)" },
-        { "uid": "seo", "data_type": "global_field", "display_name": "SEO", "reference_to": "seo" },
-        { "uid": "availability_window", "data_type": "global_field", "display_name": "Availability Window", "reference_to": "availability_window" }
-      ]
-    },
-    {
-      "uid": "tv_series",
       "title": "TV Series",
+      "uid": "tv_series",
+      "schema": [
+        {
+          "display_name": "Title",
+          "uid": "title",
+          "data_type": "text",
+          "mandatory": true,
+          "unique": true,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "URL",
+          "uid": "url",
+          "data_type": "text",
+          "mandatory": true,
+          "field_metadata": {
+            "_default": true,
+            "version": 3
+          },
+          "multiple": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Slug",
+          "uid": "slug",
+          "data_type": "text",
+          "mandatory": true,
+          "unique": true,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Synopsis",
+          "uid": "synopsis",
+          "data_type": "text",
+          "field_metadata": {
+            "allow_rich_text": true,
+            "description": "",
+            "multiline": false,
+            "rich_text_type": "advanced",
+            "options": [],
+            "version": 3
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Genres",
+          "uid": "genres",
+          "data_type": "reference",
+          "reference_to": [
+            "genre"
+          ],
+          "field_metadata": {
+            "ref_multiple": true,
+            "ref_multiple_content_types": true
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Cast",
+          "uid": "cast",
+          "data_type": "reference",
+          "reference_to": [
+            "person"
+          ],
+          "field_metadata": {
+            "ref_multiple": true,
+            "ref_multiple_content_types": true
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Creator",
+          "uid": "creator",
+          "data_type": "reference",
+          "reference_to": [
+            "person"
+          ],
+          "field_metadata": {
+            "ref_multiple": false,
+            "ref_multiple_content_types": true
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Seasons (Modular Block)",
+          "uid": "seasons",
+          "data_type": "blocks",
+          "multiple": true,
+          "blocks": [
+            {
+              "uid": "season_block",
+              "title": "Season",
+              "schema": [
+                {
+                  "uid": "season_number",
+                  "data_type": "number",
+                  "display_name": "Season Number",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false
+                },
+                {
+                  "uid": "release_date",
+                  "data_type": "isodate",
+                  "display_name": "Release Date",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false
+                },
+                {
+                  "uid": "episodes",
+                  "data_type": "reference",
+                  "display_name": "Episodes",
+                  "reference_to": [
+                    "episode"
+                  ],
+                  "field_metadata": {
+                    "ref_multiple": true,
+                    "ref_multiple_content_types": true
+                  },
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false
+                }
+              ]
+            }
+          ],
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Status",
+          "uid": "status",
+          "data_type": "text",
+          "display_type": "dropdown",
+          "enum": {
+            "advanced": true,
+            "choices": [
+              {
+                "key": "ongoing",
+                "value": "ongoing"
+              },
+              {
+                "key": "ended",
+                "value": "ended"
+              },
+              {
+                "key": "upcoming",
+                "value": "upcoming"
+              }
+            ]
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Title Metadata",
+          "uid": "title_metadata",
+          "data_type": "global_field",
+          "reference_to": "title_metadata",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "display_name": "Rating",
+              "uid": "rating",
+              "data_type": "text",
+              "display_type": "dropdown",
+              "enum": {
+                "advanced": true,
+                "choices": [
+                  {
+                    "key": "G",
+                    "value": "G"
+                  },
+                  {
+                    "key": "PG",
+                    "value": "PG"
+                  },
+                  {
+                    "key": "PG-13",
+                    "value": "PG-13"
+                  },
+                  {
+                    "key": "R",
+                    "value": "R"
+                  },
+                  {
+                    "key": "NC-17",
+                    "value": "NC-17"
+                  },
+                  {
+                    "key": "TV-Y",
+                    "value": "TV-Y"
+                  },
+                  {
+                    "key": "TV-PG",
+                    "value": "TV-PG"
+                  },
+                  {
+                    "key": "TV-14",
+                    "value": "TV-14"
+                  },
+                  {
+                    "key": "TV-MA",
+                    "value": "TV-MA"
+                  }
+                ]
+              },
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Content Tier",
+              "uid": "content_tier",
+              "data_type": "text",
+              "display_type": "dropdown",
+              "enum": {
+                "advanced": true,
+                "choices": [
+                  {
+                    "key": "free",
+                    "value": "free"
+                  },
+                  {
+                    "key": "premium",
+                    "value": "premium"
+                  }
+                ]
+              },
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Release Date",
+              "uid": "release_date",
+              "data_type": "isodate",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Audience Score (0-100)",
+              "uid": "score",
+              "data_type": "number",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        },
+        {
+          "display_name": "Artwork",
+          "uid": "artwork",
+          "data_type": "global_field",
+          "reference_to": "artwork",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "display_name": "Hero Image",
+              "uid": "hero_image",
+              "data_type": "file",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Thumbnail",
+              "uid": "thumbnail",
+              "data_type": "file",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        },
+        {
+          "data_type": "taxonomy",
+          "display_name": "Tags",
+          "uid": "taxonomies",
+          "taxonomies": [
+            {
+              "taxonomy_uid": "content_tags",
+              "max_terms": 25,
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": true
+            }
+          ],
+          "field_metadata": {
+            "description": ""
+          },
+          "multiple": true,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "SEO",
+          "uid": "seo",
+          "data_type": "global_field",
+          "reference_to": "seo",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "uid": "meta_title",
+              "data_type": "text",
+              "display_name": "Meta Title",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "meta_description",
+              "data_type": "text",
+              "display_name": "Meta Description",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "og_image",
+              "data_type": "file",
+              "display_name": "OG Image",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "canonical_url",
+              "data_type": "text",
+              "display_name": "Canonical URL",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        },
+        {
+          "display_name": "Availability Window",
+          "uid": "availability_window",
+          "data_type": "global_field",
+          "reference_to": "availability_window",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "uid": "available_from",
+              "data_type": "isodate",
+              "display_name": "Available From",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "available_until",
+              "data_type": "isodate",
+              "display_name": "Available Until",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "regions",
+              "data_type": "text",
+              "display_name": "Regions",
+              "multiple": true,
+              "mandatory": false,
+              "non_localizable": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        }
+      ],
       "description": "A TV series with modular block seasons and episode references.",
-      "schema": [
-        { "uid": "title", "data_type": "text", "display_name": "Title", "mandatory": true, "unique": true },
-        { "uid": "url", "data_type": "text", "display_name": "URL", "mandatory": true, "field_metadata": { "_default": true } },
-        { "uid": "slug", "data_type": "text", "display_name": "Slug", "mandatory": true, "unique": true },
-        { "uid": "synopsis", "data_type": "text", "display_name": "Synopsis", "field_metadata": { "allow_rich_text": true, "description": "", "multiline": false, "rich_text_type": "advanced", "options": [], "version": 3 } },
-        { "uid": "release_date", "data_type": "isodate", "display_name": "Release Date" },
-        { "uid": "rating", "data_type": "text", "display_name": "Rating" },
-        { "uid": "genres", "data_type": "reference", "display_name": "Genres", "reference_to": ["genre"], "field_metadata": { "ref_multiple": true } },
-        { "uid": "cast", "data_type": "reference", "display_name": "Cast", "reference_to": ["person"], "field_metadata": { "ref_multiple": true } },
-        { "uid": "creator", "data_type": "reference", "display_name": "Creator", "reference_to": ["person"], "field_metadata": { "ref_multiple": false } },
-        { "uid": "hero_image", "data_type": "file", "display_name": "Hero Image" },
-        { "uid": "thumbnail", "data_type": "file", "display_name": "Thumbnail" },
-        { "uid": "seasons", "data_type": "blocks", "display_name": "Seasons (Modular Block)", "multiple": true, "blocks": [{ "uid": "season_block", "title": "Season", "schema": [{ "uid": "season_number", "data_type": "number", "display_name": "Season Number" }, { "uid": "release_date", "data_type": "isodate", "display_name": "Release Date" }, { "uid": "episodes", "data_type": "reference", "display_name": "Episodes", "reference_to": ["episode"], "field_metadata": { "ref_multiple": true } }] }] },
-        { "uid": "status", "data_type": "text", "display_name": "Status", "display_type": "dropdown", "enum": { "advanced": true, "choices": [{ "key": "ongoing", "value": "ongoing" }, { "key": "ended", "value": "ended" }, { "key": "upcoming", "value": "upcoming" }] } },
-        { "uid": "content_tier", "data_type": "text", "display_name": "Content Tier" },
-        { "uid": "content_tags", "data_type": "text", "display_name": "Tags", "multiple": true },
-        { "uid": "score", "data_type": "number", "display_name": "Audience Score" },
-        { "uid": "availability_window", "data_type": "global_field", "display_name": "Availability Window", "reference_to": "availability_window" }
-      ]
+      "options": {
+        "is_page": true,
+        "singleton": false,
+        "title": "title",
+        "url_pattern": "/:title",
+        "url_prefix": "/"
+      }
     },
     {
-      "uid": "episode",
-      "title": "Episode",
-      "schema": [
-        { "uid": "title", "data_type": "text", "mandatory": true },
-        { "uid": "slug", "data_type": "text", "mandatory": true, "unique": true },
-        { "uid": "episode_number", "data_type": "number" },
-        { "uid": "duration", "data_type": "number", "display_name": "Duration (minutes)" },
-        { "uid": "synopsis", "data_type": "text" },
-        { "uid": "thumbnail", "data_type": "file" },
-        { "uid": "air_date", "data_type": "isodate" }
-      ]
-    },
-    {
-      "uid": "person",
-      "title": "Person",
-      "description": "Cast and crew member. Referenced by movie and tv_series.",
-      "schema": [
-        { "uid": "title", "data_type": "text", "display_name": "Name", "mandatory": true },
-        { "uid": "slug", "data_type": "text", "mandatory": true, "unique": true },
-        { "uid": "bio", "data_type": "text", "display_name": "Bio" },
-        { "uid": "photo", "data_type": "file", "display_name": "Photo" },
-        { "uid": "role", "data_type": "text", "display_type": "dropdown", "enum": { "advanced": true, "choices": [{ "key": "actor", "value": "actor" }, { "key": "director", "value": "director" }, { "key": "producer", "value": "producer" }] } }
-      ]
-    },
-    {
-      "uid": "genre",
-      "title": "Genre",
-      "description": "Taxonomy term. Referenced by movie and tv_series entries.",
-      "schema": [
-        { "uid": "title", "data_type": "text", "mandatory": true },
-        { "uid": "slug", "data_type": "text", "mandatory": true, "unique": true },
-        { "uid": "description", "data_type": "text" },
-        { "uid": "color_accent", "data_type": "text", "display_name": "Color Accent (hex)" },
-        { "uid": "hero_image", "data_type": "file" }
-      ]
-    },
-    {
-      "uid": "hero_banner",
-      "title": "Hero Banner",
-      "description": "Full-bleed hero with CTA. Used as a modular block on the homepage.",
-      "schema": [
-        { "uid": "title", "data_type": "text", "mandatory": true },
-        { "uid": "subtitle", "data_type": "text" },
-        { "uid": "cta_label", "data_type": "text" },
-        { "uid": "cta_url", "data_type": "text" },
-        { "uid": "background_image", "data_type": "file" },
-        { "uid": "badge_text", "data_type": "text", "display_name": "Badge Text (optional)" },
-        { "uid": "linked_title", "data_type": "reference", "display_name": "Linked Title", "reference_to": ["movie", "tv_series"], "field_metadata": { "ref_multiple": false } }
-      ]
-    },
-    {
-      "uid": "homepage_rail",
-      "title": "Homepage Rail",
-      "description": "A horizontal row of title cards. Used as a modular block on the homepage.",
-      "schema": [
-        { "uid": "title", "data_type": "text", "mandatory": true },
-        { "uid": "rail_type", "data_type": "text", "display_type": "dropdown", "enum": { "advanced": true, "choices": [{ "key": "editorial", "value": "editorial" }, { "key": "automated", "value": "automated" }] } },
-        { "uid": "items", "data_type": "reference", "display_name": "Title Items", "reference_to": ["movie", "tv_series"], "field_metadata": { "ref_multiple": true } },
-        { "uid": "layout", "data_type": "text", "display_type": "dropdown", "enum": { "advanced": true, "choices": [{ "key": "landscape", "value": "landscape" }, { "key": "portrait", "value": "portrait" }, { "key": "hero", "value": "hero" }] } }
-      ]
-    },
-    {
-      "uid": "site_config",
       "title": "Site Config",
+      "uid": "site_config",
+      "schema": [
+        {
+          "uid": "site_name",
+          "data_type": "text",
+          "display_name": "Site Name",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Feature Flags",
+          "uid": "feature_flags",
+          "data_type": "group",
+          "field_metadata": {
+            "description": "",
+            "instruction": ""
+          },
+          "schema": [
+            {
+              "display_name": "Key",
+              "uid": "key",
+              "data_type": "text",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false
+            },
+            {
+              "display_name": "Enabled",
+              "uid": "enabled",
+              "data_type": "boolean",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false
+            }
+          ],
+          "multiple": true,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        }
+      ],
       "description": "Global site configuration (site name, feature flags). Header, footer, and navigation are separate content types.",
-      "schema": [
-        { "uid": "site_name", "data_type": "text", "display_name": "Site Name" },
-        { "uid": "feature_flags", "data_type": "json", "display_name": "Feature Flags", "field_metadata": { "allow_json_rte": true, "embed_objects": [], "description": "", "default_value": "", "multiline": false, "rich_text_type": "advanced", "version": 3 }, "reference_to": ["sys_assets"] }
-      ]
+      "options": {
+        "title": "title",
+        "is_page": false,
+        "singleton": false
+      }
     },
     {
-      "uid": "navigation",
-      "title": "Navigation",
-      "description": "A reusable, ordered list of links. Reference one from header.main_navigation or a footer column.",
+      "title": "Person",
+      "uid": "person",
       "schema": [
-        { "uid": "title", "data_type": "text", "display_name": "Title", "mandatory": true, "unique": true },
-        { "uid": "links", "data_type": "group", "display_name": "Links", "multiple": true, "schema": [
-          { "uid": "label", "data_type": "text", "display_name": "Label", "mandatory": true },
-          { "uid": "href", "data_type": "text", "display_name": "URL", "mandatory": true },
-          { "uid": "open_in_new_tab", "data_type": "boolean", "display_name": "Open in New Tab" }
-        ] }
-      ]
+        {
+          "display_name": "Name",
+          "uid": "title",
+          "data_type": "text",
+          "mandatory": true,
+          "multiple": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Slug",
+          "uid": "slug",
+          "data_type": "text",
+          "mandatory": true,
+          "unique": true,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "data_type": "text",
+          "display_name": "URL",
+          "uid": "url",
+          "field_metadata": {
+            "_default": true,
+            "version": 3
+          },
+          "multiple": false,
+          "unique": false,
+          "mandatory": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Bio",
+          "uid": "bio",
+          "data_type": "text",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Photo",
+          "uid": "photo",
+          "data_type": "file",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Role",
+          "uid": "role",
+          "data_type": "text",
+          "display_type": "dropdown",
+          "enum": {
+            "advanced": true,
+            "choices": [
+              {
+                "key": "actor",
+                "value": "actor"
+              },
+              {
+                "key": "director",
+                "value": "director"
+              },
+              {
+                "key": "producer",
+                "value": "producer"
+              },
+              {
+                "key": "writer",
+                "value": "writer"
+              }
+            ]
+          },
+          "multiple": true,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        }
+      ],
+      "description": "Cast and crew member. Referenced by movie and tv_series.",
+      "options": {
+        "is_page": true,
+        "singleton": false,
+        "title": "title",
+        "url_pattern": "/:title",
+        "url_prefix": "/"
+      }
     },
     {
-      "uid": "header",
-      "title": "Header",
-      "description": "Site header: logo, main navigation, and optional CTA.",
-      "schema": [
-        { "uid": "title", "data_type": "text", "display_name": "Title", "mandatory": true, "unique": true },
-        { "uid": "logo", "data_type": "file", "display_name": "Logo" },
-        { "uid": "main_navigation", "data_type": "reference", "display_name": "Main Navigation", "reference_to": ["navigation"], "field_metadata": { "ref_multiple": false } },
-        { "uid": "cta_label", "data_type": "text", "display_name": "CTA Label" },
-        { "uid": "cta_url", "data_type": "text", "display_name": "CTA URL" },
-        { "uid": "show_search", "data_type": "boolean", "display_name": "Show Search Icon" },
-        { "uid": "show_profile", "data_type": "boolean", "display_name": "Show Profile Icon" }
-      ]
-    },
-    {
-      "uid": "footer",
-      "title": "Footer",
-      "description": "Site footer: link columns (each referencing a navigation entry) and legal text.",
-      "schema": [
-        { "uid": "title", "data_type": "text", "display_name": "Title", "mandatory": true, "unique": true },
-        { "uid": "columns", "data_type": "group", "display_name": "Columns", "multiple": true, "schema": [
-          { "uid": "heading", "data_type": "text", "display_name": "Heading", "mandatory": true },
-          { "uid": "links", "data_type": "reference", "display_name": "Links", "reference_to": ["navigation"], "field_metadata": { "ref_multiple": false } }
-        ] },
-        { "uid": "legal_text", "data_type": "text", "display_name": "Legal Text" }
-      ]
-    },
-    {
-      "uid": "page",
       "title": "Page",
-      "description": "A landing page composed of ordered content sections. Used to build the homepage and future marketing/landing pages.",
+      "uid": "page",
       "schema": [
-        { "uid": "title", "data_type": "text", "display_name": "Title", "mandatory": true, "unique": true },
-        { "uid": "url", "data_type": "text", "display_name": "URL", "mandatory": true, "field_metadata": { "_default": true } },
-        { "uid": "slug", "data_type": "text", "display_name": "Slug", "mandatory": true, "unique": true },
-        { "uid": "seo", "data_type": "global_field", "display_name": "SEO", "reference_to": "seo" },
-        { "uid": "sections", "data_type": "blocks", "display_name": "Sections", "multiple": true, "blocks": [
-          { "uid": "hero_block", "title": "Hero", "schema": [
-            { "uid": "hero_banners", "data_type": "reference", "display_name": "Hero Banners", "reference_to": ["hero_banner"], "field_metadata": { "ref_multiple": true } }
-          ] },
-          { "uid": "rail_block", "title": "Rail", "schema": [
-            { "uid": "rail", "data_type": "reference", "display_name": "Rail", "reference_to": ["homepage_rail"], "field_metadata": { "ref_multiple": false } }
-          ] },
-          { "uid": "promo_block", "title": "Promo", "schema": [
-            { "uid": "headline", "data_type": "text", "display_name": "Headline" },
-            { "uid": "body", "data_type": "text", "display_name": "Body" },
-            { "uid": "image", "data_type": "file", "display_name": "Image" },
-            { "uid": "cta_label", "data_type": "text", "display_name": "CTA Label" },
-            { "uid": "cta_url", "data_type": "text", "display_name": "CTA URL" },
-            { "uid": "layout", "data_type": "text", "display_name": "Layout", "display_type": "dropdown", "enum": { "advanced": true, "choices": [{ "key": "left", "value": "left" }, { "key": "right", "value": "right" }, { "key": "center", "value": "center" }] } }
-          ] },
-          { "uid": "genre_spotlight_block", "title": "Genre Spotlight", "schema": [
-            { "uid": "genre", "data_type": "reference", "display_name": "Genre", "reference_to": ["genre"], "field_metadata": { "ref_multiple": false } },
-            { "uid": "items", "data_type": "reference", "display_name": "Items", "reference_to": ["movie", "tv_series"], "field_metadata": { "ref_multiple": true } }
-          ] }
-        ] }
-      ]
+        {
+          "display_name": "Title",
+          "uid": "title",
+          "data_type": "text",
+          "mandatory": true,
+          "unique": true,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "URL",
+          "uid": "url",
+          "data_type": "text",
+          "mandatory": true,
+          "field_metadata": {
+            "_default": true,
+            "version": 3
+          },
+          "multiple": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Slug",
+          "uid": "slug",
+          "data_type": "text",
+          "mandatory": true,
+          "unique": true,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "SEO",
+          "uid": "seo",
+          "data_type": "global_field",
+          "reference_to": "seo",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "uid": "meta_title",
+              "data_type": "text",
+              "display_name": "Meta Title",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "meta_description",
+              "data_type": "text",
+              "display_name": "Meta Description",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "og_image",
+              "data_type": "file",
+              "display_name": "OG Image",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "canonical_url",
+              "data_type": "text",
+              "display_name": "Canonical URL",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        },
+        {
+          "display_name": "Sections",
+          "uid": "sections",
+          "data_type": "blocks",
+          "multiple": true,
+          "blocks": [
+            {
+              "uid": "hero_block",
+              "title": "Hero",
+              "schema": [
+                {
+                  "uid": "hero_banners",
+                  "display_name": "Hero Banners",
+                  "data_type": "reference",
+                  "reference_to": [
+                    "hero_banner"
+                  ],
+                  "field_metadata": {
+                    "ref_multiple": true,
+                    "ref_multiple_content_types": true
+                  },
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false
+                }
+              ]
+            },
+            {
+              "uid": "rail_block",
+              "title": "Rail",
+              "schema": [
+                {
+                  "uid": "rail",
+                  "display_name": "Rail",
+                  "data_type": "reference",
+                  "reference_to": [
+                    "homepage_rail"
+                  ],
+                  "field_metadata": {
+                    "ref_multiple": false,
+                    "ref_multiple_content_types": true
+                  },
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false
+                }
+              ]
+            },
+            {
+              "uid": "promo_block",
+              "title": "Promo",
+              "schema": [
+                {
+                  "uid": "headline",
+                  "display_name": "Headline",
+                  "data_type": "text",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false
+                },
+                {
+                  "uid": "body",
+                  "display_name": "Body",
+                  "data_type": "text",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false
+                },
+                {
+                  "uid": "image",
+                  "display_name": "Image",
+                  "data_type": "file",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false
+                },
+                {
+                  "display_name": "CTA",
+                  "uid": "cta",
+                  "data_type": "global_field",
+                  "reference_to": "cta",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "schema": [
+                    {
+                      "display_name": "Label",
+                      "uid": "label",
+                      "data_type": "text",
+                      "multiple": false,
+                      "mandatory": false,
+                      "unique": false,
+                      "non_localizable": false,
+                      "indexed": false,
+                      "inbuilt_model": false
+                    },
+                    {
+                      "display_name": "URL",
+                      "uid": "url",
+                      "data_type": "text",
+                      "multiple": false,
+                      "mandatory": false,
+                      "unique": false,
+                      "non_localizable": false,
+                      "indexed": false,
+                      "inbuilt_model": false
+                    },
+                    {
+                      "display_name": "Style",
+                      "uid": "style",
+                      "data_type": "text",
+                      "display_type": "dropdown",
+                      "enum": {
+                        "advanced": true,
+                        "choices": [
+                          {
+                            "key": "primary",
+                            "value": "primary"
+                          },
+                          {
+                            "key": "secondary",
+                            "value": "secondary"
+                          },
+                          {
+                            "key": "ghost",
+                            "value": "ghost"
+                          }
+                        ]
+                      },
+                      "multiple": false,
+                      "mandatory": false,
+                      "unique": false,
+                      "non_localizable": false,
+                      "indexed": false,
+                      "inbuilt_model": false
+                    },
+                    {
+                      "display_name": "Open in New Tab",
+                      "uid": "open_in_new_tab",
+                      "data_type": "boolean",
+                      "multiple": false,
+                      "mandatory": false,
+                      "unique": false,
+                      "non_localizable": false,
+                      "indexed": false,
+                      "inbuilt_model": false
+                    }
+                  ]
+                },
+                {
+                  "uid": "layout",
+                  "display_name": "Layout",
+                  "data_type": "text",
+                  "display_type": "dropdown",
+                  "enum": {
+                    "advanced": true,
+                    "choices": [
+                      {
+                        "key": "left",
+                        "value": "left"
+                      },
+                      {
+                        "key": "right",
+                        "value": "right"
+                      },
+                      {
+                        "key": "center",
+                        "value": "center"
+                      }
+                    ]
+                  },
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false
+                }
+              ]
+            },
+            {
+              "uid": "genre_spotlight_block",
+              "title": "Genre Spotlight",
+              "schema": [
+                {
+                  "uid": "genre",
+                  "display_name": "Genre",
+                  "data_type": "reference",
+                  "reference_to": [
+                    "genre"
+                  ],
+                  "field_metadata": {
+                    "ref_multiple": false,
+                    "ref_multiple_content_types": true
+                  },
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false
+                },
+                {
+                  "uid": "items",
+                  "display_name": "Items",
+                  "data_type": "reference",
+                  "reference_to": [
+                    "movie",
+                    "tv_series"
+                  ],
+                  "field_metadata": {
+                    "ref_multiple": true,
+                    "ref_multiple_content_types": true
+                  },
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false
+                }
+              ]
+            }
+          ],
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        }
+      ],
+      "description": "A landing page composed of ordered content sections. Used to build the homepage and future marketing/landing pages.",
+      "options": {
+        "is_page": true,
+        "singleton": false,
+        "title": "title",
+        "url_pattern": "/:title",
+        "url_prefix": "/"
+      }
+    },
+    {
+      "title": "Navigation",
+      "uid": "navigation",
+      "schema": [
+        {
+          "uid": "title",
+          "data_type": "text",
+          "display_name": "Title",
+          "mandatory": true,
+          "unique": true,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Links",
+          "uid": "links",
+          "data_type": "global_field",
+          "reference_to": "link",
+          "multiple": true,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "display_name": "Label",
+              "uid": "label",
+              "data_type": "text",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Href",
+              "uid": "href",
+              "data_type": "text",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Open in New Tab",
+              "uid": "open_in_new_tab",
+              "data_type": "boolean",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        }
+      ],
+      "description": "A reusable, ordered list of links. Reference one from header.main_navigation or a footer column.",
+      "options": {
+        "title": "title",
+        "is_page": false,
+        "singleton": false
+      }
+    },
+    {
+      "title": "Movie",
+      "uid": "movie",
+      "schema": [
+        {
+          "display_name": "Title",
+          "uid": "title",
+          "data_type": "text",
+          "mandatory": true,
+          "unique": true,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "URL",
+          "uid": "url",
+          "data_type": "text",
+          "mandatory": true,
+          "field_metadata": {
+            "_default": true,
+            "version": 3
+          },
+          "multiple": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Slug",
+          "uid": "slug",
+          "data_type": "text",
+          "mandatory": true,
+          "unique": true,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Synopsis",
+          "uid": "synopsis",
+          "data_type": "text",
+          "mandatory": true,
+          "field_metadata": {
+            "allow_rich_text": true,
+            "description": "",
+            "multiline": false,
+            "rich_text_type": "advanced",
+            "options": [],
+            "version": 3
+          },
+          "multiple": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Runtime (minutes)",
+          "uid": "runtime",
+          "data_type": "number",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Genres",
+          "uid": "genres",
+          "data_type": "reference",
+          "reference_to": [
+            "genre"
+          ],
+          "field_metadata": {
+            "ref_multiple": true,
+            "ref_multiple_content_types": true
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Cast",
+          "uid": "cast",
+          "data_type": "reference",
+          "reference_to": [
+            "person"
+          ],
+          "field_metadata": {
+            "ref_multiple": true,
+            "ref_multiple_content_types": true
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Director",
+          "uid": "director",
+          "data_type": "reference",
+          "reference_to": [
+            "person"
+          ],
+          "field_metadata": {
+            "ref_multiple": false,
+            "ref_multiple_content_types": true
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Trailer URL",
+          "uid": "trailer_url",
+          "data_type": "text",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Title Metadata",
+          "uid": "title_metadata",
+          "data_type": "global_field",
+          "reference_to": "title_metadata",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "display_name": "Rating",
+              "uid": "rating",
+              "data_type": "text",
+              "display_type": "dropdown",
+              "enum": {
+                "advanced": true,
+                "choices": [
+                  {
+                    "key": "G",
+                    "value": "G"
+                  },
+                  {
+                    "key": "PG",
+                    "value": "PG"
+                  },
+                  {
+                    "key": "PG-13",
+                    "value": "PG-13"
+                  },
+                  {
+                    "key": "R",
+                    "value": "R"
+                  },
+                  {
+                    "key": "NC-17",
+                    "value": "NC-17"
+                  },
+                  {
+                    "key": "TV-Y",
+                    "value": "TV-Y"
+                  },
+                  {
+                    "key": "TV-PG",
+                    "value": "TV-PG"
+                  },
+                  {
+                    "key": "TV-14",
+                    "value": "TV-14"
+                  },
+                  {
+                    "key": "TV-MA",
+                    "value": "TV-MA"
+                  }
+                ]
+              },
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Content Tier",
+              "uid": "content_tier",
+              "data_type": "text",
+              "display_type": "dropdown",
+              "enum": {
+                "advanced": true,
+                "choices": [
+                  {
+                    "key": "free",
+                    "value": "free"
+                  },
+                  {
+                    "key": "premium",
+                    "value": "premium"
+                  }
+                ]
+              },
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Release Date",
+              "uid": "release_date",
+              "data_type": "isodate",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Audience Score (0-100)",
+              "uid": "score",
+              "data_type": "number",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        },
+        {
+          "display_name": "Artwork",
+          "uid": "artwork",
+          "data_type": "global_field",
+          "reference_to": "artwork",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "display_name": "Hero Image",
+              "uid": "hero_image",
+              "data_type": "file",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Thumbnail",
+              "uid": "thumbnail",
+              "data_type": "file",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        },
+        {
+          "data_type": "taxonomy",
+          "display_name": "Tags",
+          "uid": "taxonomies",
+          "taxonomies": [
+            {
+              "taxonomy_uid": "content_tags",
+              "max_terms": 25,
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": true
+            }
+          ],
+          "field_metadata": {
+            "description": ""
+          },
+          "multiple": true,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "SEO",
+          "uid": "seo",
+          "data_type": "global_field",
+          "reference_to": "seo",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "uid": "meta_title",
+              "data_type": "text",
+              "display_name": "Meta Title",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "meta_description",
+              "data_type": "text",
+              "display_name": "Meta Description",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "og_image",
+              "data_type": "file",
+              "display_name": "OG Image",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "canonical_url",
+              "data_type": "text",
+              "display_name": "Canonical URL",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        },
+        {
+          "display_name": "Availability Window",
+          "uid": "availability_window",
+          "data_type": "global_field",
+          "reference_to": "availability_window",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "uid": "available_from",
+              "data_type": "isodate",
+              "display_name": "Available From",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "available_until",
+              "data_type": "isodate",
+              "display_name": "Available Until",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "regions",
+              "data_type": "text",
+              "display_name": "Regions",
+              "multiple": true,
+              "mandatory": false,
+              "non_localizable": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        }
+      ],
+      "description": "A feature film entry with full metadata, cast references, and genre taxonomy.",
+      "options": {
+        "is_page": true,
+        "singleton": false,
+        "title": "title",
+        "url_pattern": "/:title",
+        "url_prefix": "/"
+      }
+    },
+    {
+      "title": "Homepage Rail",
+      "uid": "homepage_rail",
+      "schema": [
+        {
+          "display_name": "Title",
+          "uid": "title",
+          "data_type": "text",
+          "mandatory": true,
+          "multiple": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Rail Type",
+          "uid": "rail_type",
+          "data_type": "text",
+          "display_type": "dropdown",
+          "enum": {
+            "advanced": true,
+            "choices": [
+              {
+                "key": "editorial",
+                "value": "editorial"
+              },
+              {
+                "key": "automated",
+                "value": "automated"
+              }
+            ]
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Title Items",
+          "uid": "items",
+          "data_type": "reference",
+          "reference_to": [
+            "movie",
+            "tv_series"
+          ],
+          "field_metadata": {
+            "ref_multiple": true,
+            "ref_multiple_content_types": true
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Layout",
+          "uid": "layout",
+          "data_type": "text",
+          "display_type": "dropdown",
+          "enum": {
+            "advanced": true,
+            "choices": [
+              {
+                "key": "landscape",
+                "value": "landscape"
+              },
+              {
+                "key": "portrait",
+                "value": "portrait"
+              },
+              {
+                "key": "hero",
+                "value": "hero"
+              }
+            ]
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        }
+      ],
+      "description": "A horizontal row of title cards. Used as a modular block on the homepage.",
+      "options": {
+        "is_page": false,
+        "singleton": false,
+        "title": "title"
+      }
+    },
+    {
+      "title": "Hero Banner",
+      "uid": "hero_banner",
+      "schema": [
+        {
+          "display_name": "Title",
+          "uid": "title",
+          "data_type": "text",
+          "mandatory": true,
+          "multiple": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Subtitle",
+          "uid": "subtitle",
+          "data_type": "text",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "CTA",
+          "uid": "cta",
+          "data_type": "global_field",
+          "reference_to": "cta",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "display_name": "Label",
+              "uid": "label",
+              "data_type": "text",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "URL",
+              "uid": "url",
+              "data_type": "text",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Style",
+              "uid": "style",
+              "data_type": "text",
+              "display_type": "dropdown",
+              "enum": {
+                "advanced": true,
+                "choices": [
+                  {
+                    "key": "primary",
+                    "value": "primary"
+                  },
+                  {
+                    "key": "secondary",
+                    "value": "secondary"
+                  },
+                  {
+                    "key": "ghost",
+                    "value": "ghost"
+                  }
+                ]
+              },
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Open in New Tab",
+              "uid": "open_in_new_tab",
+              "data_type": "boolean",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        },
+        {
+          "display_name": "Background Image",
+          "uid": "background_image",
+          "data_type": "file",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Badge Text (optional)",
+          "uid": "badge_text",
+          "data_type": "text",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Linked Title",
+          "uid": "linked_title",
+          "data_type": "reference",
+          "reference_to": [
+            "movie",
+            "tv_series"
+          ],
+          "field_metadata": {
+            "ref_multiple": false,
+            "ref_multiple_content_types": true
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        }
+      ],
+      "description": "Full-bleed hero with CTA. Used as a modular block on the homepage.",
+      "options": {
+        "is_page": false,
+        "singleton": false,
+        "title": "title"
+      }
+    },
+    {
+      "title": "Header",
+      "uid": "header",
+      "schema": [
+        {
+          "uid": "title",
+          "data_type": "text",
+          "display_name": "Title",
+          "mandatory": true,
+          "unique": true,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "uid": "logo",
+          "data_type": "file",
+          "display_name": "Logo",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "uid": "main_navigation",
+          "data_type": "reference",
+          "display_name": "Main Navigation",
+          "reference_to": [
+            "navigation"
+          ],
+          "field_metadata": {
+            "ref_multiple": false,
+            "ref_multiple_content_types": true
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "CTA",
+          "uid": "cta",
+          "data_type": "global_field",
+          "reference_to": "cta",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "display_name": "Label",
+              "uid": "label",
+              "data_type": "text",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "URL",
+              "uid": "url",
+              "data_type": "text",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Style",
+              "uid": "style",
+              "data_type": "text",
+              "display_type": "dropdown",
+              "enum": {
+                "advanced": true,
+                "choices": [
+                  {
+                    "key": "primary",
+                    "value": "primary"
+                  },
+                  {
+                    "key": "secondary",
+                    "value": "secondary"
+                  },
+                  {
+                    "key": "ghost",
+                    "value": "ghost"
+                  }
+                ]
+              },
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "display_name": "Open in New Tab",
+              "uid": "open_in_new_tab",
+              "data_type": "boolean",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        },
+        {
+          "uid": "show_search",
+          "data_type": "boolean",
+          "display_name": "Show Search Icon",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "uid": "show_profile",
+          "data_type": "boolean",
+          "display_name": "Show Profile Icon",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        }
+      ],
+      "description": "Site header: logo, main navigation, and optional CTA.",
+      "options": {
+        "title": "title",
+        "is_page": false,
+        "singleton": false
+      }
+    },
+    {
+      "title": "Genre",
+      "uid": "genre",
+      "schema": [
+        {
+          "display_name": "Title",
+          "uid": "title",
+          "data_type": "text",
+          "mandatory": true,
+          "unique": false,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Slug",
+          "uid": "slug",
+          "data_type": "text",
+          "mandatory": true,
+          "unique": true,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Description",
+          "uid": "description",
+          "data_type": "text",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Color Accent (hex)",
+          "uid": "color_accent",
+          "data_type": "text",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Hero Image",
+          "uid": "hero_image",
+          "data_type": "file",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "SEO",
+          "uid": "seo",
+          "data_type": "global_field",
+          "reference_to": "seo",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "uid": "meta_title",
+              "data_type": "text",
+              "display_name": "Meta Title",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "meta_description",
+              "data_type": "text",
+              "display_name": "Meta Description",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "og_image",
+              "data_type": "file",
+              "display_name": "OG Image",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            },
+            {
+              "uid": "canonical_url",
+              "data_type": "text",
+              "display_name": "Canonical URL",
+              "mandatory": false,
+              "non_localizable": false,
+              "multiple": false,
+              "unique": false,
+              "indexed": false,
+              "inbuilt_model": false
+            }
+          ]
+        }
+      ],
+      "description": "Taxonomy term. Referenced by movie and tv_series entries.",
+      "options": {
+        "is_page": false,
+        "singleton": false,
+        "title": "title"
+      }
+    },
+    {
+      "title": "Footer",
+      "uid": "footer",
+      "schema": [
+        {
+          "uid": "title",
+          "data_type": "text",
+          "display_name": "Title",
+          "mandatory": true,
+          "unique": true,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "uid": "columns",
+          "data_type": "group",
+          "display_name": "Columns",
+          "multiple": true,
+          "schema": [
+            {
+              "uid": "heading",
+              "data_type": "text",
+              "display_name": "Heading",
+              "mandatory": true,
+              "multiple": false,
+              "unique": false,
+              "non_localizable": false
+            },
+            {
+              "uid": "links",
+              "data_type": "reference",
+              "display_name": "Links",
+              "reference_to": [
+                "navigation"
+              ],
+              "field_metadata": {
+                "ref_multiple": false,
+                "ref_multiple_content_types": true
+              },
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false
+            }
+          ],
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "uid": "legal_text",
+          "data_type": "text",
+          "display_name": "Legal Text",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        }
+      ],
+      "description": "Site footer: link columns (each referencing a navigation entry) and legal text.",
+      "options": {
+        "title": "title",
+        "is_page": false,
+        "singleton": false
+      }
+    },
+    {
+      "title": "Episode",
+      "uid": "episode",
+      "schema": [
+        {
+          "display_name": "Title",
+          "uid": "title",
+          "data_type": "text",
+          "mandatory": true,
+          "multiple": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Slug",
+          "uid": "slug",
+          "data_type": "text",
+          "mandatory": true,
+          "unique": true,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Episode Number",
+          "uid": "episode_number",
+          "data_type": "number",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Duration (minutes)",
+          "uid": "duration",
+          "data_type": "number",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Synopsis",
+          "uid": "synopsis",
+          "data_type": "text",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Thumbnail",
+          "uid": "thumbnail",
+          "data_type": "file",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Air Date",
+          "uid": "air_date",
+          "data_type": "isodate",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        }
+      ],
+      "description": "",
+      "options": {
+        "is_page": false,
+        "singleton": false,
+        "title": "title"
+      }
     }
   ],
   "global_fields": [
     {
-      "uid": "seo",
-      "title": "SEO",
-      "description": "Reusable SEO metadata. Add to any content type.",
+      "title": "Title Metadata",
+      "uid": "title_metadata",
+      "description": "",
       "schema": [
-        { "uid": "meta_title", "data_type": "text", "display_name": "Meta Title" },
-        { "uid": "meta_description", "data_type": "text", "display_name": "Meta Description" },
-        { "uid": "og_image", "data_type": "file", "display_name": "OG Image" },
-        { "uid": "canonical_url", "data_type": "text", "display_name": "Canonical URL" }
+        {
+          "display_name": "Rating",
+          "uid": "rating",
+          "data_type": "text",
+          "display_type": "dropdown",
+          "enum": {
+            "advanced": true,
+            "choices": [
+              {
+                "key": "G",
+                "value": "G"
+              },
+              {
+                "key": "PG",
+                "value": "PG"
+              },
+              {
+                "key": "PG-13",
+                "value": "PG-13"
+              },
+              {
+                "key": "R",
+                "value": "R"
+              },
+              {
+                "key": "NC-17",
+                "value": "NC-17"
+              },
+              {
+                "key": "TV-Y",
+                "value": "TV-Y"
+              },
+              {
+                "key": "TV-PG",
+                "value": "TV-PG"
+              },
+              {
+                "key": "TV-14",
+                "value": "TV-14"
+              },
+              {
+                "key": "TV-MA",
+                "value": "TV-MA"
+              }
+            ]
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Content Tier",
+          "uid": "content_tier",
+          "data_type": "text",
+          "display_type": "dropdown",
+          "enum": {
+            "advanced": true,
+            "choices": [
+              {
+                "key": "free",
+                "value": "free"
+              },
+              {
+                "key": "premium",
+                "value": "premium"
+              }
+            ]
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Release Date",
+          "uid": "release_date",
+          "data_type": "isodate",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Audience Score (0-100)",
+          "uid": "score",
+          "data_type": "number",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        }
       ]
     },
     {
-      "uid": "availability_window",
-      "title": "Availability Window",
-      "description": "Controls when a title is accessible. Used by the expiry automation.",
+      "title": "SEO",
+      "uid": "seo",
+      "description": "",
       "schema": [
-        { "uid": "available_from", "data_type": "isodate", "display_name": "Available From" },
-        { "uid": "available_until", "data_type": "isodate", "display_name": "Available Until" },
-        { "uid": "regions", "data_type": "text", "display_name": "Regions", "multiple": true }
+        {
+          "uid": "meta_title",
+          "data_type": "text",
+          "display_name": "Meta Title",
+          "mandatory": false,
+          "non_localizable": false,
+          "multiple": false,
+          "unique": false
+        },
+        {
+          "uid": "meta_description",
+          "data_type": "text",
+          "display_name": "Meta Description",
+          "mandatory": false,
+          "non_localizable": false,
+          "multiple": false,
+          "unique": false
+        },
+        {
+          "uid": "og_image",
+          "data_type": "file",
+          "display_name": "OG Image",
+          "mandatory": false,
+          "non_localizable": false,
+          "multiple": false,
+          "unique": false
+        },
+        {
+          "uid": "canonical_url",
+          "data_type": "text",
+          "display_name": "Canonical URL",
+          "mandatory": false,
+          "non_localizable": false,
+          "multiple": false,
+          "unique": false
+        }
+      ]
+    },
+    {
+      "title": "Link",
+      "uid": "link",
+      "description": "",
+      "schema": [
+        {
+          "display_name": "Label",
+          "uid": "label",
+          "data_type": "text",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Href",
+          "uid": "href",
+          "data_type": "text",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Open in New Tab",
+          "uid": "open_in_new_tab",
+          "data_type": "boolean",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        }
+      ]
+    },
+    {
+      "title": "CTA",
+      "uid": "cta",
+      "description": "",
+      "schema": [
+        {
+          "display_name": "Label",
+          "uid": "label",
+          "data_type": "text",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "URL",
+          "uid": "url",
+          "data_type": "text",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Style",
+          "uid": "style",
+          "data_type": "text",
+          "display_type": "dropdown",
+          "enum": {
+            "advanced": true,
+            "choices": [
+              {
+                "key": "primary",
+                "value": "primary"
+              },
+              {
+                "key": "secondary",
+                "value": "secondary"
+              },
+              {
+                "key": "ghost",
+                "value": "ghost"
+              }
+            ]
+          },
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Open in New Tab",
+          "uid": "open_in_new_tab",
+          "data_type": "boolean",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        }
+      ]
+    },
+    {
+      "title": "Availability Window",
+      "uid": "availability_window",
+      "description": "",
+      "schema": [
+        {
+          "uid": "available_from",
+          "data_type": "isodate",
+          "display_name": "Available From",
+          "mandatory": false,
+          "non_localizable": false,
+          "multiple": false,
+          "unique": false
+        },
+        {
+          "uid": "available_until",
+          "data_type": "isodate",
+          "display_name": "Available Until",
+          "mandatory": false,
+          "non_localizable": false,
+          "multiple": false,
+          "unique": false
+        },
+        {
+          "uid": "regions",
+          "data_type": "text",
+          "display_name": "Regions",
+          "multiple": true,
+          "mandatory": false,
+          "non_localizable": false,
+          "unique": false
+        }
+      ]
+    },
+    {
+      "title": "Artwork",
+      "uid": "artwork",
+      "description": "",
+      "schema": [
+        {
+          "display_name": "Hero Image",
+          "uid": "hero_image",
+          "data_type": "file",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Thumbnail",
+          "uid": "thumbnail",
+          "data_type": "file",
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false
+        }
       ]
     }
   ]

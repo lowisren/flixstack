@@ -103,6 +103,7 @@ async function seed() {
   ]) {
     people[person.slug] = await createEntry("person", {
       ...person,
+      role: [person.role], // `role` is a multi-select in the v2 model
       url: `/${person.slug}`,
     });
   }
@@ -119,12 +120,16 @@ async function seed() {
   ];
 
   for (const movie of movies) {
+    const { rating, release_date, content_tier, score, genres: genreKeys, ...rest } = movie;
     await createEntry("movie", {
-      ...movie,
+      ...rest,
       url: `/${movie.slug}`,
-      synopsis: `A compelling story in ${movie.genres[0]} genre.`,
-      genres: movie.genres.map((g) => ({ uid: genres[g] })).filter((r) => r.uid),
-      tags: [movie.genres[0], "featured"],
+      synopsis: `A compelling story in ${genreKeys[0]} genre.`,
+      genres: genreKeys.map((g) => ({ uid: genres[g], _content_type_uid: "genre" })).filter((r) => r.uid),
+      // v2 model: shared scalars live in the `title_metadata` global field, and tags
+      // are governed `content_tags` taxonomy terms (uids are underscore-cased slugs).
+      title_metadata: { rating, release_date, content_tier, score },
+      taxonomies: genreKeys.map((g) => ({ taxonomy_uid: "content_tags", term_uid: g.replace(/-/g, "_") })),
     });
   }
 
@@ -134,15 +139,19 @@ async function seed() {
   await createEntry("hero_banner", {
     title: "Dune: Part Two",
     subtitle: "The legend becomes the messiah.",
-    cta_label: "Watch Now",
-    cta_url: "/watch/dune-part-two",
+    // v2 model: CTA is the reusable `cta` global field
+    cta: { label: "Watch Now", url: "/watch/dune-part-two", style: "primary", open_in_new_tab: false },
     badge_text: "Now Streaming",
   });
 
   await createEntry("site_config", {
     title: "Flixstack Config",
     site_name: "Flixstack",
-    feature_flags: { dev_mode: true, lytics_enabled: false },
+    // v2 model: feature_flags is a group[] of { key, enabled }
+    feature_flags: [
+      { key: "dev_mode", enabled: true },
+      { key: "lytics_enabled", enabled: false },
+    ],
   });
 
   // ─── Header / Footer / Navigation ─────────────────────────

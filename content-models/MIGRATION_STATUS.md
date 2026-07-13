@@ -67,3 +67,39 @@ time, confirmed via `get_all_entries` before deleting — nothing was lost).
 `boolean` fields (`show_search`, `show_profile`, `open_in_new_tab`) had zero prior usage in this
 stack's model — verified accepted as-is via `get_a_single_content_type` after creation, no quirks
 found.
+
+## v2 — structured-content restructure (branch `model_v2`)
+
+Applied on a dedicated Contentstack branch (`model_v2`, cloned from `main`) via
+`scripts/migrate-v2.mjs`. `export.json` now reflects this v2 model. Merge to `main` when signed off.
+
+**4 new global fields** (now 6 total): `cta` (label/url/style/open_in_new_tab), `link`
+(label/href/open_in_new_tab), `artwork` (hero_image/thumbnail), `title_metadata`
+(rating/content_tier/release_date/score, ratings as one shared enum incl. TV-*).
+
+**1 new taxonomy** `content_tags` — 77 governed terms seeded from the catalog's tag vocabulary,
+replacing the free-text `content_tags` field on `movie`/`tv_series` (entry field uid `taxonomies`).
+
+**Content-type changes:** `movie`/`tv_series` now embed `title_metadata` + `artwork` + the taxonomy
+(tv_series also gains `seo`, previously missing); `hero_banner`/`header`/`page.promo_block` use the
+`cta` global field; `navigation.links` is now the `link` global field (multiple); `person.role` is
+a multi-select (+`writer`); `site_config.feature_flags` is a `group[]` of `{ key, enabled }`;
+`genre` gains `seo`.
+
+**Gotchas found via the live API:**
+- Branch UID max length is 15 chars, alphanumeric/underscore only (`content-model-v2` rejected →
+  `model_v2`).
+- Taxonomy field `max_terms` must be 1–25 (30 rejected).
+- **Ordering trap:** removing a field from a content type drops that field's data from existing
+  entries. The migration changed schemas *before* reading old values, so `rating`/`content_tags`/
+  `artwork`/`cta`/`role`/nav `links` had to be **backfilled from the pristine `main` branch** (entry
+  UIDs are identical across a branch clone). Re-run order that avoids this: read entry data first,
+  or always backfill from `main`.
+- Delivery tokens are **branch-scoped**: the `development` delivery token needed `model_v2` added to
+  its branch scope (Settings → Tokens) before the Next.js app could read the branch. Management
+  tokens are not permitted to edit delivery-token scopes (401).
+
+**Frontend mapping:** the app's flat types are unchanged; `src/lib/contentstack/normalize.ts`
+flattens the nested v2 shapes (`title_metadata`/`artwork`/`taxonomies`/`cta`/`feature_flags`) back
+into them, so components did not change. Branch is selected via
+`NEXT_PUBLIC_CONTENTSTACK_BRANCH` (see `client.ts`).

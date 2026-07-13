@@ -3,9 +3,13 @@
 //
 // Called once per entry, immediately after fetching (never inside components):
 //   - Renders Advanced/JSON Rich Text fields (`synopsis`) to HTML.
-//   - Renames the CMS's `content_tags` field back to the app's `tags` (the
-//     content type schema can't use `tags` — it's a Contentstack-reserved
-//     field UID, see content-models/MIGRATION_STATUS.md).
+//   - Flattens the structured-content model's nested shapes back into the app's
+//     flat types, so components stay unchanged (see content-models/MIGRATION_STATUS.md):
+//       · `title_metadata` global field  -> rating/content_tier/release_date/score
+//       · `artwork` global field         -> hero_image/thumbnail
+//       · `content_tags` taxonomy        -> `tags` (term UIDs mapped back to slugs)
+//       · `cta` global field             -> cta_label/cta_url
+//       · `feature_flags` group[]        -> Record<string, boolean>
 //   - Unwraps single-reference fields (`director`, `creator`) which the
 //     Delivery API still returns as a one-element array.
 //   - Attaches `data-cslp` Visual Builder edit tags via `addEditableTags`,
@@ -52,6 +56,16 @@ function renderRte(entry: Raw, paths: string[]): void {
   }
 }
 
+/** Maps a Contentstack taxonomy field (array of `{ taxonomy_uid, term_uid }`)
+ * into the app's flat `tags: string[]`. Term UIDs are underscore-cased
+ * (`mind_bending`); the app's tags use hyphenated slugs (`mind-bending`). */
+function normalizeTags(taxonomies: Raw): string[] {
+  if (!Array.isArray(taxonomies)) return [];
+  return taxonomies
+    .filter((t) => t?.taxonomy_uid === "content_tags" && t?.term_uid)
+    .map((t) => String(t.term_uid).replace(/_/g, "-"));
+}
+
 export function normalizeGenre(raw: Raw): Genre {
   tag(raw, "genre");
   return {
@@ -73,7 +87,7 @@ export function normalizePerson(raw: Raw): Person {
     slug: raw.slug,
     bio: raw.bio ?? "",
     photo: raw.photo ?? undefined,
-    role: raw.role,
+    role: Array.isArray(raw.role) ? raw.role : raw.role ? [raw.role] : [],
     $: raw.$,
   };
 }
@@ -124,24 +138,26 @@ export function normalizeMovie(raw: Raw): Movie {
   const genres = normalizeReferenceArray(raw.genres, normalizeGenre);
   const cast = normalizeReferenceArray(raw.cast, normalizePerson);
   const director = normalizeSingleReference(raw.director, normalizePerson);
+  const meta = raw.title_metadata ?? {};
+  const art = raw.artwork ?? {};
   return {
     uid: raw.uid,
     content_type: "movie",
     title: raw.title,
     slug: raw.slug,
     synopsis: raw.synopsis ?? "",
-    release_date: raw.release_date,
+    release_date: meta.release_date,
     runtime: raw.runtime,
-    rating: raw.rating,
+    rating: meta.rating,
     genres,
     cast,
     director: director as Person,
-    hero_image: raw.hero_image ?? undefined,
-    thumbnail: raw.thumbnail ?? undefined,
+    hero_image: art.hero_image ?? undefined,
+    thumbnail: art.thumbnail ?? undefined,
     trailer_url: raw.trailer_url,
-    content_tier: raw.content_tier,
-    tags: raw.content_tags ?? [],
-    score: raw.score,
+    content_tier: meta.content_tier,
+    tags: normalizeTags(raw.taxonomies),
+    score: meta.score,
     $: raw.$,
   };
 }
@@ -152,24 +168,26 @@ export function normalizeTvSeries(raw: Raw): TvSeries {
   const genres = normalizeReferenceArray(raw.genres, normalizeGenre);
   const cast = normalizeReferenceArray(raw.cast, normalizePerson);
   const creator = normalizeSingleReference(raw.creator, normalizePerson);
+  const meta = raw.title_metadata ?? {};
+  const art = raw.artwork ?? {};
   return {
     uid: raw.uid,
     content_type: "tv_series",
     title: raw.title,
     slug: raw.slug,
     synopsis: raw.synopsis ?? "",
-    release_date: raw.release_date,
-    rating: raw.rating,
+    release_date: meta.release_date,
+    rating: meta.rating,
     genres,
     cast,
     creator: creator as Person,
-    hero_image: raw.hero_image ?? undefined,
-    thumbnail: raw.thumbnail ?? undefined,
+    hero_image: art.hero_image ?? undefined,
+    thumbnail: art.thumbnail ?? undefined,
     seasons: normalizeSeasons(raw.seasons),
     status: raw.status,
-    content_tier: raw.content_tier,
-    tags: raw.content_tags ?? [],
-    score: raw.score,
+    content_tier: meta.content_tier,
+    tags: normalizeTags(raw.taxonomies),
+    score: meta.score,
     $: raw.$,
   };
 }
@@ -185,8 +203,8 @@ export function normalizeHeroBanner(raw: Raw): HeroBanner {
     uid: raw.uid,
     title: raw.title,
     subtitle: raw.subtitle ?? "",
-    cta_label: raw.cta_label ?? "",
-    cta_url: raw.cta_url ?? "",
+    cta_label: raw.cta?.label ?? "",
+    cta_url: raw.cta?.url ?? "",
     background_image: raw.background_image ?? undefined,
     badge_text: raw.badge_text,
     linked_title: linked,
@@ -210,7 +228,10 @@ export function normalizeSiteConfig(raw: Raw): SiteConfig {
   tag(raw, "site_config");
   return {
     site_name: raw.site_name ?? "Flixstack",
-    feature_flags: raw.feature_flags ?? {},
+    // Modeled as a group[] of { key, enabled }; flatten to the app's Record<string, boolean>.
+    feature_flags: Array.isArray(raw.feature_flags)
+      ? Object.fromEntries(raw.feature_flags.map((f: Raw) => [f.key, Boolean(f.enabled)]))
+      : raw.feature_flags ?? {},
     $: raw.$,
   };
 }
@@ -240,8 +261,8 @@ export function normalizeHeader(raw: Raw): Header {
     uid: raw.uid,
     logo: raw.logo ?? undefined,
     main_navigation: normalizeSingleReference(raw.main_navigation, normalizeNavigation),
-    cta_label: raw.cta_label ?? "",
-    cta_url: raw.cta_url ?? "",
+    cta_label: raw.cta?.label ?? "",
+    cta_url: raw.cta?.url ?? "",
     show_search: raw.show_search ?? true,
     show_profile: raw.show_profile ?? true,
     $: raw.$,

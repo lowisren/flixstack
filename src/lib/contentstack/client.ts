@@ -5,6 +5,7 @@
 //   NEXT_PUBLIC_CONTENTSTACK_DELIVERY_TOKEN  — Delivery token for the environment
 //   NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT     — Environment name (e.g., "development")
 //   NEXT_PUBLIC_CONTENTSTACK_REGION          — Optional: "US" (default), "EU", "AZURE_NA", "AZURE_EU", "GCP_NA", "GCP_EU"
+//   NEXT_PUBLIC_CONTENTSTACK_BRANCH          — Optional: content branch to read from (default "main")
 //   CONTENTSTACK_PREVIEW_TOKEN               — Server-only. Required for Live Preview / Visual Builder.
 // ============================================================
 
@@ -16,6 +17,7 @@ export const CS_CONFIG = {
   deliveryToken: process.env.NEXT_PUBLIC_CONTENTSTACK_DELIVERY_TOKEN ?? "",
   environment: process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT ?? "",
   region: process.env.NEXT_PUBLIC_CONTENTSTACK_REGION ?? "US",
+  branch: process.env.NEXT_PUBLIC_CONTENTSTACK_BRANCH ?? "main",
   // Server-only — never exposed to the client bundle.
   previewToken: process.env.CONTENTSTACK_PREVIEW_TOKEN ?? "",
 };
@@ -36,6 +38,7 @@ export function createStack(): Stack {
     deliveryToken: CS_CONFIG.deliveryToken,
     environment: CS_CONFIG.environment,
     region: REGION_MAP[CS_CONFIG.region] ?? Region.US,
+    branch: CS_CONFIG.branch,
     live_preview: isLivePreviewConfigured
       ? {
           enable: true,

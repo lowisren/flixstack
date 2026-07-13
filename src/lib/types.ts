@@ -38,7 +38,8 @@ export interface Person {
   slug: string;
   bio: string;
   photo?: Asset;
-  role: "actor" | "director" | "producer";
+  // Modeled in Contentstack as a multi-select — a person can hold more than one role.
+  role: Array<"actor" | "director" | "producer" | "writer">;
   $?: EditableTagMap;
 }
 
