@@ -1,4 +1,4 @@
-import { CheckCircle, Circle, ExternalLink, Layers, Users, Bot, Zap, Database } from "lucide-react";
+import { CheckCircle, Circle, ExternalLink, Layers, Users, Bot, Zap, Database, Tags } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { isCSConfigured } from "@/lib/contentstack/client";
 
@@ -14,7 +14,7 @@ const STEPS = [
   {
     id: 2,
     title: "Import the Content Models",
-    description: "Import the pre-built schema from content-models/export.json into your stack.",
+    description: "Import the pre-built schema — 12 content types and 6 global fields — from content-models/export.json into your stack. The content_tags taxonomy is created separately in the next step.",
     detail: "In your stack → Settings → Import/Export → Import stack → Upload content-models/export.json",
     code: null,
     docsHref: "https://www.contentstack.com/docs/developers/apis/content-management-api",
@@ -27,11 +27,15 @@ const STEPS = [
     code: `# .env.local
 NEXT_PUBLIC_CONTENTSTACK_API_KEY=your_api_key
 NEXT_PUBLIC_CONTENTSTACK_DELIVERY_TOKEN=your_delivery_token
-NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT=production
+NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT=development
 NEXT_PUBLIC_CONTENTSTACK_REGION=US  # or EU, AZURE_NA, AZURE_EU, GCP_NA, GCP_EU
+NEXT_PUBLIC_CONTENTSTACK_BRANCH=main  # content branch to read from (default: main)
 
 # Required for Live Preview / Visual Builder — server-only, no NEXT_PUBLIC_ prefix
 CONTENTSTACK_PREVIEW_TOKEN=your_preview_token
+
+# Required for the seed / migration scripts — server-only
+CONTENTSTACK_MANAGEMENT_TOKEN=your_management_token
 
 # Optional: Lytics integration
 NEXT_PUBLIC_CONTENTSTACK_LYTICS_ACCOUNT_ID=your_lytics_id
@@ -40,19 +44,22 @@ NEXT_PUBLIC_CONTENTSTACK_LYTICS_API_KEY=your_lytics_server_key`,
   },
   {
     id: 4,
-    title: "Seed Sample Content",
-    description: "Run the seed script to populate your stack with movies, shows, genres, and people.",
+    title: "Seed the Taxonomy & Sample Content",
+    description: "Create the content_tags taxonomy terms, then populate your stack with movies, shows, genres, and people. Entries reference taxonomy terms, so the terms must exist first.",
     detail: null,
     code: `# Install Management SDK dependencies first
 pnpm install
 
-# Run the seed script
+# 1. Create the content_tags taxonomy terms (governed tag vocabulary)
+node scripts/migrate-v2.mjs terms
+
+# 2. Seed the entries
 pnpm seed
 
 # This creates:
-# - 5 genres, 20 movies, 3 TV series
-# - 10 cast/crew entries
-# - Hero banners and homepage rail configuration`,
+# - 6 genres, movies, TV series, cast/crew (person) entries
+# - Hero banners + homepage rails
+# - Navigation, header, footer, and site config`,
     docsHref: null,
   },
   {
@@ -82,8 +89,8 @@ const FEATURES = [
     id: "content-models",
     icon: Database,
     title: "Content Models",
-    description: "12 structured content types define every piece of content on the site — from a single movie to a full homepage rail. Each type has strongly typed fields: Short Text, Rich Text, File, Reference, Select, and Group.",
-    fields: ["movie", "tv_series", "season", "episode", "person", "genre", "hero_banner", "homepage_rail", "page", "site_config", "header", "footer"],
+    description: "12 structured content types define every piece of content on the site — from a single movie to a full homepage rail. Movies and TV series share their common fields (rating, artwork, availability, tags) through reusable global fields and a taxonomy, so the model stays DRY. Field types in use: Short Text, Rich Text, File, Reference, Select, Boolean, Group, Global Field, and Taxonomy.",
+    fields: ["movie", "tv_series", "episode", "person", "genre", "hero_banner", "homepage_rail", "page", "navigation", "site_config", "header", "footer"],
     learnHref: "https://www.contentstack.com/docs/developers/create-a-content-type",
   },
   {
@@ -98,16 +105,24 @@ const FEATURES = [
     id: "global-fields",
     icon: Zap,
     title: "Global Fields",
-    description: "SEO metadata and availability windows are global fields — reusable field groups shared across multiple content types.",
-    fields: ["seo", "availability_window"],
+    description: "Six reusable field groups keep the model DRY. title_metadata (rating, tier, release date, score) and artwork (hero image, thumbnail) are shared by movies and TV series; cta and link standardize buttons and navigation links across the site; seo and availability_window round out the set. Edit a global field once and every content type using it updates.",
+    fields: ["title_metadata", "artwork", "cta", "link", "seo", "availability_window"],
     learnHref: "https://www.contentstack.com/docs/developers/create-a-content-type/understanding-global-fields",
+  },
+  {
+    id: "taxonomy",
+    icon: Tags,
+    title: "Taxonomy",
+    description: "Content tags are a governed taxonomy, not free text. Editors pick from a shared vocabulary of terms attached to movies and TV series, so tagging stays consistent, filterable, and reusable across the whole catalog.",
+    fields: ["content_tags", "governed terms"],
+    learnHref: "https://www.contentstack.com/docs/developers/taxonomy",
   },
   {
     id: "header-footer-nav",
     icon: Layers,
     title: "Header, Footer & Navigation",
-    description: "The main nav and footer nav are separate, reusable navigation entries — reference one from the header content type, or from any footer column. Both are fully editable in Live Preview / Visual Builder.",
-    fields: ["navigation", "header", "footer"],
+    description: "The main nav and footer nav are separate, reusable navigation entries whose links use the shared link global field — reference one navigation entry from the header content type, or from any footer column. Both are fully editable in Live Preview / Visual Builder.",
+    fields: ["navigation", "header", "footer", "link"],
     learnHref: "https://www.contentstack.com/docs/developers/references/add-a-reference-field",
   },
   {
@@ -130,14 +145,14 @@ const FEATURES = [
 
 export default function SetupPage() {
   return (
-    <div className="mx-auto max-w-screen-lg px-4 sm:px-6 lg:px-8 py-10">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
       {/* Header */}
       <div className="mb-10">
         <Badge variant="accent" className="mb-4">Developer Guide</Badge>
-        <h1 className="text-4xl font-bold text-[var(--color-text-primary)] mb-4">
+        <h1 className="text-4xl font-bold text-(--color-text-primary) mb-4">
           Flixstack Setup Guide
         </h1>
-        <p className="text-lg text-[var(--color-text-secondary)] max-w-2xl leading-relaxed">
+        <p className="text-lg text-text-secondary max-w-2xl leading-relaxed">
           Get Flixstack connected to ContentStack in under 10 minutes. This guide walks you
           through every step and explains what each ContentStack feature does in the context
           of the site.
