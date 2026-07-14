@@ -15,6 +15,9 @@ export function LivePreviewInit() {
   const router = useRouter();
 
   useEffect(() => {
+    // Disabled on production/live environments — no Visual Builder bridge or edit buttons.
+    if (process.env.NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW !== "true") return;
+
     const apiKey = process.env.NEXT_PUBLIC_CONTENTSTACK_API_KEY;
     const environment = process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT;
     const region = process.env.NEXT_PUBLIC_CONTENTSTACK_REGION ?? "US";

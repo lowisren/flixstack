@@ -25,7 +25,18 @@ export const CS_CONFIG = {
 export const isCSConfigured =
   Boolean(CS_CONFIG.apiKey) && Boolean(CS_CONFIG.deliveryToken) && Boolean(CS_CONFIG.environment);
 
-export const isLivePreviewConfigured = isCSConfigured && Boolean(CS_CONFIG.previewToken);
+/**
+ * Master switch for the Visual Builder / Live Preview experience on this deployment.
+ * Set `NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW=true` only on preview/editing environments.
+ * On the production/live environment, leave it unset (or "false") so the site renders
+ * clean: no `data-cslp` edit tags in the markup and no Visual Builder init on the client.
+ * NEXT_PUBLIC_ so both server (edit tags) and client (init) read the same value; because
+ * it is inlined at build time, it must be set in each Launch environment before its build.
+ */
+export const LIVE_PREVIEW_ENABLED = process.env.NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW === "true";
+
+export const isLivePreviewConfigured =
+  LIVE_PREVIEW_ENABLED && isCSConfigured && Boolean(CS_CONFIG.previewToken);
 
 /**
  * Creates a fresh Stack instance. Per Contentstack's SSR guidance, a stack must be created

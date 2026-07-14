@@ -18,6 +18,7 @@
 // ============================================================
 
 import { addEditableTags, jsonToHTML } from "@contentstack/utils";
+import { LIVE_PREVIEW_ENABLED } from "./client";
 import type {
   Episode,
   Footer,
@@ -43,6 +44,8 @@ const LOCALE = "en-us";
 type Raw = any;
 
 function tag(entry: Raw, contentTypeUid: string): void {
+  // Skip on production/live deployments — no `data-cslp` edit tags in the published markup.
+  if (!LIVE_PREVIEW_ENABLED) return;
   if (!entry || typeof entry !== "object") return;
   addEditableTags(entry, contentTypeUid, true, LOCALE);
 }

@@ -21,6 +21,8 @@ interface SiteChromeProps {
 function LivePreviewParamsWatcher({ onDetect }: { onDetect: (qs: string) => void }) {
   const searchParams = useSearchParams();
   useEffect(() => {
+    // Ignore preview params entirely on production/live environments.
+    if (process.env.NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW !== "true") return;
     if (searchParams.get("live_preview")) onDetect(searchParams.toString());
   }, [searchParams, onDetect]);
   return null;
