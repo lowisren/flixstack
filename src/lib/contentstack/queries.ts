@@ -193,32 +193,51 @@ const DEFAULT_SITE_CONFIG: SiteConfig = {
   feature_flags: {},
 };
 
+// The header/footer/site-config queries below are fetched in the root layout on every
+// route. A thrown delivery error here (e.g. a misconfigured environment or an unreachable
+// branch) would crash the layout and 500 the *entire* site, so they degrade to safe
+// fallbacks and log instead of throwing. Page-level queries are left to fail per-route.
 export async function getSiteConfig(livePreview?: LivePreviewQuery): Promise<SiteConfig> {
-  const result = await stack(livePreview).contentType("site_config").entry().query().find<RawEntry>();
-  const raw = result.entries?.[0];
-  return raw ? normalizeSiteConfig(raw) : DEFAULT_SITE_CONFIG;
+  try {
+    const result = await stack(livePreview).contentType("site_config").entry().query().find<RawEntry>();
+    const raw = result.entries?.[0];
+    return raw ? normalizeSiteConfig(raw) : DEFAULT_SITE_CONFIG;
+  } catch (err) {
+    console.error("[contentstack] getSiteConfig failed, using default:", err);
+    return DEFAULT_SITE_CONFIG;
+  }
 }
 
 export async function getHeader(livePreview?: LivePreviewQuery): Promise<Header | undefined> {
-  const result = await stack(livePreview)
-    .contentType("header")
-    .entry()
-    .includeReference("main_navigation")
-    .query()
-    .find<RawEntry>();
-  const raw = result.entries?.[0];
-  return raw ? normalizeHeader(raw) : undefined;
+  try {
+    const result = await stack(livePreview)
+      .contentType("header")
+      .entry()
+      .includeReference("main_navigation")
+      .query()
+      .find<RawEntry>();
+    const raw = result.entries?.[0];
+    return raw ? normalizeHeader(raw) : undefined;
+  } catch (err) {
+    console.error("[contentstack] getHeader failed:", err);
+    return undefined;
+  }
 }
 
 export async function getFooter(livePreview?: LivePreviewQuery): Promise<Footer | undefined> {
-  const result = await stack(livePreview)
-    .contentType("footer")
-    .entry()
-    .includeReference("columns.links")
-    .query()
-    .find<RawEntry>();
-  const raw = result.entries?.[0];
-  return raw ? normalizeFooter(raw) : undefined;
+  try {
+    const result = await stack(livePreview)
+      .contentType("footer")
+      .entry()
+      .includeReference("columns.links")
+      .query()
+      .find<RawEntry>();
+    const raw = result.entries?.[0];
+    return raw ? normalizeFooter(raw) : undefined;
+  } catch (err) {
+    console.error("[contentstack] getFooter failed:", err);
+    return undefined;
+  }
 }
 
 export async function getNavigationByTitle(

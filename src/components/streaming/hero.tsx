@@ -34,6 +34,10 @@ export function Hero({ banners }: HeroProps) {
 
   const banner = banners[current];
 
+  // No banners published (e.g. an environment with no hero content) — render nothing
+  // rather than crashing on `banner.*`. Guard sits after all hooks to keep hook order stable.
+  if (!banner) return null;
+
   return (
     <section
       aria-label="Featured content"
