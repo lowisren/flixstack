@@ -92,21 +92,23 @@ export async function getAllTitles(livePreview?: LivePreviewQuery): Promise<Titl
 }
 
 export async function getTitleBySlug(slug: string, livePreview?: LivePreviewQuery): Promise<Title | undefined> {
-  const url = `/${slug}`;
+  // Look up by the `slug` field (the route param) rather than reconstructing the
+  // `url` field — the two diverged once entry urls moved to /watch/:slug for Visual
+  // Builder, and slug is the stable natural key for this route.
   const [movieResult, seriesResult] = await Promise.all([
     stack(livePreview)
       .contentType("movie")
       .entry()
       .includeReference(...MOVIE_REFERENCES)
       .query()
-      .equalTo("url", url)
+      .equalTo("slug", slug)
       .find<RawEntry>(),
     stack(livePreview)
       .contentType("tv_series")
       .entry()
       .includeReference(...TV_SERIES_REFERENCES)
       .query()
-      .equalTo("url", url)
+      .equalTo("slug", slug)
       .find<RawEntry>(),
   ]);
   const movie = movieResult.entries?.[0];
