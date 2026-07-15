@@ -1,8 +1,8 @@
 # Flixstack
 
-A ContentStack starter template — a fully functional movie and TV streaming platform (Netflix-style) built to teach developers how to build on [ContentStack](https://contentstack.com).
+A Contentstack starter template — a fully functional movie and TV streaming platform (Netflix-style) built to teach developers how to build on [Contentstack](https://contentstack.com).
 
-**Tech Stack:** Next.js 16 · ContentStack · Tailwind CSS v4 · TypeScript · Lytics
+**Tech Stack:** Next.js 16 · Contentstack · Tailwind CSS v4 · TypeScript · Lytics
 
 ---
 
@@ -14,15 +14,15 @@ pnpm dev
 # → http://localhost:3000
 ```
 
-All content and images are served live from ContentStack — there is no mock-data fallback in the app itself. A ContentStack account and populated stack are required (see below). `src/lib/mock-data.ts` still exists purely as seed source data for `scripts/seed.ts`/`scripts/upload-assets.ts`.
+All content and images are served live from Contentstack — there is no mock-data fallback in the app itself. A Contentstack account and populated stack are required (see below). `src/lib/mock-data.ts` still exists purely as seed source data for `scripts/seed.ts`/`scripts/upload-assets.ts`.
 
 ---
 
-## Connect ContentStack (10 minutes)
+## Connect Contentstack (10 minutes)
 
 ```bash
 cp .env.local.example .env.local
-# Fill in your ContentStack credentials — see /setup for a step-by-step guide
+# Fill in your Contentstack credentials — see /setup for a step-by-step guide
 ```
 
 | Variable | Where to find it |
@@ -37,7 +37,7 @@ cp .env.local.example .env.local
 Then import the content models and seed content:
 
 ```bash
-# Import via ContentStack Dashboard:
+# Import via Contentstack Dashboard:
 # Stack → Settings → Import/Export → Import Stack → content-models/export.json
 
 # Create the governed content_tags taxonomy terms (reads tokens from .env.local):
@@ -50,7 +50,7 @@ pnpm upload-assets
 # Create + publish the /setup Developer Guide entry:
 node scripts/seed-setup-guide.mjs
 
-# Publish seeded entries + assets to your environment from the ContentStack dashboard,
+# Publish seeded entries + assets to your environment from the Contentstack dashboard,
 # or via the Contentstack MCP tools if you're driving this with an AI agent.
 ```
 
@@ -60,19 +60,19 @@ Visit `/setup` in the running app for the full guided walkthrough.
 
 ## Pages & Features
 
-| Page | URL | ContentStack Feature Shown |
+| Page | URL | Contentstack Feature Shown |
 | --- | --- | --- |
 | Home | `/` | Hero banners, modular block rails, Lytics personalization |
 | Browse | `/browse` | Taxonomy filtering, multi-type queries |
 | Title detail | `/watch/[slug]` | References, ISR revalidation, related content |
 | Genre | `/genre/[slug]` | Dynamic routes from taxonomy entries |
-| Search | `/search` | ContentStack full-text search API |
+| Search | `/search` | Contentstack full-text search API |
 | Profile | `/profile` | Lytics segment tracking and preference management |
 | Dev Setup | `/setup` | Guided developer onboarding — driven entirely by the `setup_guide` singleton (JSON RTE, groups, governed enum icons) |
 
 ### Live Preview & Visual Builder
 
-Open any entry in the Contentstack dashboard and launch Visual Builder — the running app loads in an iframe with every editable field highlighted via `data-cslp` tags (title, synopsis, images, etc.). Edits reflect on the page live via `@contentstack/live-preview-utils`, no manual refresh needed. Requires `CONTENTSTACK_PREVIEW_TOKEN` to be set and the environment's Visual Builder website URL configured in ContentStack Settings.
+Open any entry in the Contentstack dashboard and launch Visual Builder — the running app loads in an iframe with every editable field highlighted via `data-cslp` tags (title, synopsis, images, etc.). Edits reflect on the page live via `@contentstack/live-preview-utils`, no manual refresh needed. Requires `CONTENTSTACK_PREVIEW_TOKEN` to be set and the environment's Visual Builder website URL configured in Contentstack Settings.
 
 ### Themes
 
@@ -99,7 +99,7 @@ src/
     ├── types.ts            # TypeScript types matching content models
     └── utils.ts
 
-content-models/export.json    # Importable ContentStack stack schema (13 types, 6 global fields)
+content-models/export.json    # Importable Contentstack stack schema (13 types, 6 global fields)
 scripts/seed.ts               # Seed script (Management SDK)
 scripts/upload-assets.ts      # Uploads + links images to seeded entries
 scripts/migrate-v2.mjs        # Structured-content migration (global fields, taxonomy, enums)
@@ -109,7 +109,7 @@ docs/                         # Deep-dive guides for each feature
 
 ---
 
-## ContentStack Content Models
+## Contentstack Content Models
 
 Flixstack uses a **structured-content** model: fields shared across types are extracted into reusable **global fields**, tags are a governed **taxonomy** (not free text), and rich text uses **JSON RTE**. The full, importable schema lives in `content-models/export.json`. 13 content types:
 

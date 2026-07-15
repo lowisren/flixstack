@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "ts-node -P tsconfig.json scripts/seed.ts",
-    "upload-assets": "tsx scripts/upload-assets.ts"
+    "upload-assets": "tsx scripts/upload-assets.ts",
+    "customize-fields": "node scripts/customize-editor-fields.mjs",
+    "setup-workflow": "node scripts/setup-workflow.mjs",
+    "content-governance": "node scripts/content-governance.mjs",
+    "fix-url-patterns": "node scripts/fix-url-patterns.mjs"
   },
   "dependencies": {
     "@contentstack/delivery-sdk": "^5.2.2",
