@@ -449,21 +449,59 @@ async function finalizeMain() {
 }
 
 // ---- Phase 4: publish --------------------------------------
-async function publishAll() {
-  console.log("\n== Phase 4: publish to", ENV, "==");
-  const CTS = ["genre", "person", "episode", "movie", "tv_series", "hero_banner", "homepage_rail", "site_config", "navigation", "header", "footer"];
-  for (const ct of CTS) {
+const PUBLISH_CTS = ["genre", "person", "episode", "movie", "tv_series", "hero_banner", "homepage_rail", "site_config", "navigation", "header", "footer"];
+
+async function publishEntries(env, branch = BRANCH) {
+  for (const ct of PUBLISH_CTS) {
     let n = 0;
-    for (const e of await getEntries(ct)) {
+    for (const e of await getEntries(ct, branch)) {
       try {
         await cma("POST", `/content_types/${ct}/entries/${e.uid}/publish`, {
-          entry: { environments: [ENV], locales: ["en-us"] },
-        });
+          entry: { environments: [env], locales: ["en-us"] },
+        }, { branch });
         n++;
       } catch (err) { console.log(`    ! publish ${ct}/${e.uid}:`, err.status || err.message); }
     }
-    console.log(`  ${ct}: published ${n}`);
+    console.log(`  ${ct}: published ${n} -> ${env}`);
   }
+}
+
+// Assets are stack-level, but their *published* state is still per-environment; the
+// site's <Image> tags 404 unless the asset is published to the reading environment.
+async function publishAssets(env, branch = BRANCH) {
+  let skip = 0, total = 0;
+  const seen = new Set();
+  for (let page = 0; page < 20; page++) {
+    const r = await cma("GET", `/assets?limit=100&skip=${page * 100}`, null, { branch });
+    const assets = r.assets || [];
+    if (!assets.length) break;
+    for (const a of assets) {
+      if (seen.has(a.uid)) continue;
+      seen.add(a.uid);
+      try {
+        await cma("POST", `/assets/${a.uid}/publish`, {
+          asset: { environments: [env], locales: ["en-us"] },
+        }, { branch });
+        total++;
+      } catch (err) { skip++; console.log(`    ! publish asset ${a.uid}:`, err.status || err.message); }
+    }
+    if (assets.length < 100) break;
+  }
+  console.log(`  assets: published ${total} -> ${env} (errors ${skip})`);
+}
+
+async function publishAll() {
+  console.log("\n== Phase 4: publish to", ENV, "==");
+  await publishEntries(ENV);
+  await publishAssets(ENV);
+}
+
+// Publish everything (entries + assets) on `main` to the production environment.
+async function publishProd() {
+  const env = process.env.PROD_ENV || "production";
+  console.log(`\n== Publish main -> ${env} ==`);
+  await publishEntries(env, "main");
+  await publishAssets(env, "main");
 }
 
 // ---- main --------------------------------------------------
@@ -475,6 +513,7 @@ const run = {
   backfill,
   finalizemain: finalizeMain,
   publish: publishAll,
+  publishprod: publishProd,
   all: async () => { await migrateTerms(); await migrateSchemas(); await migrateEntries(); await backfill(); await publishAll(); },
 };
 (run[phase] || (() => { console.error("unknown phase", phase); process.exit(1); }))()
