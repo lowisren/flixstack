@@ -2013,6 +2013,433 @@
         "singleton": false,
         "title": "title"
       }
+    },
+    {
+      "title": "Setup Guide",
+      "uid": "setup_guide",
+      "schema": [
+        {
+          "display_name": "Title",
+          "uid": "title",
+          "data_type": "text",
+          "mandatory": true,
+          "unique": false,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Badge Label",
+          "uid": "badge_label",
+          "data_type": "text",
+          "mandatory": false,
+          "unique": false,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Intro",
+          "data_type": "json",
+          "field_metadata": {
+            "allow_json_rte": true,
+            "rich_text_type": "advanced",
+            "embed_objects": [],
+            "options": [],
+            "multiline": false,
+            "ref_multiple_content_types": true
+          },
+          "reference_to": [
+            "sys_assets"
+          ],
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "uid": "intro"
+        },
+        {
+          "display_name": "Steps Heading",
+          "uid": "steps_heading",
+          "data_type": "text",
+          "mandatory": false,
+          "unique": false,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Steps",
+          "uid": "steps",
+          "data_type": "group",
+          "multiple": true,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "display_name": "Heading",
+              "uid": "heading",
+              "data_type": "text",
+              "mandatory": true,
+              "unique": false,
+              "multiple": false,
+              "non_localizable": false
+            },
+            {
+              "display_name": "Description",
+              "data_type": "json",
+              "field_metadata": {
+                "allow_json_rte": true,
+                "rich_text_type": "advanced",
+                "embed_objects": [],
+                "options": [],
+                "multiline": false,
+                "ref_multiple_content_types": true
+              },
+              "reference_to": [
+                "sys_assets"
+              ],
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "uid": "description"
+            },
+            {
+              "display_name": "Detail",
+              "data_type": "json",
+              "field_metadata": {
+                "allow_json_rte": true,
+                "rich_text_type": "advanced",
+                "embed_objects": [],
+                "options": [],
+                "multiline": false,
+                "ref_multiple_content_types": true
+              },
+              "reference_to": [
+                "sys_assets"
+              ],
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "uid": "detail"
+            },
+            {
+              "display_name": "Code",
+              "uid": "code",
+              "data_type": "text",
+              "field_metadata": {
+                "description": "",
+                "multiline": true,
+                "version": 3
+              },
+              "mandatory": false,
+              "unique": false,
+              "multiple": false,
+              "non_localizable": false
+            },
+            {
+              "uid": "docs_link",
+              "display_name": "Docs Link",
+              "data_type": "global_field",
+              "reference_to": "link",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "schema": [
+                {
+                  "display_name": "Label",
+                  "uid": "label",
+                  "data_type": "text",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "indexed": false,
+                  "inbuilt_model": false
+                },
+                {
+                  "display_name": "Href",
+                  "uid": "href",
+                  "data_type": "text",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "indexed": false,
+                  "inbuilt_model": false
+                },
+                {
+                  "display_name": "Open in New Tab",
+                  "uid": "open_in_new_tab",
+                  "data_type": "boolean",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "indexed": false,
+                  "inbuilt_model": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "display_name": "Features Heading",
+          "uid": "features_heading",
+          "data_type": "text",
+          "mandatory": false,
+          "unique": false,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Features Intro",
+          "data_type": "json",
+          "field_metadata": {
+            "allow_json_rte": true,
+            "rich_text_type": "advanced",
+            "embed_objects": [],
+            "options": [],
+            "multiline": false,
+            "ref_multiple_content_types": true
+          },
+          "reference_to": [
+            "sys_assets"
+          ],
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "uid": "features_intro"
+        },
+        {
+          "display_name": "Features",
+          "uid": "features",
+          "data_type": "group",
+          "multiple": true,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "display_name": "Anchor ID",
+              "uid": "anchor_id",
+              "data_type": "text",
+              "mandatory": true,
+              "unique": false,
+              "multiple": false,
+              "non_localizable": false
+            },
+            {
+              "display_name": "Icon",
+              "uid": "icon",
+              "data_type": "text",
+              "display_type": "dropdown",
+              "enum": {
+                "advanced": true,
+                "choices": [
+                  {
+                    "key": "database",
+                    "value": "database"
+                  },
+                  {
+                    "key": "layers",
+                    "value": "layers"
+                  },
+                  {
+                    "key": "zap",
+                    "value": "zap"
+                  },
+                  {
+                    "key": "tags",
+                    "value": "tags"
+                  },
+                  {
+                    "key": "users",
+                    "value": "users"
+                  },
+                  {
+                    "key": "bot",
+                    "value": "bot"
+                  }
+                ]
+              },
+              "field_metadata": {
+                "default_value": "",
+                "version": 3
+              },
+              "mandatory": false,
+              "unique": false,
+              "multiple": false,
+              "non_localizable": false
+            },
+            {
+              "display_name": "Heading",
+              "uid": "heading",
+              "data_type": "text",
+              "mandatory": true,
+              "unique": false,
+              "multiple": false,
+              "non_localizable": false
+            },
+            {
+              "display_name": "Description",
+              "data_type": "json",
+              "field_metadata": {
+                "allow_json_rte": true,
+                "rich_text_type": "advanced",
+                "embed_objects": [],
+                "options": [],
+                "multiline": false,
+                "ref_multiple_content_types": true
+              },
+              "reference_to": [
+                "sys_assets"
+              ],
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "uid": "description"
+            },
+            {
+              "display_name": "Field Tags",
+              "uid": "field_tags",
+              "data_type": "text",
+              "mandatory": false,
+              "unique": false,
+              "multiple": true,
+              "non_localizable": false
+            },
+            {
+              "uid": "learn_link",
+              "display_name": "Learn Link",
+              "data_type": "global_field",
+              "reference_to": "link",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "schema": [
+                {
+                  "display_name": "Label",
+                  "uid": "label",
+                  "data_type": "text",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "indexed": false,
+                  "inbuilt_model": false
+                },
+                {
+                  "display_name": "Href",
+                  "uid": "href",
+                  "data_type": "text",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "indexed": false,
+                  "inbuilt_model": false
+                },
+                {
+                  "display_name": "Open in New Tab",
+                  "uid": "open_in_new_tab",
+                  "data_type": "boolean",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "indexed": false,
+                  "inbuilt_model": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "display_name": "Docs Heading",
+          "uid": "docs_heading",
+          "data_type": "text",
+          "mandatory": false,
+          "unique": false,
+          "multiple": false,
+          "non_localizable": false
+        },
+        {
+          "display_name": "Doc Links",
+          "uid": "doc_links",
+          "data_type": "group",
+          "multiple": true,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "schema": [
+            {
+              "uid": "link",
+              "display_name": "Link",
+              "data_type": "global_field",
+              "reference_to": "link",
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "schema": [
+                {
+                  "display_name": "Label",
+                  "uid": "label",
+                  "data_type": "text",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "indexed": false,
+                  "inbuilt_model": false
+                },
+                {
+                  "display_name": "Href",
+                  "uid": "href",
+                  "data_type": "text",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "indexed": false,
+                  "inbuilt_model": false
+                },
+                {
+                  "display_name": "Open in New Tab",
+                  "uid": "open_in_new_tab",
+                  "data_type": "boolean",
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "indexed": false,
+                  "inbuilt_model": false
+                }
+              ]
+            },
+            {
+              "display_name": "Description",
+              "uid": "description",
+              "data_type": "text",
+              "mandatory": false,
+              "unique": false,
+              "multiple": false,
+              "non_localizable": false
+            }
+          ]
+        }
+      ],
+      "description": "Singleton entry that drives the /setup Developer Guide page: intro, setup steps, feature deep-dives, and documentation links.",
+      "options": {
+        "is_page": false,
+        "singleton": true,
+        "title": "title"
+      }
     }
   ],
   "global_fields": [

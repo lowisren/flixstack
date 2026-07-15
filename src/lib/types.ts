@@ -213,6 +213,58 @@ export interface Footer {
   $?: EditableTagMap;
 }
 
+// ─── Setup / Developer Guide (setup_guide content type) ──────
+// Drives the /setup page. Prose fields (`intro`, step/feature `description`,
+// step `detail`, `features_intro`) are JSON RTE in Contentstack and arrive here
+// already rendered to HTML strings by `normalizeSetupGuide`; `code` is plain text.
+
+/** A `link` global field (used for step docs, feature "learn more", and doc cards). */
+export interface SetupLink {
+  label: string;
+  href: string;
+  open_in_new_tab: boolean;
+}
+
+export interface SetupStep {
+  heading: string;
+  description: string; // HTML
+  detail?: string; // HTML
+  code?: string; // plain text
+  docs_link?: SetupLink;
+  $?: EditableTagMap;
+}
+
+export interface SetupFeature {
+  anchor_id: string;
+  icon: string; // governed enum: database | layers | zap | tags | users | bot
+  heading: string;
+  description: string; // HTML
+  field_tags: string[];
+  learn_link?: SetupLink;
+  $?: EditableTagMap;
+}
+
+export interface SetupDocLink {
+  link: SetupLink;
+  description: string;
+  $?: EditableTagMap;
+}
+
+export interface SetupGuide {
+  uid: string;
+  title: string;
+  badge_label: string;
+  intro: string; // HTML
+  steps_heading: string;
+  steps: SetupStep[];
+  features_heading: string;
+  features_intro: string; // HTML
+  features: SetupFeature[];
+  docs_heading: string;
+  doc_links: SetupDocLink[];
+  $?: EditableTagMap;
+}
+
 // Lytics
 export type LyticsSegment =
   | "action_fan"

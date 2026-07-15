@@ -17,9 +17,11 @@ import {
   normalizeMovie,
   normalizeNavigation,
   normalizePageMeta,
+  normalizeSetupGuide,
   normalizeSiteConfig,
   normalizeTvSeries,
 } from "./normalize";
+import { SETUP_GUIDE_FALLBACK } from "../setup-fallback";
 import type {
   Footer,
   Genre,
@@ -30,6 +32,7 @@ import type {
   Movie,
   Navigation,
   Page,
+  SetupGuide,
   SiteConfig,
   Title,
   TvSeries,
@@ -205,6 +208,20 @@ export async function getSiteConfig(livePreview?: LivePreviewQuery): Promise<Sit
   } catch (err) {
     console.error("[contentstack] getSiteConfig failed, using default:", err);
     return DEFAULT_SITE_CONFIG;
+  }
+}
+
+/** Fetches the `setup_guide` singleton that drives the /setup Developer Guide.
+ * Degrades to a bundled fallback (same content) when the stack isn't configured
+ * or a delivery error occurs, so /setup always renders. */
+export async function getSetupGuide(livePreview?: LivePreviewQuery): Promise<SetupGuide> {
+  try {
+    const result = await stack(livePreview).contentType("setup_guide").entry().query().find<RawEntry>();
+    const raw = result.entries?.[0];
+    return raw ? normalizeSetupGuide(raw) : SETUP_GUIDE_FALLBACK;
+  } catch (err) {
+    console.error("[contentstack] getSetupGuide failed, using fallback:", err);
+    return SETUP_GUIDE_FALLBACK;
   }
 }
 

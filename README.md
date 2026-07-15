@@ -26,7 +26,7 @@ cp .env.local.example .env.local
 ```
 
 | Variable | Where to find it |
-|---|---|
+| --- | --- |
 | `NEXT_PUBLIC_CONTENTSTACK_API_KEY` | Stack → Settings → API Keys |
 | `NEXT_PUBLIC_CONTENTSTACK_DELIVERY_TOKEN` | Stack → Settings → Tokens → Delivery |
 | `NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT` | Stack → Environments |
@@ -40,9 +40,15 @@ Then import the content models and seed content:
 # Import via ContentStack Dashboard:
 # Stack → Settings → Import/Export → Import Stack → content-models/export.json
 
-# Seed sample content (reads CONTENTSTACK_MANAGEMENT_TOKEN from .env.local):
+# Create the governed content_tags taxonomy terms (reads tokens from .env.local):
+node scripts/migrate-v2.mjs terms
+
+# Seed sample content + upload/link images:
 pnpm seed
 pnpm upload-assets
+
+# Create + publish the /setup Developer Guide entry:
+node scripts/seed-setup-guide.mjs
 
 # Publish seeded entries + assets to your environment from the ContentStack dashboard,
 # or via the Contentstack MCP tools if you're driving this with an AI agent.
@@ -55,19 +61,21 @@ Visit `/setup` in the running app for the full guided walkthrough.
 ## Pages & Features
 
 | Page | URL | ContentStack Feature Shown |
-|---|---|---|
+| --- | --- | --- |
 | Home | `/` | Hero banners, modular block rails, Lytics personalization |
 | Browse | `/browse` | Taxonomy filtering, multi-type queries |
 | Title detail | `/watch/[slug]` | References, ISR revalidation, related content |
 | Genre | `/genre/[slug]` | Dynamic routes from taxonomy entries |
 | Search | `/search` | ContentStack full-text search API |
 | Profile | `/profile` | Lytics segment tracking and preference management |
-| Dev Setup | `/setup` | Full guided developer onboarding |
+| Dev Setup | `/setup` | Guided developer onboarding — driven entirely by the `setup_guide` singleton (JSON RTE, groups, governed enum icons) |
 
 ### Live Preview & Visual Builder
-Open any entry in the ContentStack dashboard and launch Visual Builder — the running app loads in an iframe with every editable field highlighted via `data-cslp` tags (title, synopsis, images, etc.). Edits reflect on the page live via `@contentstack/live-preview-utils`, no manual refresh needed. Requires `CONTENTSTACK_PREVIEW_TOKEN` to be set and the environment's Visual Builder website URL configured in ContentStack Settings.
+
+Open any entry in the Contentstack dashboard and launch Visual Builder — the running app loads in an iframe with every editable field highlighted via `data-cslp` tags (title, synopsis, images, etc.). Edits reflect on the page live via `@contentstack/live-preview-utils`, no manual refresh needed. Requires `CONTENTSTACK_PREVIEW_TOKEN` to be set and the environment's Visual Builder website URL configured in ContentStack Settings.
 
 ### Themes
+
 Light mode / dark mode toggle in the header. Defaults to OS preference. Green accent (`#16A34A` / `#4ADE80`) is WCAG AA compliant in both themes.
 
 ---
@@ -87,41 +95,55 @@ src/
     ├── contentstack/       # SDK client, normalize (editable tags + RTE), typed queries
     ├── lytics/             # CDP event tracking + server-side segments
     ├── mock-data.ts        # Seed source for scripts/seed.ts + upload-assets.ts only
+    ├── setup-fallback.ts   # Fallback content for /setup when the stack is unconfigured
     ├── types.ts            # TypeScript types matching content models
     └── utils.ts
 
-content-models/export.json  # Importable ContentStack stack schema
-scripts/seed.ts             # Seed script (Management SDK)
-scripts/upload-assets.ts    # Uploads + links images to seeded entries
-docs/                       # Deep-dive guides for each feature
+content-models/export.json    # Importable ContentStack stack schema (13 types, 6 global fields)
+scripts/seed.ts               # Seed script (Management SDK)
+scripts/upload-assets.ts      # Uploads + links images to seeded entries
+scripts/migrate-v2.mjs        # Structured-content migration (global fields, taxonomy, enums)
+scripts/seed-setup-guide.mjs  # Creates + publishes the setup_guide content type & entry
+docs/                         # Deep-dive guides for each feature
 ```
 
 ---
 
 ## ContentStack Content Models
 
+Flixstack uses a **structured-content** model: fields shared across types are extracted into reusable **global fields**, tags are a governed **taxonomy** (not free text), and rich text uses **JSON RTE**. The full, importable schema lives in `content-models/export.json`. 13 content types:
+
 | Type | Key Fields |
-|---|---|
-| `movie` | title, synopsis (Rich Text), runtime, rating, genres (Ref), cast (Ref), hero_image, content_tier |
-| `tv_series` | title, synopsis, seasons (Modular Block), genres (Ref), status |
-| `genre` | title, slug, description, color_accent, hero_image |
-| `person` | name, bio, photo, role (actor/director/producer) |
-| `hero_banner` | title, subtitle, cta, background_image, linked_title (Ref) |
+| --- | --- |
+| `movie` | title, synopsis (JSON RTE), runtime, genres/cast/director (Ref), `title_metadata` + `artwork` (Global Fields), `content_tags` (Taxonomy) |
+| `tv_series` | title, synopsis, seasons (Modular Block → episodes), genres/cast/creator (Ref), status, `title_metadata` + `artwork` + `seo` |
+| `episode` | title, episode_number, duration, synopsis, thumbnail, air_date |
+| `genre` | title, slug, description, color_accent, hero_image, `seo` |
+| `person` | name, bio, photo, role (multi-select: actor/director/producer/writer) |
+| `hero_banner` | title, subtitle, `cta` (Global Field), background_image, linked_title (Ref) |
 | `homepage_rail` | title, rail_type, items (Ref), layout |
+| `page` | title, slug, `seo`, sections (Modular Blocks) |
+| `navigation` | title, links (`link` Global Field, repeatable) |
+| `header` | logo, main_navigation (Ref), `cta`, show_search, show_profile |
+| `footer` | columns (group → navigation Ref), legal_text |
+| `site_config` | site_name, feature_flags (group) |
+| `setup_guide` | Singleton driving `/setup`: intro, steps, feature deep-dives, doc links (JSON RTE + groups + `link` Global Field) |
 
-**Global Fields:** `seo`, `navigation`, `footer`, `availability_window`
+**Global Fields (6):** `title_metadata` (rating, tier, release date, score), `artwork` (hero/thumbnail), `cta`, `link`, `seo`, `availability_window`
 
-**Modular Blocks:** `hero_block`, `rail_block`, `promo_block`, `genre_spotlight_block`
+**Taxonomy:** `content_tags` — governed tag vocabulary applied to movies & TV series
+
+**Modular Blocks** (`page.sections`): `hero_block`, `rail_block`, `promo_block`, `genre_spotlight_block`
 
 ---
 
 ## Lytics Segments
 
 | Segment | Logic | Site Effect |
-|---|---|---|
+| --- | --- | --- |
 | `action_fan` | Watched ≥ 3 action titles | Action hero banner served |
 | `binge_watcher` | ≥ 5 episodes in one session | Continue Watching at top |
-| `new_user` | Account < 7 days | Onboarding promo shown |
+| `new_user` | Account &lt; 7 days | Onboarding promo shown |
 | `premium_subscriber` | tier = premium | Upsell rail hidden |
 | `lapsed_user` | No activity in 30+ days | Welcome Back hero |
 
@@ -133,15 +155,16 @@ docs/                       # Deep-dive guides for each feature
 2. **Availability expiry** — Daily cron → unpublishes titles past their window
 3. **Episode notifications** — New episode published → notify watchlisted users
 
-See [docs/automations.md](docs/automations.md) for webhook schemas and setup steps.
+See docs/automations.md for webhook schemas and setup steps.
 
 ---
 
 ## Accessibility
 
-WCAG 2.1 Level AA. See [docs/accessibility.md](docs/accessibility.md).
+WCAG 2.1 Level AA. See docs/accessibility.md.
 
 Key implementations:
+
 - Skip to main content link
 - `aria-label` on all icon-only controls
 - Keyboard-navigable rails and hero carousel
@@ -152,4 +175,4 @@ Key implementations:
 
 ## License
 
-MIT — use freely as a starting point for your ContentStack projects.
+MIT — use freely as a starting point for your Contentstack projects.

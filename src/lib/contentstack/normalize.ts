@@ -33,6 +33,11 @@ import type {
   Page,
   Person,
   Season,
+  SetupDocLink,
+  SetupFeature,
+  SetupGuide,
+  SetupLink,
+  SetupStep,
   SiteConfig,
   Title,
   TvSeries,
@@ -286,6 +291,81 @@ export function normalizeFooter(raw: Raw): Footer {
     uid: raw.uid,
     columns: (raw.columns ?? []).map(normalizeFooterColumn),
     legal_text: raw.legal_text ?? "",
+    $: raw.$,
+  };
+}
+
+/** True when an RTE-rendered HTML string carries no visible text (e.g. an empty
+ * JSON RTE paragraph renders to `<p></p>`) — treated as an absent optional field. */
+function isEmptyHtml(html: unknown): boolean {
+  return typeof html !== "string" || html.replace(/<[^>]*>/g, "").trim() === "";
+}
+
+/** Flattens a `link` global field; returns undefined when it carries no data. */
+function normalizeSetupLink(raw: Raw): SetupLink | undefined {
+  if (!raw || (!raw.label && !raw.href)) return undefined;
+  return {
+    label: raw.label ?? "",
+    href: raw.href ?? "",
+    open_in_new_tab: raw.open_in_new_tab ?? false,
+  };
+}
+
+function normalizeSetupStep(raw: Raw): SetupStep {
+  return {
+    heading: raw.heading ?? "",
+    description: raw.description ?? "",
+    detail: isEmptyHtml(raw.detail) ? undefined : raw.detail,
+    code: raw.code?.trim() ? raw.code : undefined,
+    docs_link: normalizeSetupLink(raw.docs_link),
+    $: raw.$,
+  };
+}
+
+function normalizeSetupFeature(raw: Raw): SetupFeature {
+  return {
+    anchor_id: raw.anchor_id ?? "",
+    icon: raw.icon ?? "",
+    heading: raw.heading ?? "",
+    description: raw.description ?? "",
+    field_tags: Array.isArray(raw.field_tags) ? raw.field_tags : [],
+    learn_link: normalizeSetupLink(raw.learn_link),
+    $: raw.$,
+  };
+}
+
+function normalizeSetupDocLink(raw: Raw): SetupDocLink {
+  return {
+    link: normalizeSetupLink(raw.link) ?? { label: "", href: "", open_in_new_tab: false },
+    description: raw.description ?? "",
+    $: raw.$,
+  };
+}
+
+/** Normalizes the `setup_guide` singleton. Its prose fields are JSON RTE, so they
+ * are rendered to HTML first (top-level and inside the `steps`/`features` groups)
+ * before the flat, HTML-string-bearing app type is built. */
+export function normalizeSetupGuide(raw: Raw): SetupGuide {
+  renderRte(raw, [
+    "intro",
+    "features_intro",
+    "steps.description",
+    "steps.detail",
+    "features.description",
+  ]);
+  tag(raw, "setup_guide");
+  return {
+    uid: raw.uid,
+    title: raw.title ?? "",
+    badge_label: raw.badge_label ?? "",
+    intro: raw.intro ?? "",
+    steps_heading: raw.steps_heading ?? "",
+    steps: Array.isArray(raw.steps) ? raw.steps.map(normalizeSetupStep) : [],
+    features_heading: raw.features_heading ?? "",
+    features_intro: raw.features_intro ?? "",
+    features: Array.isArray(raw.features) ? raw.features.map(normalizeSetupFeature) : [],
+    docs_heading: raw.docs_heading ?? "",
+    doc_links: Array.isArray(raw.doc_links) ? raw.doc_links.map(normalizeSetupDocLink) : [],
     $: raw.$,
   };
 }
