@@ -221,12 +221,74 @@ async function runRepublish() {
   if (!DRY) console.log("  Publishes are queued asynchronously — check the publish queue for completion.");
 }
 
+// ============================================================
+// Phase: promote to production through the Tier 2 workflow
+// ============================================================
+// Production is gated by the "Editorial Review" publish rule, so republishing
+// alone is refused. This moves each url-changed entry to the "Ready to Publish"
+// stage (which satisfies the rule) and then publishes it to production.
+async function runProduction() {
+  console.log("\n== Phase: promote url-changed entries to production ==");
+  const wf = ((await cma("GET", "/workflows")).workflows || []).find((w) => w.name === "Editorial Review");
+  const readyUid = wf?.workflow_stages?.find((s) => s.name === "Ready to Publish")?.uid;
+  const prod = ((await cma("GET", "/environments")).environments || []).find((e) => e.name === "production")?.uid;
+  if (!readyUid || !prod) { console.log(`  ! could not resolve stage (${readyUid}) or production env (${prod})`); return; }
+
+  for (const ct of Object.keys(ENTRY_URL)) {
+    const entries = await getEntries(ct);
+    let done = 0, fail = 0;
+    for (const e of entries) {
+      if (DRY) { console.log(`  [dry] ${ct} "${e.title}" -> Ready to Publish + publish to production`); done++; continue; }
+      try {
+        await cma("POST", `/content_types/${ct}/entries/${e.uid}/workflow`, { workflow: { workflow_stage: { uid: readyUid, notify: false, comment: "Structural URL update" } } });
+        await cma("POST", `/content_types/${ct}/entries/${e.uid}/publish`, { entry: { environments: [prod], locales: ["en-us"] } });
+        done++;
+      } catch (err) { fail++; console.log(`  ! ${ct}/${e.uid} ("${e.title}"): ${err.status || err.message}`); if (err.body) console.log("    ", JSON.stringify(err.body)); }
+    }
+    console.log(`  ${ct}: ${done} ${DRY ? "would promote+publish" : "promoted + published to production"}, ${fail} failed (of ${entries.length})`);
+  }
+  if (!DRY) console.log("  Entries are now in 'Ready to Publish' and published to production.");
+}
+
+// ============================================================
+// Phase: finalize — advance entries to the "Published" stage
+// ============================================================
+// Closes the workflow: moves each url-changed entry from "Ready to Publish" to
+// the terminal "Published" stage. Entries already in Published are a no-op
+// (the API denies re-transition to the same stage).
+async function runFinalize() {
+  console.log("\n== Phase: advance entries to 'Published' stage ==");
+  const wf = ((await cma("GET", "/workflows")).workflows || []).find((w) => w.name === "Editorial Review");
+  const publishedUid = wf?.workflow_stages?.find((s) => s.name === "Published")?.uid;
+  if (!publishedUid) { console.log("  ! could not resolve 'Published' stage"); return; }
+
+  for (const ct of Object.keys(ENTRY_URL)) {
+    const entries = await getEntries(ct);
+    let done = 0, denied = 0, fail = 0;
+    for (const e of entries) {
+      if (DRY) { console.log(`  [dry] ${ct} "${e.title}" -> Published`); done++; continue; }
+      try {
+        await cma("POST", `/content_types/${ct}/entries/${e.uid}/workflow`, { workflow: { workflow_stage: { uid: publishedUid, notify: false, comment: "Structural URL update — live" } } });
+        done++;
+      } catch (err) {
+        // error_code 141 = the management token lacks permission to transit to the
+        // Published stage; a Reviewer/Admin user must do it in the UI. Not a script bug.
+        if (err.body?.error_code === 141) denied++;
+        else { fail++; console.log(`  ! ${ct}/${e.uid} ("${e.title}"): ${err.status || err.message}`); if (err.body) console.log("    ", JSON.stringify(err.body)); }
+      }
+    }
+    console.log(`  ${ct}: ${done} ${DRY ? "would advance" : "advanced to Published"}, ${denied} denied (needs Reviewer/Admin in UI), ${fail} failed (of ${entries.length})`);
+  }
+}
+
 // ---- main --------------------------------------------------
 const phase = (process.argv.slice(2).find((a) => !a.startsWith("-")) || "all").toLowerCase();
 const run = {
   patterns: runPatterns,
   entries: runEntries,
   republish: runRepublish,
+  production: runProduction,
+  finalize: runFinalize,
   all: async () => { await runPatterns(); await runEntries(); },
 };
 
