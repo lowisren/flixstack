@@ -1,5 +1,11 @@
 {
-  "name": "flixstack",
+  "name": "Flixstack",
+  "description": "Movie streaming platform starter using Contentstack, Next.js, and Tailwind CSS",
+  "author": {
+    "name": "Lo Etheridge",
+    "email": "lo.etheridge@contentstack.com",
+    "url": "https://developers.contentstack.com"
+  },
   "version": "0.1.0",
   "private": true,
   "scripts": {
