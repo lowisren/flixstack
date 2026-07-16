@@ -39,10 +39,10 @@ function FeatureCallouts() {
           >
             <Icon className="h-4 w-4 text-[var(--color-accent)]" aria-hidden="true" />
             <div>
-              <p className="text-xs font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors">
+              <p className="text-xs font-semibold text-(--color-text-primary) group-hover:text-[var(--color-accent)] transition-colors">
                 {label}
               </p>
-              <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{desc}</p>
+              <p className="text-xs text-text-secondary mt-0.5">{desc}</p>
             </div>
           </Link>
         ))}
@@ -75,7 +75,7 @@ function RailSkeletonGroup() {
           <div className="h-6 w-40 skeleton rounded mb-4" />
           <div className="flex gap-4 overflow-hidden">
             {Array.from({ length: 5 }).map((_, j) => (
-              <div key={j} className="flex-shrink-0 w-[280px]">
+              <div key={j} className="shrink-0 w-70">
                 <TitleCardSkeleton />
               </div>
             ))}
@@ -101,7 +101,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
       <FeatureCallouts />
 
-      <hr className="border-[var(--color-border)] mx-4 sm:mx-6 lg:mx-8" />
+      <hr className="border-border mx-4 sm:mx-6 lg:mx-8" />
 
       <Suspense fallback={<RailSkeletonGroup />}>
         <HomeRails livePreview={livePreview} />

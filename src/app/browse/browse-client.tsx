@@ -47,10 +47,10 @@ export function BrowseClient({ titles, genres }: BrowseClientProps) {
     <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 py-8">
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-2">
+        <h1 className="text-3xl font-bold text-(--color-text-primary) mb-2">
           Browse All Titles
         </h1>
-        <p className="text-[var(--color-text-secondary)]">
+        <p className="text-text-secondary">
           {filtered.length} title{filtered.length !== 1 ? "s" : ""} available
         </p>
       </div>
@@ -63,10 +63,10 @@ export function BrowseClient({ titles, genres }: BrowseClientProps) {
             onClick={() => setGenreFilter("all")}
             className={cn(
               "px-4 py-2 rounded-full text-sm font-medium transition-colors",
-              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]",
+              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)",
               genreFilter === "all"
-                ? "bg-[var(--color-accent)] text-[var(--color-accent-foreground)]"
-                : "bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                ? "bg-accent text-accent-foreground"
+                : "bg-elevated text-text-secondary hover:text-(--color-text-primary)"
             )}
             aria-pressed={genreFilter === "all"}
           >
@@ -78,10 +78,10 @@ export function BrowseClient({ titles, genres }: BrowseClientProps) {
               onClick={() => setGenreFilter(genre.slug)}
               className={cn(
                 "px-4 py-2 rounded-full text-sm font-medium transition-colors",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]",
+                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)",
                 genreFilter === genre.slug
-                  ? "bg-[var(--color-accent)] text-[var(--color-accent-foreground)]"
-                  : "bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-elevated text-text-secondary hover:text-(--color-text-primary)"
               )}
               aria-pressed={genreFilter === genre.slug}
             >
@@ -93,14 +93,14 @@ export function BrowseClient({ titles, genres }: BrowseClientProps) {
 
       {/* Filter bar */}
       <div
-        className="flex flex-wrap gap-3 items-center mb-8 pb-6 border-b border-[var(--color-border)]"
+        className="flex flex-wrap gap-3 items-center mb-8 pb-6 border-b border-border"
         role="group"
         aria-label="Filter and sort controls"
       >
-        <Filter className="h-4 w-4 text-[var(--color-text-secondary)]" aria-hidden="true" />
+        <Filter className="h-4 w-4 text-text-secondary" aria-hidden="true" />
 
         {/* Type filter */}
-        <div className="flex items-center gap-1 bg-[var(--color-bg-elevated)] rounded-lg p-1" role="radiogroup" aria-label="Content type">
+        <div className="flex items-center gap-1 bg-elevated rounded-lg p-1" role="radiogroup" aria-label="Content type">
           {(["all", "movie", "tv_series"] as ContentFilter[]).map((type) => (
             <button
               key={type}
@@ -109,10 +109,10 @@ export function BrowseClient({ titles, genres }: BrowseClientProps) {
               aria-checked={typeFilter === type}
               className={cn(
                 "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                "focus-visible:outline-2 focus-visible:outline-[var(--color-focus-ring)]",
+                "focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)",
                 typeFilter === type
-                  ? "bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] shadow-sm"
-                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  ? "bg-surface text-(--color-text-primary) shadow-sm"
+                  : "text-text-secondary hover:text-(--color-text-primary)"
               )}
             >
               {type === "all" ? "All" : type === "movie" ? "Movies" : "TV Shows"}
@@ -121,7 +121,7 @@ export function BrowseClient({ titles, genres }: BrowseClientProps) {
         </div>
 
         {/* Tier filter */}
-        <div className="flex items-center gap-1 bg-[var(--color-bg-elevated)] rounded-lg p-1" role="radiogroup" aria-label="Content tier">
+        <div className="flex items-center gap-1 bg-elevated rounded-lg p-1" role="radiogroup" aria-label="Content tier">
           {["all", "free", "premium"].map((tier) => (
             <button
               key={tier}
@@ -130,10 +130,10 @@ export function BrowseClient({ titles, genres }: BrowseClientProps) {
               aria-checked={tierFilter === tier}
               className={cn(
                 "px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize",
-                "focus-visible:outline-2 focus-visible:outline-[var(--color-focus-ring)]",
+                "focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)",
                 tierFilter === tier
-                  ? "bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] shadow-sm"
-                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  ? "bg-surface text-(--color-text-primary) shadow-sm"
+                  : "text-text-secondary hover:text-(--color-text-primary)"
               )}
             >
               {tier === "all" ? "All Tiers" : tier}
@@ -143,11 +143,11 @@ export function BrowseClient({ titles, genres }: BrowseClientProps) {
 
         {/* Sort */}
         <label className="flex items-center gap-2 ml-auto text-sm">
-          <span className="text-[var(--color-text-secondary)]">Sort:</span>
+          <span className="text-text-secondary">Sort:</span>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortOption)}
-            className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg px-3 py-1.5 text-sm focus-visible:outline-2 focus-visible:outline-[var(--color-focus-ring)]"
+            className="bg-elevated border border-border text-(--color-text-primary) rounded-lg px-3 py-1.5 text-sm focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)"
             aria-label="Sort titles by"
           >
             <option value="score">Top Rated</option>
@@ -177,16 +177,16 @@ export function BrowseClient({ titles, genres }: BrowseClientProps) {
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <Grid className="h-12 w-12 text-[var(--color-text-disabled)] mb-4" aria-hidden="true" />
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
+          <Grid className="h-12 w-12 text-text-disabled mb-4" aria-hidden="true" />
+          <h2 className="text-lg font-semibold text-(--color-text-primary) mb-2">
             No titles found
           </h2>
-          <p className="text-[var(--color-text-secondary)] mb-4">
+          <p className="text-text-secondary mb-4">
             Try adjusting your filters.
           </p>
           <button
             onClick={() => { setTypeFilter("all"); setGenreFilter("all"); setTierFilter("all"); }}
-            className="text-[var(--color-accent)] hover:underline text-sm font-medium focus-visible:outline-2 focus-visible:outline-[var(--color-focus-ring)] rounded-sm"
+            className="text-accent hover:underline text-sm font-medium focus-visible:outline-2 focus-visible:outline-(--color-focus-ring) rounded-sm"
           >
             Clear all filters
           </button>
