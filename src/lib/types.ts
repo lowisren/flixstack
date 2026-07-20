@@ -147,7 +147,7 @@ export interface HomepageRail {
 
 // Modular block union
 export type ModularBlock =
-  | { block_type: "hero_block"; data: HeroBanner }
+  | { block_type: "hero_block"; data: HeroBanner[] }
   | { block_type: "rail_block"; data: HomepageRail }
   | { block_type: "promo_block"; data: PromoBlock }
   | { block_type: "genre_spotlight_block"; data: GenreSpotlightBlock }
@@ -174,6 +174,7 @@ export interface Page {
   title: string;
   slug: string;
   url: string;
+  seo?: SeoFields;
   sections: ModularBlock[];
   $?: EditableTagMap;
 }

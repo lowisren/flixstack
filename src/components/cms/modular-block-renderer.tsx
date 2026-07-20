@@ -18,12 +18,8 @@ export function ModularBlockRenderer({ blocks }: ModularBlockRendererProps) {
         switch (block.block_type) {
           case "hero_block":
             return (
-              <section
-                key={`hero-${i}`}
-                data-cs-entry={block.data.uid}
-                data-cs-content-type="hero_banner"
-              >
-                <Hero banners={[block.data]} />
+              <section key={`hero-${i}`}>
+                <Hero banners={block.data} />
               </section>
             );
 
@@ -60,16 +56,16 @@ export function ModularBlockRenderer({ blocks }: ModularBlockRendererProps) {
                     {promo.cta_label}
                   </Link>
                 </div>
-                <div className="flex-1 relative aspect-video w-full max-w-md rounded-xl overflow-hidden">
-                  {promo.image && (
+                {promo.image && (
+                  <div className="flex-1 relative aspect-video w-full max-w-md rounded-xl overflow-hidden">
                     <Image
                       src={promo.image.url}
                       alt={promo.headline}
                       fill
                       className="object-cover"
                     />
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             );
           }

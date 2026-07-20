@@ -133,7 +133,7 @@ export function Footer({ footer, siteName = "Flixstack" }: FooterProps) {
               rel="noopener noreferrer"
               className="text-[var(--color-accent)] hover:underline focus-visible:outline-2 focus-visible:outline-[var(--color-focus-ring)] rounded-sm"
             >
-              ContentStack
+              Contentstack
             </a>{" "}
             &middot; Next.js &middot; Tailwind CSS
           </p>

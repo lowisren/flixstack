@@ -33,6 +33,8 @@ import type {
   Page,
   Person,
   Playback,
+  PromoBlock,
+  SeoFields,
   Season,
   SetupDocLink,
   SetupFeature,
@@ -395,6 +397,32 @@ export function normalizeSetupGuide(raw: Raw): SetupGuide {
   };
 }
 
+/** Flattens a `promo_block` modular block: its `cta` global field collapses to
+ * flat cta_label/cta_url (matching HeroBanner/Header), and the block's stable id
+ * comes from the inline block's `_metadata.uid`. */
+export function normalizePromoBlock(raw: Raw): PromoBlock {
+  return {
+    uid: raw._metadata?.uid ?? raw.uid ?? "",
+    headline: raw.headline ?? "",
+    body: raw.body ?? "",
+    image: raw.image ?? undefined,
+    cta_label: raw.cta?.label ?? "",
+    cta_url: raw.cta?.url ?? "",
+    layout: raw.layout ?? "left",
+  };
+}
+
+/** Flattens the page's optional `seo` global field into the app's SeoFields. */
+function normalizeSeo(raw: Raw): SeoFields | undefined {
+  if (!raw) return undefined;
+  return {
+    meta_title: raw.meta_title ?? "",
+    meta_description: raw.meta_description ?? "",
+    og_image: raw.og_image ?? undefined,
+    canonical_url: raw.canonical_url ?? undefined,
+  };
+}
+
 /** Normalizes only the page's own fields — `sections` requires resolving nested
  * modular-block references (e.g. rail_block -> homepage_rail -> items), which
  * needs additional async fetches, so callers build `sections` separately
@@ -406,6 +434,7 @@ export function normalizePageMeta(raw: Raw, sections: Page["sections"]): Page {
     title: raw.title,
     slug: raw.slug,
     url: raw.url,
+    seo: normalizeSeo(raw.seo),
     sections,
     $: raw.$,
   };
