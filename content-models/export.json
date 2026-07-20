@@ -1118,6 +1118,95 @@
           "non_localizable": false
         },
         {
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "display_name": "Playback",
+          "uid": "playback",
+          "data_type": "global_field",
+          "reference_to": "playback",
+          "schema": [
+            {
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "display_name": "Video URL",
+              "uid": "video_url",
+              "data_type": "text",
+              "field_metadata": {
+                "description": "HLS (.m3u8) or MP4 URL. Preferred over the uploaded file when both are set.",
+                "default_value": ""
+              }
+            },
+            {
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "display_name": "Video File",
+              "uid": "video_file",
+              "data_type": "file"
+            },
+            {
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "display_name": "Poster",
+              "uid": "poster",
+              "data_type": "file"
+            },
+            {
+              "multiple": true,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "display_name": "Captions",
+              "uid": "captions",
+              "data_type": "group",
+              "field_metadata": {
+                "description": "",
+                "instruction": ""
+              },
+              "schema": [
+                {
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "display_name": "Label",
+                  "uid": "label",
+                  "data_type": "text"
+                },
+                {
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "display_name": "Language",
+                  "uid": "srclang",
+                  "data_type": "text",
+                  "field_metadata": {
+                    "description": "BCP-47 code, e.g. en, es",
+                    "default_value": ""
+                  }
+                },
+                {
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "display_name": "VTT File",
+                  "uid": "vtt_file",
+                  "data_type": "file"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "display_name": "Title Metadata",
           "uid": "title_metadata",
           "data_type": "global_field",
@@ -1998,6 +2087,95 @@
           "non_localizable": false
         },
         {
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "display_name": "Playback",
+          "uid": "playback",
+          "data_type": "global_field",
+          "reference_to": "playback",
+          "schema": [
+            {
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "display_name": "Video URL",
+              "uid": "video_url",
+              "data_type": "text",
+              "field_metadata": {
+                "description": "HLS (.m3u8) or MP4 URL. Preferred over the uploaded file when both are set.",
+                "default_value": ""
+              }
+            },
+            {
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "display_name": "Video File",
+              "uid": "video_file",
+              "data_type": "file"
+            },
+            {
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "display_name": "Poster",
+              "uid": "poster",
+              "data_type": "file"
+            },
+            {
+              "multiple": true,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "display_name": "Captions",
+              "uid": "captions",
+              "data_type": "group",
+              "field_metadata": {
+                "description": "",
+                "instruction": ""
+              },
+              "schema": [
+                {
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "display_name": "Label",
+                  "uid": "label",
+                  "data_type": "text"
+                },
+                {
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "display_name": "Language",
+                  "uid": "srclang",
+                  "data_type": "text",
+                  "field_metadata": {
+                    "description": "BCP-47 code, e.g. en, es",
+                    "default_value": ""
+                  }
+                },
+                {
+                  "multiple": false,
+                  "mandatory": false,
+                  "unique": false,
+                  "non_localizable": false,
+                  "display_name": "VTT File",
+                  "uid": "vtt_file",
+                  "data_type": "file"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "display_name": "Air Date",
           "uid": "air_date",
           "data_type": "isodate",
@@ -2736,6 +2914,90 @@
           "mandatory": false,
           "unique": false,
           "non_localizable": false
+        }
+      ]
+    },
+    {
+      "title": "Playback",
+      "uid": "playback",
+      "description": "Playable video source (external URL or uploaded file) for a movie or episode.",
+      "schema": [
+        {
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "display_name": "Video URL",
+          "uid": "video_url",
+          "data_type": "text",
+          "field_metadata": {
+            "description": "HLS (.m3u8) or MP4 URL. Preferred over the uploaded file when both are set.",
+            "default_value": ""
+          }
+        },
+        {
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "display_name": "Video File",
+          "uid": "video_file",
+          "data_type": "file"
+        },
+        {
+          "multiple": false,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "display_name": "Poster",
+          "uid": "poster",
+          "data_type": "file"
+        },
+        {
+          "multiple": true,
+          "mandatory": false,
+          "unique": false,
+          "non_localizable": false,
+          "display_name": "Captions",
+          "uid": "captions",
+          "data_type": "group",
+          "field_metadata": {
+            "description": "",
+            "instruction": ""
+          },
+          "schema": [
+            {
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "display_name": "Label",
+              "uid": "label",
+              "data_type": "text"
+            },
+            {
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "display_name": "Language",
+              "uid": "srclang",
+              "data_type": "text",
+              "field_metadata": {
+                "description": "BCP-47 code, e.g. en, es",
+                "default_value": ""
+              }
+            },
+            {
+              "multiple": false,
+              "mandatory": false,
+              "unique": false,
+              "non_localizable": false,
+              "display_name": "VTT File",
+              "uid": "vtt_file",
+              "data_type": "file"
+            }
+          ]
         }
       ]
     }

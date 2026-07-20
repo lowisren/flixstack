@@ -43,6 +43,22 @@ export interface Person {
   $?: EditableTagMap;
 }
 
+/** A caption/subtitle track, mapped to a `<track kind="captions">`. */
+export interface CaptionTrack {
+  label: string; // e.g. "English"
+  srclang: string; // BCP-47 code, e.g. "en"
+  src: string; // .vtt file url
+}
+
+/** Playable video source for a movie or episode (the `playback` global field).
+ * `url` (external HLS/MP4) takes precedence over `file` (a manual upload). */
+export interface Playback {
+  url?: string;
+  file?: Asset;
+  poster?: Asset;
+  captions: CaptionTrack[];
+}
+
 export interface Episode {
   uid: string;
   title: string;
@@ -52,6 +68,7 @@ export interface Episode {
   synopsis: string;
   thumbnail?: Asset;
   air_date: string;
+  playback?: Playback;
   $?: EditableTagMap;
 }
 
@@ -77,6 +94,7 @@ export interface Movie {
   hero_image?: Asset;
   thumbnail?: Asset;
   trailer_url?: string;
+  playback?: Playback;
   content_tier: "free" | "premium";
   tags: string[];
   score: number; // 0-100 audience score
