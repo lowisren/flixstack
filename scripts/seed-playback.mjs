@@ -65,9 +65,32 @@ const SYS = ["uid", "_version", "_in_progress", "created_at", "updated_at", "cre
   "updated_by", "ACL", "_metadata", "publish_details", "stackHeaders", "_owner", "_content_type_uid", "urlPath"];
 const clean = (entry) => Object.fromEntries(Object.entries(entry).filter(([k]) => !SYS.includes(k)));
 
+// A CMA entry PUT replaces the whole entry, so the payload must carry every field
+// intact. File (asset) fields must be written as the bare asset UID; the read shape
+// is a populated object. Recursively collapse any embedded asset object to its UID
+// so a round-trip never drops a reference. (Reference fields are `{uid, _content_type_uid}`
+// with no filename/url, so they're left untouched.)
+function collapseAssets(value) {
+  if (Array.isArray(value)) return value.map(collapseAssets);
+  if (value && typeof value === "object") {
+    if (typeof value.uid === "string" && "filename" in value && "content_type" in value && "url" in value) {
+      return value.uid;
+    }
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, collapseAssets(v)]));
+  }
+  return value;
+}
+
 async function getEntries(ct) {
   const r = await cma("GET", `/content_types/${ct}/entries?limit=200`);
   return r.entries || [];
+}
+
+// The list endpoint doesn't return asset values nested in global fields; fetch the
+// full single entry so the PUT below preserves them.
+async function getEntry(ct, uid) {
+  const r = await cma("GET", `/content_types/${ct}/entries/${uid}`);
+  return r.entry;
 }
 
 async function seed(ct) {
@@ -75,7 +98,8 @@ async function seed(ct) {
   let updated = 0, skipped = 0, i = 0;
   for (const e of entries) {
     if (!FORCE && e.playback?.video_url) { skipped++; i++; continue; }
-    const body = clean(e);
+    const full = await getEntry(ct, e.uid);
+    const body = collapseAssets(clean(full));
     body.playback = { ...(body.playback || {}), video_url: SAMPLES[i % SAMPLES.length] };
     await cma("PUT", `/content_types/${ct}/entries/${e.uid}`, { entry: body });
     await cma("POST", `/content_types/${ct}/entries/${e.uid}/publish`, {
