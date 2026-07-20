@@ -13,13 +13,13 @@ function FeatureCallouts() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6">
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
+        <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
           ContentStack Features on this Page
         </h2>
         {!isCSConfigured && (
           <Badge variant="outline" className="text-xs">
             Using mock data —{" "}
-            <Link href="/setup" className="text-[var(--color-accent)] hover:underline">
+            <Link href="/setup" className="text-accent hover:underline">
               connect ContentStack
             </Link>
           </Badge>
@@ -35,11 +35,11 @@ function FeatureCallouts() {
           <Link
             key={label}
             href={href}
-            className="flex flex-col gap-2 p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-subtle)] transition-colors group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]"
+            className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface hover:border-accent hover:bg-accent-subtle transition-colors group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
           >
-            <Icon className="h-4 w-4 text-[var(--color-accent)]" aria-hidden="true" />
+            <Icon className="h-4 w-4 text-accent" aria-hidden="true" />
             <div>
-              <p className="text-xs font-semibold text-(--color-text-primary) group-hover:text-[var(--color-accent)] transition-colors">
+              <p className="text-xs font-semibold text-(--color-text-primary) group-hover:text-accent transition-colors">
                 {label}
               </p>
               <p className="text-xs text-text-secondary mt-0.5">{desc}</p>
