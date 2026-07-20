@@ -32,6 +32,7 @@ import type {
   NavLinkItem,
   Page,
   Person,
+  Playback,
   Season,
   SetupDocLink,
   SetupFeature,
@@ -100,6 +101,28 @@ export function normalizePerson(raw: Raw): Person {
   };
 }
 
+/** Flattens the `playback` global field. Returns undefined when it carries no
+ * playable source (neither an external URL nor an uploaded file). */
+function normalizePlayback(raw: Raw): Playback | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const url = typeof raw.video_url === "string" && raw.video_url.trim() ? raw.video_url.trim() : undefined;
+  const file = raw.video_file ?? undefined;
+  if (!url && !file) return undefined;
+  const captions = (Array.isArray(raw.captions) ? raw.captions : [])
+    .filter((c: Raw) => c?.vtt_file?.url)
+    .map((c: Raw) => ({
+      label: c.label ?? "",
+      srclang: c.srclang ?? "",
+      src: c.vtt_file.url,
+    }));
+  return {
+    url,
+    file,
+    poster: raw.poster ?? undefined,
+    captions,
+  };
+}
+
 export function normalizeEpisode(raw: Raw): Episode {
   renderRte(raw, ["synopsis"]);
   tag(raw, "episode");
@@ -112,6 +135,7 @@ export function normalizeEpisode(raw: Raw): Episode {
     synopsis: raw.synopsis ?? "",
     thumbnail: raw.thumbnail ?? undefined,
     air_date: raw.air_date,
+    playback: normalizePlayback(raw.playback),
     $: raw.$,
   };
 }
@@ -163,6 +187,7 @@ export function normalizeMovie(raw: Raw): Movie {
     hero_image: art.hero_image ?? undefined,
     thumbnail: art.thumbnail ?? undefined,
     trailer_url: raw.trailer_url,
+    playback: normalizePlayback(raw.playback),
     content_tier: meta.content_tier,
     tags: normalizeTags(raw.taxonomies),
     score: meta.score,
