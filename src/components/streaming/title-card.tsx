@@ -11,6 +11,9 @@ import type { Movie, TvSeries } from "@/lib/types";
 interface TitleCardProps {
   title: Movie | TvSeries;
   layout?: "landscape" | "portrait";
+  /** Stretch to fill the parent (e.g. a responsive grid cell) instead of the
+   * fixed rail width. */
+  fullWidth?: boolean;
   "data-cs-entry"?: string;
   "data-cs-content-type"?: string;
 }
@@ -18,6 +21,7 @@ interface TitleCardProps {
 export function TitleCard({
   title,
   layout = "landscape",
+  fullWidth = false,
   ...props
 }: TitleCardProps) {
   const [hovered, setHovered] = useState(false);
@@ -30,7 +34,7 @@ export function TitleCard({
   return (
     <article
       className="group relative flex-shrink-0 rounded-lg overflow-hidden bg-[var(--color-bg-elevated)] transition-transform duration-200 hover:scale-105 hover:z-10 focus-within:scale-105 focus-within:z-10"
-      style={{ width: layout === "portrait" ? "160px" : "280px" }}
+      style={{ width: fullWidth ? "100%" : layout === "portrait" ? "160px" : "280px" }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       data-cs-entry={props["data-cs-entry"]}

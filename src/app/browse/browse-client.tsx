@@ -12,9 +12,11 @@ type SortOption = "score" | "date" | "title";
 interface BrowseClientProps {
   titles: (Movie | TvSeries)[];
   genres: Genre[];
+  /** Page heading, sourced from the CMS `page` entry when present. */
+  heading?: string;
 }
 
-export function BrowseClient({ titles, genres }: BrowseClientProps) {
+export function BrowseClient({ titles, genres, heading }: BrowseClientProps) {
   const [typeFilter, setTypeFilter] = useState<ContentFilter>("all");
   const [genreFilter, setGenreFilter] = useState<string>("all");
   const [sort, setSort] = useState<SortOption>("score");
@@ -48,7 +50,7 @@ export function BrowseClient({ titles, genres }: BrowseClientProps) {
       {/* Page header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-(--color-text-primary) mb-2">
-          Browse All Titles
+          {heading ?? "Browse All Titles"}
         </h1>
         <p className="text-text-secondary">
           {filtered.length} title{filtered.length !== 1 ? "s" : ""} available
@@ -160,7 +162,7 @@ export function BrowseClient({ titles, genres }: BrowseClientProps) {
       {/* Results grid */}
       {filtered.length > 0 ? (
         <div
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
           role="list"
           aria-label={`${filtered.length} titles`}
         >
@@ -168,7 +170,8 @@ export function BrowseClient({ titles, genres }: BrowseClientProps) {
             <div key={title.uid} role="listitem">
               <TitleCard
                 title={title}
-                layout="portrait"
+                layout="landscape"
+                fullWidth
                 data-cs-entry={title.uid}
                 data-cs-content-type={title.content_type}
               />

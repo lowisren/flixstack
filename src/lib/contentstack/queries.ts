@@ -17,6 +17,7 @@ import {
   normalizeMovie,
   normalizeNavigation,
   normalizePageMeta,
+  normalizePromoBlock,
   normalizeSetupGuide,
   normalizeSiteConfig,
   normalizeTvSeries,
@@ -291,14 +292,20 @@ export async function getHomepageRailByUid(
   }
 }
 
-/** Fetches a CMS-composed landing page (e.g. /movie, /tv-show) by slug and
- * resolves its `sections`. Currently resolves `rail_block` sections fully;
- * other block types are skipped since no page uses them yet. */
+/** Fetches a CMS-composed landing page (e.g. /movie, /tv-show, /browse) by slug and
+ * resolves its `sections`. Resolves `hero_block` (referenced hero_banners),
+ * `promo_block` (inline block with a flattened cta), and `rail_block` (embedded
+ * homepage_rail, fetched per-uid so its items resolve fully). `genre_spotlight_block`
+ * is not resolved yet — no page uses it. */
 export async function getPageBySlug(slug: string, livePreview?: LivePreviewQuery): Promise<Page | undefined> {
   const result = await stack(livePreview)
     .contentType("page")
     .entry()
-    .includeReference("sections.rail_block.rail")
+    .includeReference(
+      "sections.rail_block.rail",
+      "sections.hero_block.hero_banners",
+      "sections.hero_block.hero_banners.linked_title"
+    )
     .query()
     .equalTo("slug", slug)
     .find<RawEntry>();
@@ -307,9 +314,14 @@ export async function getPageBySlug(slug: string, livePreview?: LivePreviewQuery
 
   const sections: ModularBlock[] = [];
   for (const block of raw.sections ?? []) {
-    if (block.rail_block?.rail?.[0]?.uid) {
+    if (block.hero_block) {
+      const banners = (block.hero_block.hero_banners ?? []).map(normalizeHeroBanner);
+      if (banners.length) sections.push({ block_type: "hero_block", data: banners });
+    } else if (block.rail_block?.rail?.[0]?.uid) {
       const rail = await getHomepageRailByUid(block.rail_block.rail[0].uid, livePreview);
       if (rail) sections.push({ block_type: "rail_block", data: rail });
+    } else if (block.promo_block) {
+      sections.push({ block_type: "promo_block", data: normalizePromoBlock(block.promo_block) });
     }
   }
 
