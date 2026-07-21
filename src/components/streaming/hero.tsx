@@ -43,7 +43,7 @@ export function Hero({ banners }: HeroProps) {
       aria-label="Featured content"
       aria-live="polite"
       aria-atomic="true"
-      className="relative w-full h-[60vh] min-h-[400px] max-h-[700px] overflow-hidden bg-[var(--color-bg-elevated)]"
+      className="relative w-full h-[60vh] min-h-100 max-h-175 overflow-hidden bg-elevated"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -61,11 +61,11 @@ export function Hero({ banners }: HeroProps) {
 
       {/* Gradient overlay */}
       <div
-        className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"
+        className="absolute inset-0 bg-linear-to-r from-black/80 via-black/40 to-transparent"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg-base)] via-transparent to-transparent"
+        className="absolute inset-0 bg-linear-to-t from-background via-transparent to-transparent"
         aria-hidden="true"
       />
 
@@ -126,7 +126,7 @@ export function Hero({ banners }: HeroProps) {
               "absolute left-4 top-1/2 -translate-y-1/2",
               "flex h-10 w-10 items-center justify-center rounded-full",
               "bg-black/40 text-white hover:bg-black/60 transition-colors",
-              "focus-visible:outline-2 focus-visible:outline-[var(--color-focus-ring)]"
+              "focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)"
             )}
             aria-label="Previous featured title"
           >
@@ -138,7 +138,7 @@ export function Hero({ banners }: HeroProps) {
               "absolute right-4 top-1/2 -translate-y-1/2",
               "flex h-10 w-10 items-center justify-center rounded-full",
               "bg-black/40 text-white hover:bg-black/60 transition-colors",
-              "focus-visible:outline-2 focus-visible:outline-[var(--color-focus-ring)]"
+              "focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)"
             )}
             aria-label="Next featured title"
           >
@@ -159,9 +159,9 @@ export function Hero({ banners }: HeroProps) {
                 aria-label={`Slide ${i + 1}: ${b.title}`}
                 onClick={() => setCurrent(i)}
                 className={cn(
-                  "h-2 rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-[var(--color-focus-ring)]",
+                  "h-2 rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)",
                   i === current
-                    ? "w-6 bg-[var(--color-accent)]"
+                    ? "w-6 bg-accent"
                     : "w-2 bg-white/40 hover:bg-white/60"
                 )}
               />
