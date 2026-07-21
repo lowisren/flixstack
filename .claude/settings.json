@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /Users/locontentstack/.claude/projects/-Users-locontentstack-projects-streaming-flixstack/memory)",
+      "Bash(mv /Users/locontentstack/projects/streaming/flixstack/memory/*.md /Users/locontentstack/.claude/projects/-Users-locontentstack-projects-streaming-flixstack/memory/)",
+      "Bash(git checkout *)",
+      "Bash(git add *)"
+    ]
+  }
+}

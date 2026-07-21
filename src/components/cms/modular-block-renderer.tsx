@@ -40,18 +40,18 @@ export function ModularBlockRenderer({ blocks }: ModularBlockRendererProps) {
                 key={`promo-${i}`}
                 data-cs-entry={promo.uid}
                 data-cs-content-type="promo_block"
-                className={`flex flex-col md:flex-row ${isReversed ? "md:flex-row-reverse" : ""} gap-8 items-center px-4 sm:px-6 lg:px-8 py-8 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] mx-4 sm:mx-6 lg:mx-8`}
+                className={`flex flex-col md:flex-row ${isReversed ? "md:flex-row-reverse" : ""} gap-8 items-center px-4 sm:px-6 lg:px-8 py-8 rounded-2xl bg-surface border border-border mx-4 sm:mx-6 lg:mx-8`}
               >
                 <div className="flex-1 max-w-xl">
-                  <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-3">
+                  <h2 className="text-2xl font-bold text-(--color-text-primary) mb-3">
                     {promo.headline}
                   </h2>
-                  <p className="text-[var(--color-text-secondary)] leading-relaxed mb-5">
+                  <p className="text-text-secondary leading-relaxed mb-5">
                     {promo.body}
                   </p>
                   <Link
                     href={promo.cta_url}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--color-accent)] text-[var(--color-accent-foreground)] font-semibold text-sm hover:bg-[var(--color-accent-hover)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent text-accent-foreground font-semibold text-sm hover:bg-accent-hover transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
                   >
                     {promo.cta_label}
                   </Link>
@@ -85,12 +85,12 @@ export function ModularBlockRenderer({ blocks }: ModularBlockRendererProps) {
                     style={{ backgroundColor: spotlight.genre.color_accent }}
                     aria-hidden="true"
                   />
-                  <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
+                  <h2 className="text-xl font-bold text-(--color-text-primary)">
                     {spotlight.genre.title}
                   </h2>
                   <Link
                     href={`/genre/${spotlight.genre.slug}`}
-                    className="text-sm text-[var(--color-accent)] hover:underline ml-auto focus-visible:outline-2 focus-visible:outline-[var(--color-focus-ring)] rounded-sm"
+                    className="text-sm text-accent hover:underline ml-auto focus-visible:outline-2 focus-visible:outline-(--color-focus-ring) rounded-sm"
                   >
                     View all →
                   </Link>
