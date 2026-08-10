@@ -19,9 +19,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+// See the note in src/app/watch/[slug]/page.tsx — build-time CMS reads must not
+// be able to fail the build for a route that renders on demand regardless.
 export async function generateStaticParams() {
-  const genres = await getAllGenres();
-  return genres.map((g) => ({ slug: g.slug }));
+  try {
+    const genres = await getAllGenres();
+    return genres.map((g) => ({ slug: g.slug }));
+  } catch (err) {
+    console.error("[contentstack] generateStaticParams failed for /genre/[slug], rendering on demand:", err);
+    return [];
+  }
 }
 
 export default async function GenrePage({ params, searchParams }: PageProps) {

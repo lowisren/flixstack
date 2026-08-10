@@ -25,9 +25,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+// Prerendering is an optimisation, not a correctness requirement. This runs at
+// build time, so an unconfigured or unreachable Contentstack — env vars not yet
+// set on a deploy target, say — would otherwise fail the entire build rather
+// than degrade one route. Fall back to rendering on demand, which is what this
+// route does anyway: awaiting searchParams for live preview marks it dynamic.
 export async function generateStaticParams() {
-  const titles = await getAllTitles();
-  return titles.map((t) => ({ slug: t.slug }));
+  try {
+    const titles = await getAllTitles();
+    return titles.map((t) => ({ slug: t.slug }));
+  } catch (err) {
+    console.error("[contentstack] generateStaticParams failed for /watch/[slug], rendering on demand:", err);
+    return [];
+  }
 }
 
 export default async function WatchPage({ params, searchParams }: PageProps) {
