@@ -20,11 +20,18 @@
 //
 // Requires .env.local: CONTENTSTACK_MANAGEMENT_TOKEN, NEXT_PUBLIC_CONTENTSTACK_API_KEY
 // Honors NEXT_PUBLIC_CONTENTSTACK_REGION and NEXT_PUBLIC_CONTENTSTACK_BRANCH.
+// Override the env file with ENV_FILE=.env.other (repo-root-relative or absolute).
 // ============================================================
 
 import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-for (const line of readFileSync(new URL("../.env.local", import.meta.url), "utf8").split("\n")) {
+// .env.local by default; set ENV_FILE (repo-root-relative, or absolute) to point
+// this script at a different stack without swapping the file on disk.
+const ENV_FILE = resolve(dirname(fileURLToPath(import.meta.url)), "..", process.env.ENV_FILE ?? ".env.local");
+
+for (const line of readFileSync(ENV_FILE, "utf8").split("\n")) {
   const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
 }
