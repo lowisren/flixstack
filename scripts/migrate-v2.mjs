@@ -4,7 +4,7 @@
 //
 // Runs against the `model_v2` Contentstack branch. Idempotent & re-runnable.
 // Reshapes the stack to the structured-content model:
-//   - content_tags taxonomy terms (seeded from existing tag values)
+//   - content_tags taxonomy (created if absent) + its 77 governed terms
 //   - movie/tv_series: title_metadata + artwork global fields, taxonomy field
 //   - tv_series: adds seo global field
 //   - hero_banner/header/page.promo_block: cta global field
@@ -15,12 +15,19 @@
 //
 // Usage: node scripts/migrate-v2.mjs [terms|schema|entries|publish|all]
 // Requires .env.local: CONTENTSTACK_MANAGEMENT_TOKEN, NEXT_PUBLIC_CONTENTSTACK_API_KEY
+// Override the env file with ENV_FILE=.env.other (repo-root-relative or absolute).
 // ============================================================
 
 import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 // ---- env ---------------------------------------------------
-for (const line of readFileSync(new URL("../.env.local", import.meta.url), "utf8").split("\n")) {
+// .env.local by default; set ENV_FILE (repo-root-relative, or absolute) to point
+// this script at a different stack without swapping the file on disk.
+const ENV_FILE = resolve(dirname(fileURLToPath(import.meta.url)), "..", process.env.ENV_FILE ?? ".env.local");
+
+for (const line of readFileSync(ENV_FILE, "utf8").split("\n")) {
   const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
 }
@@ -101,9 +108,40 @@ function insertBefore(schema, beforeUid, fields) {
 const without = (schema, uids) => schema.filter((f) => !uids.includes(f.uid));
 const has = (schema, uid) => schema.some((f) => f.uid === uid);
 
-// ---- Phase 1: taxonomy terms -------------------------------
+// ---- Phase 1: taxonomy + terms -----------------------------
+
+// The taxonomy itself has to exist before any term can be posted into it. On an
+// already-migrated stack this is a no-op; on a fresh/empty stack it's the step
+// that makes `migrate-v2.mjs terms` self-sufficient.
+async function ensureTaxonomy() {
+  try {
+    await cma("GET", `/taxonomies/${TAXONOMY_UID}`, null, { taxonomy: true });
+    console.log(`  taxonomy "${TAXONOMY_UID}": already exists`);
+    return;
+  } catch (e) {
+    // 404 = absent (expected on a fresh stack). Anything else is a real failure.
+    if (e.status && e.status !== 404 && e.status !== 422) throw e;
+  }
+  try {
+    await cma("POST", `/taxonomies`, {
+      taxonomy: {
+        uid: TAXONOMY_UID,
+        name: "Content Tags",
+        description: "Governed tag vocabulary for movie and tv_series entries.",
+      },
+    }, { taxonomy: true });
+    console.log(`  taxonomy "${TAXONOMY_UID}": created`);
+  } catch (e) {
+    if (e.status === 409 || e.status === 422) {
+      console.log(`  taxonomy "${TAXONOMY_UID}": already exists`);
+    } else throw e;
+  }
+}
+
 async function migrateTerms() {
-  console.log("\n== Phase 1: taxonomy terms ==");
+  console.log("\n== Phase 1: taxonomy + terms ==");
+  await ensureTaxonomy();
+
   let existing = new Set();
   try {
     const res = await cma("GET", `/taxonomies/${TAXONOMY_UID}/terms?limit=100`, null, { taxonomy: true });
@@ -449,7 +487,10 @@ async function finalizeMain() {
 }
 
 // ---- Phase 4: publish --------------------------------------
-const PUBLISH_CTS = ["genre", "person", "episode", "movie", "tv_series", "hero_banner", "homepage_rail", "site_config", "navigation", "header", "footer"];
+// `page` carries the CMS-composed routes (/, /browse, /movie, /tv-show) — it has
+// to publish too or those pages 404 on the live site. `setup_guide` is omitted
+// deliberately: scripts/seed-setup-guide.mjs publishes it on creation.
+const PUBLISH_CTS = ["genre", "person", "episode", "movie", "tv_series", "hero_banner", "homepage_rail", "site_config", "navigation", "header", "footer", "page"];
 
 async function publishEntries(env, branch = BRANCH) {
   for (const ct of PUBLISH_CTS) {

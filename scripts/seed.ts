@@ -1,167 +1,419 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 // ============================================================
-// Flixstack ContentStack Seed Script
-// Populates your ContentStack stack with sample content.
+// Flixstack Contentstack Seed Script
 //
-// Usage:
-//   pnpm seed
+// Creates the full demo catalogue in an empty stack, straight from
+// src/lib/mock-data.ts (the single source of truth this shares with
+// scripts/upload-assets.ts, so every seeded entry has a matching asset).
 //
-// Prerequisites:
-//   - CONTENTSTACK_MANAGEMENT_TOKEN in .env.local
-//   - NEXT_PUBLIC_CONTENTSTACK_API_KEY in .env.local
-//   - NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT in .env.local
+//   6  genre          15 person         20 movie
+//   3  tv_series      18 episode        6  seasons (modular blocks)
+//   3  hero_banner    5  homepage_rail
+//   4  navigation     1  header         1  footer      1  site_config
 //
-// What this creates:
-//   - 5 genres
-//   - 20 movies
-//   - 3 TV series (with seasons + episodes)
-//   - 10 cast/crew person entries
-//   - 3 hero banner entries
-//   - 5 homepage rail entries
-//   - 1 site_config entry
-//   - 4 navigation entries, 1 header entry, 1 footer entry
+// Usage (alias: `pnpm seed`):
+//   tsx scripts/seed.ts [--dry] [--update] [--publish]
+//     --dry     : read + print planned writes, make NO writes
+//     --update  : entries that already exist are merged + PUT
+//                 (default is skip — see the note on PUT below)
+//     --publish : publish each entry to NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT
+//                 as it is written (default is draft-only)
+//
+// Requires .env.local (override with ENV_FILE=.env.new):
+//   NEXT_PUBLIC_CONTENTSTACK_API_KEY, CONTENTSTACK_MANAGEMENT_TOKEN
+// Honors NEXT_PUBLIC_CONTENTSTACK_REGION, _BRANCH, _ENVIRONMENT.
+//
+// Idempotent: every entry is matched on a natural key (slug, or title
+// where the content type has no slug) before writing.
+//
+// NOTE ON --update: a CMA PUT *replaces* the entry, so any field absent
+// from the payload is cleared — that is exactly how scripts/seed-playback.mjs
+// nulled every artwork reference (see scripts/relink-artwork.mjs). This
+// script therefore fetches the live entry and merges its fields under the
+// seed payload, so asset links and playback config survive a re-run.
 // ============================================================
 
+import * as path from "path";
 import * as dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
 
-import * as contentstack from "@contentstack/management";
+// .env.local by default; set ENV_FILE (absolute, or relative to the directory you
+// run from — the repo root, via `pnpm seed`) to target a different stack.
+dotenv.config({ path: path.resolve(process.env.ENV_FILE ?? ".env.local") });
 
-const { api_key, management_token, environment } = {
-  api_key: process.env.NEXT_PUBLIC_CONTENTSTACK_API_KEY,
-  management_token: process.env.CONTENTSTACK_MANAGEMENT_TOKEN,
-  environment: process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT ?? "production",
-};
+import {
+  GENRES,
+  PEOPLE,
+  MOVIES,
+  TV_SERIES,
+  HERO_BANNERS,
+  HOMEPAGE_RAILS,
+} from "../src/lib/mock-data";
 
-if (!api_key || !management_token) {
-  console.error("❌  Missing CONTENTSTACK_MANAGEMENT_TOKEN or NEXT_PUBLIC_CONTENTSTACK_API_KEY in .env.local");
+// ─── env ─────────────────────────────────────────────────────
+const API_KEY = process.env.NEXT_PUBLIC_CONTENTSTACK_API_KEY;
+const MGMT = process.env.CONTENTSTACK_MANAGEMENT_TOKEN;
+const ENVIRONMENT = process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT ?? "development";
+const REGION = (process.env.NEXT_PUBLIC_CONTENTSTACK_REGION ?? "US").toUpperCase();
+const BRANCH = process.env.NEXT_PUBLIC_CONTENTSTACK_BRANCH ?? "main";
+const LOCALE = "en-us";
+
+const DRY = process.argv.includes("--dry") || process.env.DRY === "1";
+const UPDATE = process.argv.includes("--update");
+const PUBLISH = process.argv.includes("--publish");
+
+if (!API_KEY || !MGMT) {
+  console.error(
+    "Missing NEXT_PUBLIC_CONTENTSTACK_API_KEY or CONTENTSTACK_MANAGEMENT_TOKEN in .env.local"
+  );
   process.exit(1);
 }
 
-const client = contentstack.client({ authtoken: management_token });
-const stack = client.stack({ api_key });
+const CMA_HOST_MAP: Record<string, string> = {
+  US: "api.contentstack.io",
+  EU: "eu-api.contentstack.com",
+  AU: "au-api.contentstack.com",
+  AZURE_NA: "azure-na-api.contentstack.com",
+  AZURE_EU: "azure-eu-api.contentstack.com",
+  GCP_NA: "gcp-na-api.contentstack.com",
+  GCP_EU: "gcp-eu-api.contentstack.com",
+};
+const BASE = `https://${CMA_HOST_MAP[REGION] ?? CMA_HOST_MAP.US}/v3`;
 
-async function createEntry(
-  contentTypeUid: string,
-  entry: Record<string, unknown>
-): Promise<string> {
-  try {
-    const result = await stack.contentType(contentTypeUid).entry().create({ entry });
-    await stack.contentType(contentTypeUid).entry(result.uid).publish({
-      publishDetails: {
-        locales: ["en-us"],
-        environments: [environment],
-      },
+const TAXONOMY_UID = "content_tags";
+
+// ─── CMA helper ──────────────────────────────────────────────
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Same term-uid derivation as scripts/migrate-v2.mjs, so uids line up. */
+const termUid = (t: string) =>
+  t.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+
+async function cma(
+  method: string,
+  path: string,
+  body?: unknown,
+  { taxonomy = false }: { taxonomy?: boolean } = {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> {
+  const headers: Record<string, string> = {
+    api_key: API_KEY as string,
+    authorization: MGMT as string,
+    "Content-Type": "application/json",
+  };
+  // taxonomy endpoints are stack-level (no branch header); everything else is branch-scoped.
+  if (!taxonomy) headers.branch = BRANCH;
+
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(`${BASE}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
     });
-    console.log(`  ✓ Created ${contentTypeUid}: ${entry.title ?? entry.name}`);
-    return result.uid;
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error(`  ✗ Failed to create ${contentTypeUid}:`, msg);
+    const text = await res.text();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let json: any;
+    try {
+      json = text ? JSON.parse(text) : {};
+    } catch {
+      json = { raw: text };
+    }
+    if (res.ok) return json;
+    if ((res.status === 429 || res.status >= 500) && attempt < 4) {
+      await sleep(500 * 2 ** attempt);
+      continue;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const err: any = new Error(`${method} ${path} -> ${res.status} ${JSON.stringify(json)}`);
+    err.status = res.status;
+    err.body = json;
+    throw err;
+  }
+}
+
+// ─── entry registry (mock uid -> live uid) ───────────────────
+const live = new Map<string, { uid: string; ct: string }>();
+
+const ref = (mockUid: string) => {
+  const hit = live.get(mockUid);
+  return hit ? [{ uid: hit.uid, _content_type_uid: hit.ct }] : [];
+};
+const refs = (mockUids: string[]) => mockUids.flatMap(ref);
+
+/** Contentstack rejects explicit nulls on some field types — drop empties instead. */
+const prune = (o: Record<string, unknown>) =>
+  Object.fromEntries(
+    Object.entries(o).filter(([, v]) => v !== undefined && !(Array.isArray(v) && v.length === 0))
+  );
+
+// ─── taxonomy preflight ──────────────────────────────────────
+let TERMS: Set<string> | null = null;
+
+async function loadTerms() {
+  try {
+    const res = await cma("GET", `/taxonomies/${TAXONOMY_UID}/terms?limit=100`, undefined, {
+      taxonomy: true,
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    TERMS = new Set((res.terms ?? []).map((t: any) => t.uid));
+    console.log(`  taxonomy ${TAXONOMY_UID}: ${TERMS.size} terms available`);
+  } catch {
+    TERMS = null;
+    console.warn(
+      `  ⚠  taxonomy "${TAXONOMY_UID}" not found — seeding without tag terms.\n` +
+        `     Run \`node scripts/migrate-v2.mjs terms\` to create the taxonomy and its\n` +
+        `     77-term vocabulary, then re-run this script with --update to backfill them.`
+    );
+  }
+}
+
+function taxonomiesFor(tags: string[]) {
+  if (!TERMS) return undefined;
+  const vals = tags
+    .map(termUid)
+    .filter((t) => TERMS!.has(t))
+    .map((term_uid) => ({ taxonomy_uid: TAXONOMY_UID, term_uid }));
+  return vals.length ? vals : undefined;
+}
+
+// ─── upsert ──────────────────────────────────────────────────
+const stats = { created: 0, updated: 0, skipped: 0, published: 0, failed: 0 };
+
+async function findEntry(ct: string, field: string, value: string): Promise<string | null> {
+  const query = encodeURIComponent(JSON.stringify({ [field]: value }));
+  const res = await cma("GET", `/content_types/${ct}/entries?query=${query}&limit=1`);
+  return res.entries?.[0]?.uid ?? null;
+}
+
+async function upsert(
+  ct: string,
+  matchField: string,
+  matchValue: string,
+  fields: Record<string, unknown>,
+  mockUid?: string
+): Promise<string> {
+  const label = `${ct}: ${fields.title ?? matchValue}`;
+  const entry = prune(fields);
+
+  try {
+    const existing = DRY ? null : await findEntry(ct, matchField, matchValue);
+    let uid: string;
+
+    if (existing && !UPDATE) {
+      uid = existing;
+      stats.skipped++;
+      console.log(`  · ${label} (exists)`);
+    } else if (existing) {
+      // Merge under the live entry so asset/playback fields survive the PUT.
+      const current = await cma("GET", `/content_types/${ct}/entries/${existing}`);
+      const merged = { ...current.entry, ...entry };
+      await cma("PUT", `/content_types/${ct}/entries/${existing}`, { entry: merged });
+      uid = existing;
+      stats.updated++;
+      console.log(`  ↻ ${label}`);
+    } else if (DRY) {
+      uid = `dry-${mockUid ?? matchValue}`;
+      stats.created++;
+      console.log(`  [dry] ${label}`);
+    } else {
+      const res = await cma("POST", `/content_types/${ct}/entries`, { entry });
+      uid = res.entry.uid;
+      stats.created++;
+      console.log(`  ✓ ${label}`);
+    }
+
+    if (PUBLISH && !DRY) {
+      await cma("POST", `/content_types/${ct}/entries/${uid}/publish`, {
+        entry: { environments: [ENVIRONMENT], locales: [LOCALE] },
+      });
+      stats.published++;
+    }
+
+    if (mockUid) live.set(mockUid, { uid, ct });
+    return uid;
+  } catch (err) {
+    stats.failed++;
+    console.error(`  ✗ ${label}: ${err instanceof Error ? err.message : String(err)}`);
     return "";
   }
 }
 
+// ─── seed ────────────────────────────────────────────────────
 async function seed() {
-  console.log("\n🌱  Flixstack Seed Script\n");
-  console.log(`Stack: ${api_key}`);
-  console.log(`Environment: ${environment}\n`);
+  console.log(
+    `\n🎬 Flixstack seed  (region: ${REGION}, branch: ${BRANCH}, env: ${ENVIRONMENT}` +
+      `${DRY ? ", DRY-RUN — no writes" : ""}${UPDATE ? ", UPDATE existing" : ""}` +
+      `${PUBLISH ? ", PUBLISH on write" : ", draft only"})\n`
+  );
+  console.log(`Stack: ${API_KEY}\n`);
 
-  // ─── Genres ──────────────────────────────────────────────
-  console.log("Creating genres…");
-  const genres: Record<string, string> = {};
+  await loadTerms();
 
-  for (const genre of [
-    { title: "Action", slug: "action", description: "High-octane thrills and explosive set pieces.", color_accent: "#ef4444" },
-    { title: "Drama", slug: "drama", description: "Character-driven stories exploring human experience.", color_accent: "#8b5cf6" },
-    { title: "Sci-Fi", slug: "sci-fi", description: "Visions of the future and alternate realities.", color_accent: "#3b82f6" },
-    { title: "Comedy", slug: "comedy", description: "Laugh-out-loud moments and heartwarming stories.", color_accent: "#f59e0b" },
-    { title: "Documentary", slug: "documentary", description: "Compelling true stories from around the world.", color_accent: "#10b981" },
-    { title: "Thriller", slug: "thriller", description: "Edge-of-your-seat suspense and tension.", color_accent: "#f97316" },
-  ]) {
-    genres[genre.slug] = await createEntry("genre", {
-      ...genre,
-      url: `/${genre.slug}`,
-    });
+  // ── Genres ──
+  console.log("\nGenres…");
+  for (const g of GENRES) {
+    await upsert(
+      "genre",
+      "slug",
+      g.slug,
+      {
+        title: g.title,
+        slug: g.slug,
+        url: `/genre/${g.slug}`, // matches the url_pattern in scripts/fix-url-patterns.mjs
+        description: g.description,
+        color_accent: g.color_accent,
+      },
+      g.uid
+    );
   }
 
-  // ─── People ──────────────────────────────────────────────
-  console.log("\nCreating people…");
-  const people: Record<string, string> = {};
-
-  for (const person of [
-    { name: "Christopher Nolan", slug: "christopher-nolan", bio: "British-American filmmaker.", role: "director" },
-    { name: "Leonardo DiCaprio", slug: "leonardo-dicaprio", bio: "Oscar-winning actor.", role: "actor" },
-    { name: "Cillian Murphy", slug: "cillian-murphy", bio: "Irish actor.", role: "actor" },
-    { name: "Denis Villeneuve", slug: "denis-villeneuve", bio: "Canadian sci-fi director.", role: "director" },
-    { name: "Timothée Chalamet", slug: "timothee-chalamet", bio: "French-American actor.", role: "actor" },
-    { name: "Zendaya", slug: "zendaya", bio: "Emmy-winning actress.", role: "actor" },
-    { name: "Vince Gilligan", slug: "vince-gilligan", bio: "Creator of Breaking Bad.", role: "producer" },
-    { name: "Bryan Cranston", slug: "bryan-cranston", bio: "Emmy-winning actor.", role: "actor" },
-    { name: "Aaron Paul", slug: "aaron-paul", bio: "Emmy-winning actor.", role: "actor" },
-    { name: "Jeremy Allen White", slug: "jeremy-allen-white", bio: "Golden Globe-winning actor.", role: "actor" },
-  ]) {
-    people[person.slug] = await createEntry("person", {
-      ...person,
-      role: [person.role], // `role` is a multi-select in the v2 model
-      url: `/${person.slug}`,
-    });
+  // ── People ──
+  console.log("\nPeople…");
+  for (const p of PEOPLE) {
+    await upsert(
+      "person",
+      "slug",
+      p.slug,
+      {
+        title: p.name, // `person` has no `name` field — title is the display field
+        slug: p.slug,
+        url: `/person/${p.slug}`,
+        bio: p.bio,
+        role: [p.role], // multi-select in the v2 model
+      },
+      p.uid
+    );
   }
 
-  // ─── Movies ──────────────────────────────────────────────
-  console.log("\nCreating movies…");
-
-  const movies = [
-    { title: "Inception", slug: "inception", runtime: 148, rating: "PG-13", release_date: "2010-07-16", genres: ["sci-fi", "action"], content_tier: "free", score: 94 },
-    { title: "The Dark Knight", slug: "the-dark-knight", runtime: 152, rating: "PG-13", release_date: "2008-07-18", genres: ["action", "thriller"], content_tier: "free", score: 97 },
-    { title: "Interstellar", slug: "interstellar", runtime: 169, rating: "PG-13", release_date: "2014-11-07", genres: ["sci-fi", "drama"], content_tier: "premium", score: 92 },
-    { title: "Dune: Part One", slug: "dune-part-one", runtime: 155, rating: "PG-13", release_date: "2021-10-22", genres: ["sci-fi", "action"], content_tier: "free", score: 90 },
-    { title: "Dune: Part Two", slug: "dune-part-two", runtime: 166, rating: "PG-13", release_date: "2024-03-01", genres: ["sci-fi", "action"], content_tier: "premium", score: 93 },
-  ];
-
-  for (const movie of movies) {
-    const { rating, release_date, content_tier, score, genres: genreKeys, ...rest } = movie;
-    await createEntry("movie", {
-      ...rest,
-      url: `/${movie.slug}`,
-      synopsis: `A compelling story in ${genreKeys[0]} genre.`,
-      genres: genreKeys.map((g) => ({ uid: genres[g], _content_type_uid: "genre" })).filter((r) => r.uid),
-      // v2 model: shared scalars live in the `title_metadata` global field, and tags
-      // are governed `content_tags` taxonomy terms (uids are underscore-cased slugs).
-      title_metadata: { rating, release_date, content_tier, score },
-      taxonomies: genreKeys.map((g) => ({ taxonomy_uid: "content_tags", term_uid: g.replace(/-/g, "_") })),
-    });
+  // ── Episodes (before tv_series, which references them) ──
+  console.log("\nEpisodes…");
+  for (const s of TV_SERIES) {
+    for (const season of s.seasons) {
+      for (const e of season.episodes) {
+        await upsert(
+          "episode",
+          "slug",
+          e.slug,
+          {
+            title: e.title,
+            slug: e.slug,
+            episode_number: e.episode_number,
+            duration: e.duration,
+            synopsis: e.synopsis,
+            air_date: e.air_date,
+          },
+          e.uid
+        );
+      }
+    }
   }
 
-  // ─── Homepage configuration ───────────────────────────────
-  console.log("\nCreating homepage configuration…");
+  // ── Movies ──
+  console.log("\nMovies…");
+  for (const m of MOVIES) {
+    await upsert(
+      "movie",
+      "slug",
+      m.slug,
+      {
+        title: m.title,
+        slug: m.slug,
+        url: `/watch/${m.slug}`,
+        synopsis: m.synopsis,
+        runtime: m.runtime,
+        genres: refs(m.genres.map((g) => g.uid)),
+        cast: refs(m.cast.map((c) => c.uid)),
+        director: ref(m.director.uid),
+        trailer_url: m.trailer_url,
+        // v2 model: shared scalars live in the `title_metadata` global field.
+        title_metadata: {
+          rating: m.rating,
+          content_tier: m.content_tier,
+          release_date: m.release_date,
+          score: m.score,
+        },
+        taxonomies: taxonomiesFor(m.tags),
+      },
+      m.uid
+    );
+  }
 
-  await createEntry("hero_banner", {
-    title: "Dune: Part Two",
-    subtitle: "The legend becomes the messiah.",
-    // v2 model: CTA is the reusable `cta` global field
-    cta: { label: "Watch Now", url: "/watch/dune-part-two", style: "primary", open_in_new_tab: false },
-    badge_text: "Now Streaming",
-  });
+  // ── TV series ──
+  console.log("\nTV series…");
+  for (const s of TV_SERIES) {
+    await upsert(
+      "tv_series",
+      "slug",
+      s.slug,
+      {
+        title: s.title,
+        slug: s.slug,
+        url: `/watch/${s.slug}`,
+        synopsis: s.synopsis,
+        genres: refs(s.genres.map((g) => g.uid)),
+        cast: refs(s.cast.map((c) => c.uid)),
+        creator: ref(s.creator.uid),
+        status: s.status,
+        seasons: s.seasons.map((season) => ({
+          season_block: {
+            season_number: season.season_number,
+            release_date: season.release_date,
+            episodes: refs(season.episodes.map((e) => e.uid)),
+          },
+        })),
+        title_metadata: {
+          rating: s.rating,
+          content_tier: s.content_tier,
+          release_date: s.release_date,
+          score: s.score,
+        },
+        taxonomies: taxonomiesFor(s.tags),
+      },
+      s.uid
+    );
+  }
 
-  await createEntry("site_config", {
-    title: "Flixstack Config",
-    site_name: "Flixstack",
-    // v2 model: feature_flags is a group[] of { key, enabled }
-    feature_flags: [
-      { key: "dev_mode", enabled: true },
-      { key: "lytics_enabled", enabled: false },
-    ],
-  });
+  // ── Hero banners ──
+  console.log("\nHero banners…");
+  for (const b of HERO_BANNERS) {
+    await upsert(
+      "hero_banner",
+      "title",
+      b.title,
+      {
+        title: b.title,
+        subtitle: b.subtitle,
+        // v2 model: CTA is the reusable `cta` global field
+        cta: { label: b.cta_label, url: b.cta_url, style: "primary", open_in_new_tab: false },
+        badge_text: b.badge_text,
+        linked_title: b.linked_title ? ref(b.linked_title.uid) : undefined,
+      },
+      b.uid
+    );
+  }
 
-  // ─── Header / Footer / Navigation ─────────────────────────
-  console.log("\nCreating navigation, header, and footer…");
+  // ── Homepage rails ──
+  console.log("\nHomepage rails…");
+  for (const r of HOMEPAGE_RAILS) {
+    await upsert(
+      "homepage_rail",
+      "title",
+      r.title,
+      {
+        title: r.title,
+        rail_type: r.rail_type,
+        items: refs(r.items.map((i) => i.uid)),
+        layout: r.layout,
+      },
+      r.uid
+    );
+  }
 
-  const navigation: Record<string, string> = {};
+  // ── Navigation / header / footer ──
+  console.log("\nNavigation, header, footer…");
 
-  for (const nav of [
+  const NAVS = [
     {
-      key: "main",
+      key: "nav-main",
       title: "Main Navigation",
       links: [
         { label: "Home", href: "/" },
@@ -171,7 +423,7 @@ async function seed() {
       ],
     },
     {
-      key: "footer-browse",
+      key: "nav-footer-browse",
       title: "Footer - Browse",
       links: [
         { label: "All Titles", href: "/browse" },
@@ -181,7 +433,7 @@ async function seed() {
       ],
     },
     {
-      key: "footer-account",
+      key: "nav-footer-account",
       title: "Footer - Account",
       links: [
         { label: "My Profile", href: "/profile" },
@@ -190,7 +442,7 @@ async function seed() {
       ],
     },
     {
-      key: "footer-developer",
+      key: "nav-footer-developer",
       title: "Footer - Developer",
       links: [
         { label: "Setup Guide", href: "/setup" },
@@ -199,40 +451,66 @@ async function seed() {
         { label: "Automations", href: "/setup#automations" },
       ],
     },
-  ]) {
-    navigation[nav.key] = await createEntry("navigation", {
-      title: nav.title,
-      links: nav.links,
-    });
+  ];
+
+  for (const nav of NAVS) {
+    await upsert(
+      "navigation",
+      "title",
+      nav.title,
+      {
+        title: nav.title,
+        // v2 model: `links` is the reusable `link` global field (multiple)
+        links: nav.links.map((l) => ({ ...l, open_in_new_tab: false })),
+      },
+      nav.key
+    );
   }
 
-  const navRef = (key: string) => [{ uid: navigation[key], _content_type_uid: "navigation" }];
-
-  await createEntry("header", {
+  await upsert("header", "title", "Main Header", {
     title: "Main Header",
-    main_navigation: navRef("main"),
+    main_navigation: ref("nav-main"),
     show_search: true,
     show_profile: true,
   });
 
-  await createEntry("footer", {
+  await upsert("footer", "title", "Main Footer", {
     title: "Main Footer",
     columns: [
-      { heading: "Browse", links: navRef("footer-browse") },
-      { heading: "Account", links: navRef("footer-account") },
-      { heading: "Developer", links: navRef("footer-developer") },
+      { heading: "Browse", links: ref("nav-footer-browse") },
+      { heading: "Account", links: ref("nav-footer-account") },
+      { heading: "Developer", links: ref("nav-footer-developer") },
     ],
     legal_text: `© ${new Date().getFullYear()} Flixstack. All rights reserved.`,
   });
 
-  console.log("\n✅  Seed complete!\n");
-  console.log("Next steps:");
-  console.log("  1. Run: pnpm dev");
-  console.log("  2. Open: http://localhost:3000");
-  console.log("  3. Click the CS Inspector button (bottom-right) to explore content models\n");
+  await upsert("site_config", "title", "Flixstack Config", {
+    title: "Flixstack Config",
+    site_name: "Flixstack",
+    // v2 model: feature_flags is a group[] of { key, enabled }
+    feature_flags: [
+      { key: "dev_mode", enabled: true },
+      { key: "lytics_enabled", enabled: false },
+    ],
+  });
+
+  // ── Summary ──
+  console.log(
+    `\n${stats.failed ? "⚠" : "✅"}  created ${stats.created}, updated ${stats.updated}, ` +
+      `skipped ${stats.skipped}, published ${stats.published}, failed ${stats.failed}\n`
+  );
+
+  if (!DRY && !stats.failed) {
+    console.log("Next steps:");
+    console.log("  1. pnpm upload-assets        # images, linked to these entries");
+    console.log("  2. pnpm customize-fields     # editor experience");
+    console.log("  3. tsx scripts/seed.ts --publish --update   # publish once assets are linked\n");
+  }
+
+  if (stats.failed) process.exitCode = 1;
 }
 
 seed().catch((err) => {
-  console.error("❌  Seed failed:", err);
+  console.error("\n❌  Seed failed:", err);
   process.exit(1);
 });

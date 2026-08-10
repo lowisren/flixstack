@@ -12,13 +12,20 @@
 //
 // Idempotent & re-runnable. Usage: node scripts/seed-setup-guide.mjs
 // Requires .env.local: CONTENTSTACK_MANAGEMENT_TOKEN, NEXT_PUBLIC_CONTENTSTACK_API_KEY
+// Override the env file with ENV_FILE=.env.other (repo-root-relative or absolute).
 // ============================================================
 
 import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 
 // ---- env ---------------------------------------------------
-for (const line of readFileSync(new URL("../.env.local", import.meta.url), "utf8").split("\n")) {
+// .env.local by default; set ENV_FILE (repo-root-relative, or absolute) to point
+// this script at a different stack without swapping the file on disk.
+const ENV_FILE = resolve(dirname(fileURLToPath(import.meta.url)), "..", process.env.ENV_FILE ?? ".env.local");
+
+for (const line of readFileSync(ENV_FILE, "utf8").split("\n")) {
   const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
 }
@@ -186,18 +193,25 @@ CONTENTSTACK_MANAGEMENT_TOKEN=your_management_token
 NEXT_PUBLIC_CONTENTSTACK_LYTICS_ACCOUNT_ID=your_lytics_id
 NEXT_PUBLIC_CONTENTSTACK_LYTICS_API_KEY=your_lytics_server_key`;
 
-const SEED_CODE = `# Install Management SDK dependencies first
+const MODEL_CODE = `# Install dependencies first
 pnpm install
 
-# 1. Create the content_tags taxonomy terms (governed tag vocabulary)
+# 1. Create the content_tags taxonomy + its 77 governed terms.
+#    movie and tv_series each carry a taxonomy field bound to it, so it
+#    has to exist before those content types can be created.
 node scripts/migrate-v2.mjs terms
 
-# 2. Seed the entries
+# 2. Create 7 global fields + 13 content types from content-models/export.json
+pnpm import-model
+
+# Both are idempotent — re-running skips whatever already exists.`;
+
+const SEED_CODE = `# Seed the entries (drafts — nothing is published)
 pnpm seed
 
-# This creates:
-# - 6 genres, movies, TV series, cast/crew (person) entries
-# - Hero banners + homepage rails
+# This creates 77 entries:
+# - 6 genres, 15 people, 20 movies, 3 TV series, 18 episodes
+# - 3 hero banners, 5 homepage rails
 # - Navigation, header, footer, and site config`;
 
 const RUN_CODE = `pnpm dev
@@ -224,22 +238,22 @@ const entry = {
       docs_link: link("View Documentation", "https://www.contentstack.com/docs/developers/create-stack"),
     },
     {
-      heading: "Import the Content Models",
-      description: rte("Import the pre-built schema — 13 content types and 6 global fields — from content-models/export.json into your stack. The content_tags taxonomy is created separately in the next step."),
-      detail: rte("In your stack → Settings → Import/Export → Import stack → Upload content-models/export.json"),
-      code: "",
-      docs_link: link("View Documentation", "https://www.contentstack.com/docs/developers/apis/content-management-api"),
-    },
-    {
       heading: "Configure Environment Variables",
-      description: rte("Copy your API credentials from Contentstack and add them to .env.local."),
+      description: rte("Copy your API credentials from Contentstack and add them to .env.local. Do this before importing the content models — the import runs against the Management API and needs them."),
       detail: rte(),
       code: ENV_CODE,
       docs_link: link("View Documentation", "https://www.contentstack.com/docs/developers/apis/content-delivery-api"),
     },
     {
-      heading: "Seed the Taxonomy & Sample Content",
-      description: rte("Create the content_tags taxonomy terms, then populate your stack with movies, shows, genres, and people. Entries reference taxonomy terms, so the terms must exist first."),
+      heading: "Import the Content Models",
+      description: rte("Create the pre-built schema — 7 global fields and 13 content types — in your stack from content-models/export.json."),
+      detail: rte("export.json is a plain schema document, not a Contentstack CLI export bundle, so the stack UI importer won't accept it. It's applied through the Content Management API instead. Content types are created in rounds, so reference ordering resolves itself."),
+      code: MODEL_CODE,
+      docs_link: link("View Documentation", "https://www.contentstack.com/docs/developers/apis/content-management-api"),
+    },
+    {
+      heading: "Seed the Sample Content",
+      description: rte("Populate your stack with movies, shows, genres, and people, seeded from src/lib/mock-data.ts. Everything is created as a draft, so nothing goes live until you publish it."),
       detail: rte(),
       code: SEED_CODE,
       docs_link: null,
