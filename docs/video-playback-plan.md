@@ -103,9 +103,9 @@ The page stays a **server component** (data fetch + SEO). A thin client wrapper
 
 ## 5. Verification
 
-- `pnpm lint` + `pnpm build` (typecheck) pass.
+- `npm run lint` + `npm run build` (typecheck) pass.
 - Manual: seed a `playback.video_url` (e.g. a public sample MP4) on a movie and on a couple of
-  episodes, run `pnpm dev`, and confirm inline play + episode switching + captions on both a movie
+  episodes, run `npm run dev`, and confirm inline play + episode switching + captions on both a movie
   and a TV-show watch page.
 
 ## Files touched

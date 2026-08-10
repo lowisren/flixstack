@@ -6,7 +6,7 @@ Flixstack targets **WCAG 2.1 Level AA** compliance in both light and dark mode.
 
 ```bash
 # Run the automated axe-core audit
-pnpm a11y
+npm run a11y
 # Output: reports/a11y-report.json
 ```
 

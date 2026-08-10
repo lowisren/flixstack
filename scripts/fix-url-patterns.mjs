@@ -17,7 +17,7 @@
 //   all      : patterns + entries   (default)
 //   --dry    : read + print planned changes, write nothing
 //
-// Usage (alias: `pnpm fix-url-patterns <phase> [--dry]`):
+// Usage (alias: `npm run fix-url-patterns -- <phase> [--dry]`):
 //   node scripts/fix-url-patterns.mjs [patterns|entries|all] [--dry]
 //
 // Requires .env.local: CONTENTSTACK_MANAGEMENT_TOKEN, NEXT_PUBLIC_CONTENTSTACK_API_KEY

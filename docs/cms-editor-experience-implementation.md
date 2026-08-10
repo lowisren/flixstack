@@ -10,7 +10,7 @@ workflow stages, role matrix, and extension specs — field by field.
 >
 > **Automated rollout for Tier 1:** [`scripts/customize-editor-fields.mjs`](../scripts/customize-editor-fields.mjs)
 > applies §1.1–§1.4 via the Management API. Preview first with
-> `pnpm customize-fields all --dry` (read-only), then run `pnpm customize-fields all`;
+> `npm run customize-fields -- all --dry` (read-only), then run `npm run customize-fields -- all`;
 > the `rte` phase (episode synopsis) is deliberately separate — see §1.4.
 
 **Model reference:** 13 content types, 5 global fields (`title_metadata`, `artwork`, `seo`,
@@ -270,7 +270,7 @@ and `hero_banner.badge_text`.
 > creates the custom roles, the workflow, and the production publish rule. See
 > [cms-editor-experience-tier2.md](cms-editor-experience-tier2.md) for the build notes,
 > caveats, and the manual (user-invite / notification) follow-up. Preview with
-> `pnpm setup-workflow all --dry`.
+> `npm run setup-workflow -- all --dry`.
 
 ### 2.1 Workflow: "Editorial Review"
 

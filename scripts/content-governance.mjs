@@ -14,7 +14,7 @@
 // nonlocalizable (the reliably-beneficial set). `taxonomies` is intentionally
 // separate — REVIEW the starter vocabularies below before running it.
 //
-// Usage (alias: `pnpm content-governance <phase> [--dry]`):
+// Usage (alias: `npm run content-governance -- <phase> [--dry]`):
 //   node scripts/content-governance.mjs [folders|alt|nonlocalizable|taxonomies|all] [--dry]
 //     --dry : read + print planned changes, make NO writes
 //

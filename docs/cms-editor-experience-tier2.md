@@ -17,7 +17,7 @@ editorial backbone that turns "anyone can publish anything" into a reviewed, gat
 Baseline before rollout: only the three built-in roles, no workflows, no publish rules;
 environments development (`blt91f97ad1f970a2b8`) and production (`blt966bd3d76333d63f`).
 
-**Applied 2026-07-15** via `pnpm setup-workflow`:
+**Applied 2026-07-15** via `npm run setup-workflow`:
 
 | Object | UID |
 |---|---|
@@ -36,14 +36,14 @@ linear order + SEO gate).
 
 ```bash
 # Preview every payload, write nothing:
-pnpm setup-workflow all --dry
+npm run setup-workflow -- all --dry
 
 # Apply in order (roles first so the workflow can reference them):
-pnpm setup-workflow roles       # custom Content Editor + Reviewer roles
-pnpm setup-workflow workflow    # the Editorial Review workflow (5 stages)
-pnpm setup-workflow rules       # gate production publishing
+npm run setup-workflow -- roles       # custom Content Editor + Reviewer roles
+npm run setup-workflow -- workflow    # the Editorial Review workflow (5 stages)
+npm run setup-workflow -- rules       # gate production publishing
 # …or all at once:
-pnpm setup-workflow all
+npm run setup-workflow -- all
 ```
 
 All three phases are **idempotent** — re-running updates the existing role / workflow /

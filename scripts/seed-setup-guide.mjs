@@ -194,7 +194,7 @@ NEXT_PUBLIC_CONTENTSTACK_LYTICS_ACCOUNT_ID=your_lytics_id
 NEXT_PUBLIC_CONTENTSTACK_LYTICS_API_KEY=your_lytics_server_key`;
 
 const MODEL_CODE = `# Install dependencies first
-pnpm install
+npm install
 
 # 1. Create the content_tags taxonomy + its 77 governed terms.
 #    movie and tv_series each carry a taxonomy field bound to it, so it
@@ -202,19 +202,19 @@ pnpm install
 node scripts/migrate-v2.mjs terms
 
 # 2. Create 7 global fields + 13 content types from content-models/export.json
-pnpm import-model
+npm run import-model
 
 # Both are idempotent — re-running skips whatever already exists.`;
 
 const SEED_CODE = `# Seed the entries (drafts — nothing is published)
-pnpm seed
+npm run seed
 
 # This creates 77 entries:
 # - 6 genres, 15 people, 20 movies, 3 TV series, 18 episodes
 # - 3 hero banners, 5 homepage rails
 # - Navigation, header, footer, and site config`;
 
-const RUN_CODE = `pnpm dev
+const RUN_CODE = `npm run dev
 # → http://localhost:3000
 
 # Open any entry in Contentstack and launch Visual Builder

@@ -20,7 +20,7 @@
 // availability_window.*) are patched on the GLOBAL FIELD definition — so the
 // help text is authored once and inherited by every content type that uses it.
 //
-// Usage (or via the alias `pnpm customize-fields <phase> [--dry]`):
+// Usage (or via the alias `npm run customize-fields -- <phase> [--dry]`):
 //   node scripts/customize-editor-fields.mjs [fields|alt|rte|all] [--dry]
 //     fields  (default)  help text + validations + defaults + display types
 //     alt                add companion alt-text fields to image fields
