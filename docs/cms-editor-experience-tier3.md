@@ -44,7 +44,7 @@ attaches `data-cslp` edit tags via `addEditableTags`, which components spread as
 
 ### 3.1a — Fix `url_pattern`s  ·  CMA-scriptable  ·  S  ·  BUILT: [`scripts/fix-url-patterns.mjs`](../scripts/fix-url-patterns.mjs)
 
-Run with `pnpm fix-url-patterns all --dry` (preview) then `pnpm fix-url-patterns all`.
+Run with `npm run fix-url-patterns -- all --dry` (preview) then `npm run fix-url-patterns -- all`.
 Phases: `patterns` (content-type options), `entries` (rewrite stored entry urls), and
 `republish` (push the changed entries back to the environments they're already live on).
 Idempotent.

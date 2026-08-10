@@ -9,8 +9,8 @@ A Contentstack starter template — a fully functional movie and TV streaming pl
 ## Quick Start
 
 ```bash
-pnpm install
-pnpm dev
+npm install
+npm run dev
 # → http://localhost:3000
 ```
 
@@ -32,7 +32,7 @@ cp .env.local.example .env.local
 | `NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT` | Stack → Environments |
 | `NEXT_PUBLIC_CONTENTSTACK_REGION` | `US` (default), `EU`, `AZURE_NA`, `AZURE_EU`, `GCP_NA`, `GCP_EU` |
 | `CONTENTSTACK_PREVIEW_TOKEN` | Stack → Settings → Tokens → create/attach a Preview Token — required for Live Preview / Visual Builder. Server-only, never prefix with `NEXT_PUBLIC_` |
-| `CONTENTSTACK_MANAGEMENT_TOKEN` | Stack → Settings → Tokens → Management Token — only needed for `pnpm seed` / `pnpm upload-assets` |
+| `CONTENTSTACK_MANAGEMENT_TOKEN` | Stack → Settings → Tokens → Management Token — only needed for `npm run seed` / `npm run upload-assets` |
 
 Then import the content models and seed content:
 
@@ -44,8 +44,8 @@ Then import the content models and seed content:
 node scripts/migrate-v2.mjs terms
 
 # Seed sample content + upload/link images:
-pnpm seed
-pnpm upload-assets
+npm run seed
+npm run upload-assets
 
 # Create + publish the /setup Developer Guide entry:
 node scripts/seed-setup-guide.mjs

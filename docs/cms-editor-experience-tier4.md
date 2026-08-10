@@ -6,23 +6,23 @@ Effort key: **S** ≈ ≤½ day · **M** ≈ 1–3 days · **L** ≈ \~1 week+.
 
 ## Running the script
 
-The scriptable phases are in `scripts/content-governance.mjs`(alias `pnpm content-governance`). Every phase supports `--dry` (read-only preview) and is idempotent.
+The scriptable phases are in `scripts/content-governance.mjs`(alias `npm run content-governance`). Every phase supports `--dry` (read-only preview) and is idempotent.
 
 ```bash
 # Preview everything, write nothing:
-pnpm content-governance all --dry
+npm run content-governance -- all --dry
 
 # Apply the reliably-beneficial set (folders + alt backfill + non-localizable flags):
-pnpm content-governance all
+npm run content-governance -- all
 
 # Or one phase at a time:
-pnpm content-governance folders          # create folders, move 85 assets in by filename
-pnpm content-governance alt              # backfill asset Description from title (a11y)
-pnpm content-governance nonlocalizable   # mark structural fields non_localizable
+npm run content-governance -- folders          # create folders, move 85 assets in by filename
+npm run content-governance -- alt              # backfill asset Description from title (a11y)
+npm run content-governance -- nonlocalizable   # mark structural fields non_localizable
 
 # OPT-IN — review the starter vocabularies in the script first:
-pnpm content-governance taxonomies --dry
-pnpm content-governance taxonomies
+npm run content-governance -- taxonomies --dry
+npm run content-governance -- taxonomies
 ```
 
 Dry-run verified against the live stack: **85/85 assets route cleanly** (0 unrouted) into `posters / hero-art / episode-stills / people / genre-art` (+ empty `logos`, `promo` for future use); **85 descriptions** backfilled; **14 fields** across 8 content types + 1 global field marked non-localizable with no missing paths.

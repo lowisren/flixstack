@@ -11,7 +11,7 @@
 //   3  hero_banner    5  homepage_rail
 //   4  navigation     1  header         1  footer      1  site_config
 //
-// Usage (alias: `pnpm seed`):
+// Usage (alias: `npm run seed`):
 //   tsx scripts/seed.ts [--dry] [--update] [--publish]
 //     --dry     : read + print planned writes, make NO writes
 //     --update  : entries that already exist are merged + PUT
@@ -37,7 +37,7 @@ import * as path from "path";
 import * as dotenv from "dotenv";
 
 // .env.local by default; set ENV_FILE (absolute, or relative to the directory you
-// run from — the repo root, via `pnpm seed`) to target a different stack.
+// run from — the repo root, via `npm run seed`) to target a different stack.
 dotenv.config({ path: path.resolve(process.env.ENV_FILE ?? ".env.local") });
 
 import {
@@ -502,8 +502,8 @@ async function seed() {
 
   if (!DRY && !stats.failed) {
     console.log("Next steps:");
-    console.log("  1. pnpm upload-assets        # images, linked to these entries");
-    console.log("  2. pnpm customize-fields     # editor experience");
+    console.log("  1. npm run upload-assets        # images, linked to these entries");
+    console.log("  2. npm run customize-fields     # editor experience");
     console.log("  3. tsx scripts/seed.ts --publish --update   # publish once assets are linked\n");
   }
 

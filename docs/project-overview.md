@@ -16,13 +16,14 @@ personalization.
 - Tailwind CSS v4
 - Contentstack Delivery & Management SDKs + `@contentstack/live-preview-utils` / `@contentstack/utils`
 - Lytics (CDP) for audience segmentation
-- pnpm for package management
+- npm for package management (Contentstack Launch installs with npm, so the
+  npm lockfile is the one that governs deploys)
 
 ## Quick start
 
 ```bash
-pnpm install
-pnpm dev   # → http://localhost:3000
+npm install
+npm run dev   # → http://localhost:3000
 ```
 
 Content and images are served live from Contentstack — a configured, populated stack is
@@ -77,8 +78,8 @@ singleton (`scripts/seed-setup-guide.mjs` provisions it).
 ## Onboarding checklist for a new developer
 
 1. Clone the repo, run the Quick start, and connect a stack (root `README.md`).
-2. Seed the taxonomy + content (`migrate-v2.mjs terms`, `pnpm seed`,
-   `pnpm upload-assets`, `seed-setup-guide.mjs`).
+2. Seed the taxonomy + content (`migrate-v2.mjs terms`, `npm run seed`,
+   `npm run upload-assets`, `seed-setup-guide.mjs`).
 3. Read `src/lib/contentstack/*` — `normalize.ts` is the key mapping layer between the
    CMS shape and the app's types.
 4. Browse `http://localhost:3000`, then open an entry in Contentstack and launch Visual

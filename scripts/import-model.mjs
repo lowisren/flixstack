@@ -15,7 +15,7 @@
 // retried on the next round. The loop stops when a full round makes no
 // progress, so a genuine schema error surfaces instead of spinning.
 //
-// Usage (alias: `pnpm import-model <phase> [--dry]`):
+// Usage (alias: `npm run import-model -- <phase> [--dry]`):
 //   node scripts/import-model.mjs [global-fields|content-types|all] [--dry] [--update]
 //     --dry    : read + print planned writes, make NO writes (existence checks
 //                still run, so a dry run tells you what is already there)
@@ -280,8 +280,8 @@ async function importContentTypes() {
   if (!DRY) {
     console.log("Next steps:");
     console.log("  1. node scripts/migrate-v2.mjs terms   # taxonomy vocabulary, if not already seeded");
-    console.log("  2. pnpm seed                           # 77 entries, draft");
-    console.log("  3. pnpm upload-assets                  # images, linked to those entries\n");
+    console.log("  2. npm run seed                           # 77 entries, draft");
+    console.log("  3. npm run upload-assets                  # images, linked to those entries\n");
   }
 })().catch((err) => {
   console.error("\n❌  Model import failed:", err.message);

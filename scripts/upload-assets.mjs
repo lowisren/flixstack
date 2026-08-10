@@ -15,7 +15,7 @@
 // Idempotent: assets are matched by title before upload, and an entry field
 // that already points at the right asset is left alone.
 //
-// Usage (alias: `pnpm upload-assets`):
+// Usage (alias: `npm run upload-assets`):
 //   node scripts/upload-assets.mjs [--dry] [--force]
 //     --dry   : read + print planned writes, make NO writes
 //     --force : overwrite image fields that already have an asset

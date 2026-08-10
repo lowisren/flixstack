@@ -14,7 +14,7 @@
 // Roles are resolved by NAME at run time, so phases are order-independent and
 // re-runnable. Everything is idempotent (update-in-place when it already exists).
 //
-// Usage (alias: `pnpm setup-workflow <phase> [--dry]`):
+// Usage (alias: `npm run setup-workflow -- <phase> [--dry]`):
 //   node scripts/setup-workflow.mjs [roles|workflow|rules|all] [--dry]
 //     --dry : read + build payloads, print them, make NO writes
 //

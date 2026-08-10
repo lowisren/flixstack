@@ -8,7 +8,6 @@
   },
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@11.9.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -54,5 +53,10 @@
       "module": "commonjs",
       "moduleResolution": "node"
     }
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "sharp": true,
+    "unrs-resolver": true
   }
 }
