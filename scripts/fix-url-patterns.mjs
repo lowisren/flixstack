@@ -7,6 +7,10 @@
 //   movie/tv_series : url_pattern /:title  →  /watch/:slug  (+ rewrite entry urls)
 //   genre           : not a page           →  is_page + /genre/:slug (+ url field + urls)
 //   page            : url_pattern /:title  →  /:slug  (options only; entry urls are bespoke — untouched)
+//   setup_guide     : not a page           →  is_page + url field + entry url /setup
+//                     Singleton pinned to a fixed route. Singletons store NO
+//                     url_pattern — the entry's url value is authoritative.
+//                     See CT_OPTIONS for the verified CMA behaviour.
 //
 // person is intentionally excluded: it has no standalone route, and toggling
 // is_page fights its existing url field. See docs/cms-editor-experience-tier3.md §3.1a.
@@ -85,14 +89,36 @@ const CT_OPTIONS = {
   tv_series: { is_page: true, url_prefix: "/", url_pattern: "/watch/:slug" },
   genre: { is_page: true, url_prefix: "/", url_pattern: "/genre/:slug" },
   page: { is_page: true, url_prefix: "/", url_pattern: "/:slug" },
+  // singleton + is_page is a legitimate pairing: a one-of-a-kind page pinned to a
+  // fixed code route (src/app/setup/page.tsx). Marking it is_page is what makes
+  // Contentstack show a page URL on the entry and lets Visual Builder open it —
+  // without it the entry looks orphaned in the CMS despite driving a real route.
+  //
+  // NOTE, verified against the CMA: singleton content types do NOT store
+  // `url_pattern`/`url_prefix`. Sending either returns HTTP 200 and then silently
+  // drops it (tested with both "/setup" and "/:title"). That is consistent — a
+  // pattern exists to generate urls for many entries, and a singleton has exactly
+  // one, so the entry's own `url` value is authoritative. Setting a pattern here
+  // would be cargo-cult config that reads as configured but is not.
+  setup_guide: { is_page: true },
 };
-// entry url = f(slug); only these content types get their stored urls rewritten.
+
+// Descriptions worth stating in the CMS itself — the model is teaching material here.
+const CT_DESCRIPTIONS = {
+  setup_guide:
+    "Singleton, page-type: drives the fixed /setup Developer Guide route (intro, setup steps, feature deep-dives, doc links). `is_page` + the `url` field are what let Contentstack link this entry to its live page and open it in Visual Builder.",
+};
+
+// entry url = f(entry), or null when it cannot be derived (e.g. no slug yet).
+// Only these content types get their stored urls rewritten.
 const ENTRY_URL = {
-  movie: (e) => `/watch/${e.slug}`,
-  tv_series: (e) => `/watch/${e.slug}`,
-  genre: (e) => `/genre/${e.slug}`,
+  movie: (e) => (e.slug ? `/watch/${e.slug}` : null),
+  tv_series: (e) => (e.slug ? `/watch/${e.slug}` : null),
+  genre: (e) => (e.slug ? `/genre/${e.slug}` : null),
+  // Singleton pinned to a fixed route — constant, with no slug to derive from.
+  setup_guide: () => "/setup",
 };
-// genre has no url field today; is_page types need one. Modelled on movie.url.
+// genre/setup_guide have no url field today; is_page types need one. Modelled on movie.url.
 const urlField = () => ({
   display_name: "URL", uid: "url", data_type: "text", mandatory: false,
   field_metadata: { _default: true, version: 3 }, multiple: false, unique: false, non_localizable: true,
@@ -107,21 +133,26 @@ async function runPatterns() {
     try {
       const ct = await getCT(uid);
       const before = { is_page: ct.options?.is_page, url_pattern: ct.options?.url_pattern, url_prefix: ct.options?.url_prefix };
-      // genre needs a url field before it can be a page
+      // Any is_page type needs a url field. No-op for movie/tv_series/page, which
+      // already have one. Sits after `slug` where there is one, else after `title`.
       let addedField = false;
-      if (uid === "genre" && !ct.schema.some((f) => f.uid === "url")) {
-        const i = ct.schema.findIndex((f) => f.uid === "slug");
+      if (!ct.schema.some((f) => f.uid === "url")) {
+        const anchor = ct.schema.findIndex((f) => f.uid === "slug");
+        const i = anchor !== -1 ? anchor : ct.schema.findIndex((f) => f.uid === "title");
         ct.schema.splice(i === -1 ? ct.schema.length : i + 1, 0, urlField());
         addedField = true;
       }
       ct.options = { ...ct.options, ...opts };
+      if (CT_DESCRIPTIONS[uid]) ct.description = CT_DESCRIPTIONS[uid];
       const changed = addedField || JSON.stringify(before) !== JSON.stringify({ is_page: opts.is_page, url_pattern: opts.url_pattern, url_prefix: opts.url_prefix });
+      // Singletons carry no url_pattern (see CT_OPTIONS) — report what actually applies.
+      const target = opts.url_pattern ?? `is_page=${opts.is_page} (singleton — no pattern; entry url is authoritative)`;
       if (DRY) {
-        console.log(`  [dry] ${uid}: ${before.url_pattern ?? "(none)"} -> ${opts.url_pattern}${addedField ? "  (+ add url field)" : ""}${changed ? "" : "  (no change)"}`);
+        console.log(`  [dry] ${uid}: ${before.url_pattern ?? "(none)"} -> ${target}${addedField ? "  (+ add url field)" : ""}${changed ? "" : "  (no change)"}`);
         continue;
       }
       await putCT(ct);
-      console.log(`  ${uid}: url_pattern -> ${opts.url_pattern}${addedField ? " (+url field added)" : ""}`);
+      console.log(`  ${uid}: ${target}${addedField ? " (+url field added)" : ""}`);
     } catch (e) { console.log(`  ! ${uid}: ${e.status || e.message}`); if (e.body) console.log("    ", JSON.stringify(e.body)); }
   }
 }
@@ -165,8 +196,8 @@ async function runEntries() {
       const entries = await getEntries(ct);
       let changed = 0, ok = 0, skip = 0;
       for (const e of entries) {
-        if (!e.slug) { skip++; console.log(`  ? ${ct}/${e.uid}: no slug — skipped`); continue; }
         const target = fn(e);
+        if (!target) { skip++; console.log(`  ? ${ct}/${e.uid}: url not derivable (no slug) — skipped`); continue; }
         if (e.url === target) { ok++; continue; }
         if (DRY) { console.log(`  [dry] ${ct}: "${e.title}"  ${e.url ?? "(none)"} -> ${target}`); changed++; continue; }
         // send full entry (minus system keys) with url replaced, so no fields are dropped

@@ -24,11 +24,11 @@ export const metadata: Metadata = {
     template: "%s | Flixstack",
   },
   description:
-    "A ContentStack starter template. A fully functional movie & TV streaming platform built with Next.js, ContentStack, and Tailwind CSS.",
+    "A Contentstack starter template. A fully functional movie & TV streaming platform built with Next.js, Contentstack, and Tailwind CSS.",
   keywords: ["streaming", "movies", "tv shows", "contentstack", "next.js"],
   openGraph: {
     title: "Flixstack",
-    description: "A ContentStack starter template — movie & TV streaming platform.",
+    description: "A Contentstack starter template — movie & TV streaming platform.",
     type: "website",
   },
 };

@@ -74,6 +74,38 @@ existing entry urls (movie 20, tv_series 3, genre 6 — verified via dry-run).
 script updates only page's `url_pattern`, not its entries. `person` is excluded from the
 script and left as a documented no-op (editors don't preview people; there's no route).
 
+#### Follow-up: `setup_guide` — applied 2026-08-10
+
+`setup_guide` was missed by the original pass (it postdates this script). It drives the real
+`/setup` route but was `is_page: false` with no `url` field, so its entry showed no page URL
+in the CMS and Visual Builder could not open it — the one content type that broke the pattern
+the rest of the model teaches. The live-preview plumbing was already wired on the code side
+([setup/page.tsx](../src/app/setup/page.tsx) calls `parseLivePreviewParams`); only the URL
+was missing.
+
+Fixed the same way `genre` was: `is_page: true`, add the `url` field, set the entry url. The
+`urlField()` insertion is no longer genre-specific — it now applies to any configured
+`is_page` type lacking a url (a no-op for movie/tv_series/page), and anchors after `slug`
+where one exists, else after `title`.
+
+| Content type | Was | Now | App route |
+|---|---|---|---|
+| `setup_guide` | not a page, no url field | `is_page: true`, + url field, entry url `/setup` | `/setup` (fixed, singleton) |
+
+> **Verified CMA behaviour: singleton content types do not store `url_pattern`/`url_prefix`.**
+> Sending either returns **HTTP 200 and then silently drops it** — confirmed with both the
+> literal `"/setup"` and the conventional `"/:title"`. So this is not about literal patterns
+> being rejected; it is the `singleton` flag. That is coherent — a pattern exists to generate
+> urls across many entries, and a singleton has exactly one, so **the entry's own `url` value
+> is authoritative**. `CT_OPTIONS.setup_guide` is therefore just `{ is_page: true }`; adding a
+> pattern would read as configured while doing nothing.
+>
+> Worth knowing generally: a 200 from the CMA does not mean every key you sent was persisted.
+> Read the content type back and compare.
+
+Entry is now at `_version 3` with unpublished changes (the url is additive; all 6 steps, 7
+features and 4 doc links verified intact). Republishing stays gated to a human, as above.
+
 ### 3.1b — Live Preview base URL + start URLs  ·  mostly UI  ·  S
 Set the preview base URL per environment in **Settings → Live Preview** so the editor
 opens the running app. Per-content-type start URLs derive from the `url_pattern`s fixed in

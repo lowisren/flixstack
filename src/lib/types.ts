@@ -194,6 +194,9 @@ export interface SiteConfig {
 }
 
 export interface NavLinkItem {
+  // Contentstack's stable per-item uid (`_metadata.uid`). Used as the React key —
+  // two menu items may legitimately share an href, so href is not a stable key.
+  uid?: string;
   label: string;
   href: string;
   open_in_new_tab?: boolean;

@@ -21,11 +21,18 @@
 // help text is authored once and inherited by every content type that uses it.
 //
 // Usage (or via the alias `npm run customize-fields -- <phase> [--dry]`):
-//   node scripts/customize-editor-fields.mjs [fields|alt|rte|all] [--dry]
+//   node scripts/customize-editor-fields.mjs [fields|alt|rte|audit|all] [--dry] [--force]
 //     fields  (default)  help text + validations + defaults + display types
 //     alt                add companion alt-text fields to image fields
 //     rte                convert episode.synopsis to JSON RTE  (changes data type)
+//     audit              read-only: report live entries the regexes would reject
 //     all                fields + alt   (rte is intentionally NOT in `all`)
+//
+// `fields` runs `audit` as a pre-flight and ABORTS if any live entry would be
+// left unsaveable by a regex it is about to apply — a `format` is only enforced
+// on save, so without this check bad validation lands silently and surfaces
+// later as an editor unable to save a field they never touched. `--force`
+// overrides the abort.
 //
 // Requires .env.local: CONTENTSTACK_MANAGEMENT_TOKEN, NEXT_PUBLIC_CONTENTSTACK_API_KEY
 // Honors NEXT_PUBLIC_CONTENTSTACK_REGION and NEXT_PUBLIC_CONTENTSTACK_BRANCH.
@@ -60,6 +67,11 @@ if (!API_KEY || !MGMT) {
 // --dry / DRY=1 : read + compute the patch in memory, report what WOULD change,
 // and skip every write (no PUT calls). Read-only against the stack.
 const DRY = process.argv.includes("--dry") || process.env.DRY === "1";
+
+// --force : apply `fields` even when the pre-flight audit finds live entries that
+// the new regexes would reject. Without it, `fields` aborts rather than leaving
+// editors with entries they cannot save.
+const FORCE = process.argv.includes("--force");
 
 const CMA_HOST_MAP = {
   US: "api.contentstack.io",
@@ -200,14 +212,16 @@ function preview(field) {
 }
 
 // Apply a list of cfg rows (each with a dotted `path`) to a schema, logging misses.
-function applyRows(schema, rows, label) {
+// `quiet` suppresses all logging — used by the audit, which patches schemas purely
+// in memory to work out what the regexes WOULD be.
+function applyRows(schema, rows, label, quiet = false) {
   let ok = 0, miss = 0;
   for (const row of rows) {
     const path = row.path.split(".");
     if (patchField(schema, path, toPatch(row))) {
       ok++;
-      if (DRY) console.log(`      · ${row.path.padEnd(38)} ${preview(resolveField(schema, path))}`);
-    } else { miss++; console.log(`    ! ${label}: field not found -> ${row.path}`); }
+      if (DRY && !quiet) console.log(`      · ${row.path.padEnd(38)} ${preview(resolveField(schema, path))}`);
+    } else { miss++; if (!quiet) console.log(`    ! ${label}: field not found -> ${row.path}`); }
   }
   return { ok, miss };
 }
@@ -218,7 +232,15 @@ function applyRows(schema, rows, label) {
 // `(?:-[a-z0-9]+)*`. Keep patterns to simple character classes.
 const SLUG = { format: "^[a-z0-9-]+$", error: "Use lowercase letters, numbers and hyphens only (e.g. the-signal)." };
 const URL_ABS = { format: "^https?://.+", error: "Enter a full URL starting with http:// or https://" };
-const URL_REL = { format: "^(/|https?://).+", error: "Use a site-relative path (/browse) or a full URL." };
+// Site path (/, /browse, /browse?type=movie), in-page anchor (#genres), full URL,
+// mailto: or tel:. The bare `/` alternative is deliberate — the old `^(/|https?://).+`
+// required a character AFTER the leading slash, which made the Home link (href "/")
+// unsaveable. `[^/\\]` after the leading slash rejects protocol-relative `//evil.com`
+// and `/\evil.com`, both of which silently leave the site.
+const URL_REL = {
+  format: "^(/[^/\\\\]\\S*|/|#\\S+|https?://\\S+|mailto:\\S+|tel:\\S+)$",
+  error: "Use a site path (/browse, /), an anchor (#genres), a full URL, mailto: or tel:.",
+};
 
 // ============================================================
 // Tier 1 configuration
@@ -248,10 +270,18 @@ const GLOBAL_FIELDS = {
     { path: "style", instruction: "primary = solid brand button, secondary = outlined, ghost = text-only.", display_type: "radio", default: "primary" },
     { path: "open_in_new_tab", instruction: "Enable only for links leaving Flixstack.", default: false },
   ],
+  // `link` stays fully optional — setup_guide uses it for links that may be blank.
   link: [
-    { path: "label", instruction: "The text shown in the menu." },
-    { path: "href", instruction: "Site-relative path (/browse) or a full URL for external links.", ...URL_REL },
+    { path: "label", instruction: "The text shown for this link." },
+    { path: "href", instruction: "Site path (/browse), an anchor (#genres), or a full URL for external links.", ...URL_REL },
     { path: "open_in_new_tab", instruction: "Enable only for external links.", default: false },
+  ],
+  // `nav_link` backs navigation.links, where label + href are mandatory.
+  // Created by scripts/split-nav-link.mjs; kept in sync here so it shares URL_REL.
+  nav_link: [
+    { path: "label", instruction: "The text shown in the menu. Required." },
+    { path: "href", instruction: "Site path (/browse or /), an anchor (#genres), or a full URL for external links. Required.", ...URL_REL },
+    { path: "open_in_new_tab", instruction: "Enable only for links leaving Flixstack.", default: false },
   ],
   availability_window: [
     { path: "available_from", instruction: "Title goes live at this date/time. Leave blank to publish immediately." },
@@ -361,6 +391,7 @@ const CONTENT_TYPES = {
     { path: "feature_flags.enabled", instruction: "On/off for this flag." },
   ],
   setup_guide: [
+    { path: "url", instruction: "Fixed page path for this singleton — always /setup, matching the route in src/app/setup/page.tsx. This is what links the entry to its live page and lets Visual Builder open it. Do not edit." },
     { path: "badge_label", instruction: "Small label shown above the guide title." },
     { path: "steps", instruction: "Ordered setup steps." },
     { path: "features", instruction: "Feature highlights, each anchored for deep-linking." },
@@ -388,10 +419,146 @@ const ALT_TARGETS = {
 const ALT_GLOBAL = { artwork: [["hero_image_alt", "hero_image", "Hero Image"], ["thumbnail_alt", "thumbnail", "Thumbnail"]] };
 
 // ============================================================
+// Audit — pre-flight regex check against live entry data
+//
+// Adding a `format` to a field only bites on SAVE, so a regex that rejects
+// data already in the stack leaves editors with entries they cannot save —
+// on a field they may never have touched. (This is exactly how the old
+// URL_REL `^(/|https?://).+` made the Home link, href "/", unsaveable.)
+//
+// The audit builds each content type's schema AS IT WOULD BE after this
+// script runs, then walks it against every live entry and reports any stored
+// value the new regex would reject. It is generic: it checks every field
+// carrying a `format`, not just the URL ones.
+// ============================================================
+
+// Entries are paginated; pull them all so the audit can't miss one.
+async function getAllEntries(ctUid) {
+  const out = [];
+  for (let skip = 0; ; skip += 100) {
+    const res = await cma("GET", `/content_types/${ctUid}/entries?limit=100&skip=${skip}&include_count=true`);
+    const batch = res.entries ?? [];
+    out.push(...batch);
+    if (batch.length < 100 || out.length >= (res.count ?? 0)) break;
+  }
+  return out;
+}
+
+// Load every global field once, with its configured rows already applied, so the
+// audit sees the formats this script is about to write.
+async function loadPatchedGlobalFields() {
+  const cache = {};
+  for (const uid of Object.keys(GLOBAL_FIELDS)) {
+    try {
+      const gf = await getGF(uid);
+      applyRows(gf.schema, GLOBAL_FIELDS[uid], uid, true);
+      cache[uid] = gf.schema;
+    } catch (e) { console.log(`  ! audit global_field ${uid}:`, e.status || e.message); }
+  }
+  return cache;
+}
+
+// IMPORTANT: unlike content-models/export.json, the CMA returns a content type's
+// global-field references WITHOUT their schema expanded — just `reference_to`.
+// The audit walker therefore has to graft the (patched) global-field schema on
+// itself, or it silently skips every subfield, including link.href.
+function overlayGlobalFieldRows(schema, gfCache) {
+  for (const f of schema) {
+    if (f.data_type === "global_field" && gfCache[f.reference_to]) {
+      if (!Array.isArray(f.schema)) f.schema = gfCache[f.reference_to];
+      else applyRows(f.schema, GLOBAL_FIELDS[f.reference_to] ?? [], f.reference_to, true);
+    }
+    if (Array.isArray(f.schema)) overlayGlobalFieldRows(f.schema, gfCache);
+    if (Array.isArray(f.blocks)) for (const b of f.blocks) if (Array.isArray(b.schema)) overlayGlobalFieldRows(b.schema, gfCache);
+  }
+}
+
+// Walk a schema and an entry's data together, collecting values that fail
+// their field's `format`. Handles multiple:true, groups, global fields and
+// modular blocks.
+function collectViolations(schema, node, path, out) {
+  if (node == null || typeof node !== "object") return;
+  for (const f of schema) {
+    const v = node[f.uid];
+    if (v == null) continue;
+    const p = path ? `${path}.${f.uid}` : f.uid;
+    const many = Array.isArray(v);
+
+    if (f.format) {
+      const re = new RegExp(f.format);
+      for (const [i, val] of (many ? v : [v]).entries()) {
+        // Empty optional fields are not format-checked by Contentstack.
+        if (typeof val !== "string" || val === "") continue;
+        if (!re.test(val)) out.push({ path: many ? `${p}[${i}]` : p, value: val, format: f.format });
+      }
+    }
+
+    if (Array.isArray(f.schema)) {
+      for (const [i, kid] of (many ? v : [v]).entries())
+        collectViolations(f.schema, kid, many ? `${p}[${i}]` : p, out);
+    }
+
+    if (Array.isArray(f.blocks) && many) {
+      for (const [i, blockWrapper] of v.entries())
+        for (const [blockUid, blockVal] of Object.entries(blockWrapper)) {
+          if (blockUid === "_metadata") continue;
+          const b = f.blocks.find((x) => x.uid === blockUid);
+          if (b?.schema) collectViolations(b.schema, blockVal, `${p}[${i}].${blockUid}`, out);
+        }
+    }
+  }
+}
+
+// Returns { violations, checked } across every configured content type.
+async function auditFormats() {
+  const violations = [];
+  let checked = 0;
+  const gfCache = await loadPatchedGlobalFields();
+  for (const [uid, rows] of Object.entries(CONTENT_TYPES)) {
+    try {
+      const ct = await getCT(uid);
+      applyRows(ct.schema, rows, uid, true);   // schema as it WILL be
+      overlayGlobalFieldRows(ct.schema, gfCache);
+      for (const entry of await getAllEntries(uid)) {
+        const found = [];
+        collectViolations(ct.schema, entry, "", found);
+        checked++;
+        for (const v of found) violations.push({ ct: uid, entry: entry.title ?? entry.uid, ...v });
+      }
+    } catch (e) { console.log(`  ! audit ${uid}:`, e.status || e.message); }
+  }
+  return { violations, checked };
+}
+
+async function runAudit() {
+  console.log("\n== Phase: audit — live entries vs. the regexes this script would apply ==");
+  const { violations, checked } = await auditFormats();
+  for (const v of violations)
+    console.log(`  ✗ ${v.ct}/${v.entry}  ${v.path} = ${JSON.stringify(v.value)}\n      rejected by ${v.format}`);
+  console.log(
+    violations.length
+      ? `\n  ${violations.length} value(s) across ${checked} entries would become unsaveable.`
+      : `\n  ${checked} entries checked — every stored value satisfies its field's format. ✓`
+  );
+  return violations;
+}
+
+// ============================================================
 // Phases
 // ============================================================
 
 async function runFields() {
+  // Pre-flight: never apply a regex that would strand existing entries.
+  const violations = await runAudit();
+  if (violations.length && !DRY && !FORCE) {
+    console.error(
+      "\n✗ Aborted before writing. Fix the values above (or relax the regex) and re-run.\n" +
+      "  Re-run with --force to apply anyway and leave those entries unsaveable."
+    );
+    process.exit(1);
+  }
+  if (violations.length && FORCE) console.log("\n  --force: applying anyway.");
+
   console.log("\n== Phase: field help text + validation + defaults + display types ==");
 
   console.log("  -- global fields --");
@@ -480,6 +647,7 @@ const run = {
   fields: runFields,
   alt: runAlt,
   rte: runRte,
+  audit: runAudit,
   all: async () => { await runFields(); await runAlt(); },
 };
 

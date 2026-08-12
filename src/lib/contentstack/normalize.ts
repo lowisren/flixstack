@@ -273,6 +273,7 @@ export function normalizeSiteConfig(raw: Raw): SiteConfig {
 
 function normalizeNavLink(raw: Raw): NavLinkItem {
   return {
+    uid: raw._metadata?.uid,
     label: raw.label ?? "",
     href: raw.href ?? "",
     open_in_new_tab: raw.open_in_new_tab ?? false,
@@ -285,7 +286,13 @@ export function normalizeNavigation(raw: Raw): Navigation {
   return {
     uid: raw.uid,
     title: raw.title,
-    links: (raw.links ?? []).map(normalizeNavLink),
+    // A menu item missing its label or href renders as an empty, unnamed link —
+    // worse than not rendering at all (WCAG 2.4.4 "Link Purpose"). The nav_link
+    // global field makes both mandatory, but drafts and older entries can still
+    // carry blanks, so drop them rather than shipping a broken link.
+    links: (raw.links ?? [])
+      .map(normalizeNavLink)
+      .filter((link: NavLinkItem) => link.label !== "" && link.href !== ""),
     $: raw.$,
   };
 }
