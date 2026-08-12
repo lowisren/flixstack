@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/layout/providers";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { LivePreviewInit } from "@/components/contentstack/live-preview-init";
+import { Lytics } from "@/components/analytics/lytics";
 import { getFooter, getHeader, getSiteConfig } from "@/lib/contentstack/queries";
 
 const geistSans = Geist({
@@ -47,6 +48,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-screen flex flex-col">
+        <Lytics />
         <LivePreviewInit />
         <Providers>
           <SiteChrome initialHeader={header} initialFooter={footer} siteName={siteConfig.site_name}>
