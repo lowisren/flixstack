@@ -21,9 +21,11 @@ export function Nav({ links, pathname, variant, onLinkClick }: NavProps) {
         : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]"
     );
 
-  const linkItems = links.map((link) => (
+  // Keyed on the Contentstack per-item uid, not href: two menu items may
+  // legitimately point at the same path, which would collide as a React key.
+  const linkItems = links.map((link, i) => (
     <Link
-      key={link.href}
+      key={link.uid ?? `${link.href}-${i}`}
       href={link.href}
       target={link.open_in_new_tab ? "_blank" : undefined}
       rel={link.open_in_new_tab ? "noopener noreferrer" : undefined}
@@ -33,6 +35,7 @@ export function Nav({ links, pathname, variant, onLinkClick }: NavProps) {
       {...link.$?.label}
     >
       {link.label}
+      {link.open_in_new_tab && <span className="sr-only"> (opens in new tab)</span>}
     </Link>
   ));
 
@@ -45,7 +48,7 @@ export function Nav({ links, pathname, variant, onLinkClick }: NavProps) {
       >
         <ul className="flex flex-col gap-1" role="list">
           {links.map((link, i) => (
-            <li key={link.href}>{linkItems[i]}</li>
+            <li key={link.uid ?? `${link.href}-${i}`}>{linkItems[i]}</li>
           ))}
         </ul>
       </nav>
