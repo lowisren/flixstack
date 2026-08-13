@@ -14,7 +14,7 @@ npm run dev
 # → http://localhost:3000
 ```
 
-All content and images are served live from Contentstack — there is no mock-data fallback in the app itself. A Contentstack account and populated stack are required (see below). `src/lib/mock-data.ts` still exists purely as seed source data for `scripts/seed.ts`/`scripts/upload-assets.ts`.
+All content and images are served live from Contentstack — there is no mock-data fallback in the app itself. A Contentstack account and populated stack are required (see below). `src/lib/mock-data.ts` still exists purely as seed source data for `scripts/seed.ts`/`scripts/upload-assets.mjs`.
 
 ---
 
@@ -31,30 +31,40 @@ cp .env.local.example .env.local
 | `NEXT_PUBLIC_CONTENTSTACK_DELIVERY_TOKEN` | Stack → Settings → Tokens → Delivery |
 | `NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT` | Stack → Environments |
 | `NEXT_PUBLIC_CONTENTSTACK_REGION` | `US` (default), `EU`, `AZURE_NA`, `AZURE_EU`, `GCP_NA`, `GCP_EU` |
-| `CONTENTSTACK_PREVIEW_TOKEN` | Stack → Settings → Tokens → create/attach a Preview Token — required for Live Preview / Visual Builder. Server-only, never prefix with `NEXT_PUBLIC_` |
-| `CONTENTSTACK_MANAGEMENT_TOKEN` | Stack → Settings → Tokens → Management Token — only needed for `npm run seed` / `npm run upload-assets` |
+| `NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW` | `true` to enable Live Preview / Visual Editor. This is the master switch — without it, edit tags and the editor bridge are never rendered, even with a valid preview token |
+| `CONTENTSTACK_PREVIEW_TOKEN` | Stack → Settings → Tokens → Delivery Tokens — enable the "Create Preview Token" toggle when creating the delivery token. Server-only, never prefix with `NEXT_PUBLIC_` |
+| `CONTENTSTACK_MANAGEMENT_TOKEN` | Stack → Settings → Tokens → Management Token — needed by every script below |
 
-Then import the content models and seed content:
+Then build the content model, seed content, and publish:
 
 ```bash
-# Import via Contentstack Dashboard:
-# Stack → Settings → Import/Export → Import Stack → content-models/export.json
-
-# Create the governed content_tags taxonomy terms (reads tokens from .env.local):
+# 1. Governed content_tags taxonomy + its 77 terms. Must run first: movie and
+#    tv_series bind a taxonomy field to it, so it has to exist before them.
 node scripts/migrate-v2.mjs terms
 
-# Seed sample content + upload/link images:
+# 2. 8 global fields + 13 content types from content-models/export.json.
+#    export.json is a plain schema document, NOT a `csdx cm:stacks:export` bundle,
+#    so the Dashboard's Import Stack UI cannot accept it — it is POSTed to the CMA.
+npm run import-model
+
+# 3. Seed 77 sample entries (drafts), then upload + link 85 images
 npm run seed
 npm run upload-assets
 
-# Create + publish the /setup Developer Guide entry:
+# 4. Publish. The Delivery API only serves published content, so until this runs
+#    the app renders empty. Publish after step 3 so artwork goes out attached.
+npx tsx scripts/seed.ts --publish --update
+
+# 5. Create + publish the /setup Developer Guide entry
 node scripts/seed-setup-guide.mjs
 
-# Publish seeded entries + assets to your environment from the Contentstack dashboard,
-# or via the Contentstack MCP tools if you're driving this with an AI agent.
+# Optional: editor experience, validation rules, and editorial workflow
+npm run customize-fields
+npm run content-governance
+npm run setup-workflow
 ```
 
-Visit `/setup` in the running app for the full guided walkthrough.
+Every script is idempotent and accepts `--dry`. Visit `/setup` in the running app for the full guided walkthrough — it is the same sequence, with an explanation of the Contentstack feature behind each step.
 
 ---
 
@@ -94,14 +104,15 @@ src/
 └── lib/
     ├── contentstack/       # SDK client, normalize (editable tags + RTE), typed queries
     ├── lytics/             # CDP event tracking + server-side segments
-    ├── mock-data.ts        # Seed source for scripts/seed.ts + upload-assets.ts only
+    ├── mock-data.ts        # Seed source for scripts/seed.ts + upload-assets.mjs only
     ├── setup-fallback.ts   # Fallback content for /setup when the stack is unconfigured
     ├── types.ts            # TypeScript types matching content models
     └── utils.ts
 
-content-models/export.json    # Importable Contentstack stack schema (13 types, 6 global fields)
+content-models/export.json    # Contentstack stack schema (13 types, 8 global fields)
+scripts/import-model.mjs      # Creates the schema in an empty stack from export.json
 scripts/seed.ts               # Seed script (Management SDK)
-scripts/upload-assets.ts      # Uploads + links images to seeded entries
+scripts/upload-assets.mjs     # Uploads + links images to seeded entries
 scripts/migrate-v2.mjs        # Structured-content migration (global fields, taxonomy, enums)
 scripts/seed-setup-guide.mjs  # Creates + publishes the setup_guide content type & entry
 docs/                         # Deep-dive guides for each feature
@@ -123,13 +134,13 @@ Flixstack uses a **structured-content** model: fields shared across types are ex
 | `hero_banner` | title, subtitle, `cta` (Global Field), background_image, linked_title (Ref) |
 | `homepage_rail` | title, rail_type, items (Ref), layout |
 | `page` | title, slug, `seo`, sections (Modular Blocks) |
-| `navigation` | title, links (`link` Global Field, repeatable) |
+| `navigation` | title, links (`nav_link` Global Field, repeatable) |
 | `header` | logo, main_navigation (Ref), `cta`, show_search, show_profile |
 | `footer` | columns (group → navigation Ref), legal_text |
 | `site_config` | site_name, feature_flags (group) |
 | `setup_guide` | Singleton driving `/setup`: intro, steps, feature deep-dives, doc links (JSON RTE + groups + `link` Global Field) |
 
-**Global Fields (6):** `title_metadata` (rating, tier, release date, score), `artwork` (hero/thumbnail), `cta`, `link`, `seo`, `availability_window`
+**Global Fields (8):** `title_metadata` (rating, tier, release date, score), `artwork` (hero/thumbnail), `playback` (video source, captions), `cta`, `link` (all subfields optional), `nav_link` (label + href mandatory), `seo`, `availability_window`
 
 **Taxonomy:** `content_tags` — governed tag vocabulary applied to movies & TV series
 

@@ -39,6 +39,8 @@ yarn-error.log*
 # vercel
 .vercel
 
+.claude
+
 # contentstack cli logs
 /logs/
 .cs-launch.json
