@@ -74,6 +74,8 @@
   --grid-line: #c3ccd1;
   --grid-opacity: 0.5;
   --underglow-opacity: 0.4;
+  --fx-hud-opacity: 0.5;
+  --fx-sweep-opacity: 0.7;
 
   --glow-accent: 0 0 0 1px color-mix(in srgb, var(--color-accent) 22%, transparent);
   --glow-info: 0 0 0 1px color-mix(in srgb, var(--color-info) 22%, transparent);
@@ -131,6 +133,8 @@
   --grid-line: #1e2a38;
   --grid-opacity: 1;
   --underglow-opacity: 0.75;
+  --fx-hud-opacity: 1;
+  --fx-sweep-opacity: 1;
 
   /* Capped at two layers — glow is decorative and must never be the
      only thing carrying contrast or identifying a control. */
@@ -169,6 +173,8 @@
   --grain-opacity: 0;
   --grid-opacity: 0;
   --underglow-opacity: 0;
+  --fx-hud-opacity: 0;
+  --fx-sweep-opacity: 0;
   --glow-accent: none;
   --glow-info: none;
   --glow-signal: none;
@@ -386,9 +392,6 @@ body {
    ============================================================ */
 
 /* CRT scanlines */
-.scanlines {
-  position: relative;
-}
 .scanlines::after {
   content: "";
   position: absolute;
@@ -403,9 +406,6 @@ body {
 }
 
 /* Hackers isometric wireframe grid */
-.grid-backdrop {
-  position: relative;
-}
 .grid-backdrop::before {
   content: "";
   position: absolute;
@@ -421,9 +421,6 @@ body {
 }
 
 /* Film grain */
-.grain {
-  position: relative;
-}
 .grain::after {
   content: "";
   position: absolute;
@@ -438,12 +435,25 @@ body {
   background-size: 3px 3px;
 }
 
+/* ============================================================
+   CASCADE RULE for every utility below.
+
+   These classes are UNLAYERED, and Tailwind's utilities live in
+   @layer utilities. Unlayered CSS beats layered CSS regardless of
+   specificity — so a `position` declared here silently overrides
+   `absolute` / `sticky` / `fixed` from a Tailwind class on the same
+   element. That already cost us twice: `.chrome-underglow` turned the
+   sticky header into a relative one, and `.scanlines` collapsed the
+   hero scrim to 0px tall by overriding `absolute inset-0`.
+
+   So: none of these classes declare `position`. Each one needs a
+   positioning context for its pseudo-element, and the CONSUMER
+   supplies it with a Tailwind class (`relative`, `absolute`, `sticky`).
+   ============================================================ */
+
 /* Header underglow — a phosphor hairline instead of a flat divider. Sits on
    top of the real border, which stays put so the header keeps an edge when
    .reduce-fx or forced-colors switches the glow off. */
-.chrome-underglow {
-  position: relative;
-}
 .chrome-underglow::after {
   content: "";
   position: absolute;
@@ -466,9 +476,6 @@ body {
    already sets, so the indicator derives from real semantics rather than a
    parallel "isActive" class. Never the only cue: the active link also shifts
    to the accent colour and carries aria-current for assistive tech. */
-.nav-link {
-  position: relative;
-}
 .nav-link::after {
   content: "";
   position: absolute;
@@ -489,12 +496,132 @@ body {
   transform: scaleX(1);
 }
 
+/* ============================================================
+   Hero scrim — three layers: a horizontal wash where the copy sits,
+   a bottom vignette, and scanlines (added separately via .scanlines).
+
+   Both gradients are a FIXED dark ink in both themes, deliberately not
+   a theme token. Hero copy is white in both themes, so a scrim that
+   followed the theme would fade white text into a near-white ground in
+   light mode — which is exactly what shipped before: the old bottom
+   vignette used `from-background` and put the title at 1.12:1 in light
+   mode.
+
+   Worst case over pure-white artwork, sampled across the whole text
+   region: title 10.21:1, subtitle (white/80) 7.23:1. So hero copy never
+   depends on the CMS supplying a dark image.
+   ============================================================ */
+.hero-scrim {
+  background-image:
+    linear-gradient(
+      to right,
+      rgb(5 7 10 / 0.95) 0%,
+      rgb(5 7 10 / 0.8) 30%,
+      rgb(5 7 10 / 0.35) 60%,
+      rgb(5 7 10 / 0) 85%
+    ),
+    linear-gradient(
+      to top,
+      rgb(5 7 10 / 0.98) 0%,
+      rgb(5 7 10 / 0.75) 25%,
+      rgb(5 7 10 / 0.15) 55%,
+      rgb(5 7 10 / 0) 75%
+    );
+}
+
+/* Corner HUD brackets — two corners only, echoing the notch direction */
+.hud-frame::before,
+.hud-frame::after {
+  content: "";
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  pointer-events: none;
+  opacity: var(--fx-hud-opacity);
+  border-color: color-mix(in srgb, var(--color-accent) 70%, transparent);
+  border-style: solid;
+  border-width: 0;
+}
+.hud-frame::before {
+  top: 14px;
+  left: 14px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+.hud-frame::after {
+  bottom: 14px;
+  right: 14px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+/* Scan sweep — replaces hover:scale on cards. A transform on a pseudo
+   element composites, where scaling a whole card forces layout work for
+   every card in a rail. Fires on hover AND focus-within so keyboard
+   users get the same feedback. */
+@keyframes scan-sweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(110%);
+  }
+}
+.sweep {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+.sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-110%);
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    color-mix(in srgb, var(--color-accent) 22%, transparent) 50%,
+    transparent 58%
+  );
+}
+.sweep-host:hover .sweep,
+.sweep-host:focus-within .sweep {
+  opacity: var(--fx-sweep-opacity);
+}
+.sweep-host:hover .sweep::after,
+.sweep-host:focus-within .sweep::after {
+  animation: scan-sweep 520ms ease-out;
+}
+
+/* Inset focus ring for focusable elements *inside* a notched container.
+   A parent's clip-path clips descendant painting, and outline-offset
+   pushes a ring outward — so a child's outline can land outside the clip
+   and vanish. An inset ring sits within the child's own box and survives.
+   Single-tone is enough here: these sit on neutral surfaces, not on an
+   accent fill (see .notch:focus-visible for why that case needs two). */
+.focus-inset:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-focus-ring);
+}
+
+/* Rail edge fade. Disabled while anything inside has focus: a mask clips
+   painting, so a focused card scrolled to the boundary would have its
+   focus ring faded out. Keyboard users get no fade at all. */
+.rail-fade:not(:focus-within) {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 2rem,
+    #000 calc(100% - 2rem),
+    transparent 100%
+  );
+}
+
 /* Terminal bracket affordance for Button variant="terminal".
    Drawn with borders rather than "[" / "]" characters so screen
    readers have no punctuation to announce. */
-.btn-terminal {
-  position: relative;
-}
 .btn-terminal::before,
 .btn-terminal::after {
   content: "";
@@ -570,7 +697,6 @@ body {
   }
 }
 .skeleton {
-  position: relative;
   overflow: hidden;
   background: var(--color-bg-elevated);
   border-radius: var(--radius-panel);
@@ -623,6 +749,14 @@ body {
     animation: none !important;
     opacity: 1;
   }
+  .sweep,
+  .sweep-host:hover .sweep,
+  .sweep-host:focus-within .sweep {
+    opacity: 0;
+  }
+  .sweep::after {
+    animation: none !important;
+  }
   .chromatic:hover,
   .chromatic:focus-visible {
     text-shadow: none;
@@ -641,6 +775,9 @@ body {
 .reduce-fx .terminal-caret::after {
   animation: none;
   opacity: 1;
+}
+.reduce-fx .sweep::after {
+  animation: none;
 }
 
 /* ============================================================
@@ -672,8 +809,19 @@ body {
   .scanlines::after,
   .grid-backdrop::before,
   .grain::after,
-  .chrome-underglow::after {
+  .chrome-underglow::after,
+  .hud-frame::before,
+  .hud-frame::after,
+  .sweep {
     display: none;
+  }
+  .focus-inset:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+  .rail-fade:not(:focus-within) {
+    mask-image: none;
   }
   .chromatic:hover,
   .chromatic:focus-visible {
@@ -689,6 +837,8 @@ body {
     --grain-opacity: 0;
     --grid-opacity: 0;
     --underglow-opacity: 0;
+    --fx-hud-opacity: 0;
+    --fx-sweep-opacity: 0;
     --fx-chromatic: none;
     --color-border: var(--color-border-control);
   }

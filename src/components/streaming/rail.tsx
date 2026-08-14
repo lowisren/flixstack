@@ -31,18 +31,29 @@ export function Rail({ rail, ...props }: RailProps) {
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3 px-4 sm:px-6 lg:px-8">
-        <h2 className="text-lg font-bold text-[var(--color-text-primary)]" {...rail.$?.title}>
-          {rail.title}
-        </h2>
+        <div className="flex items-baseline gap-2 min-w-0">
+          {/* Sibling of the h2, not inside it, so the Contentstack live-preview
+              edit tag stays bound to the title text alone. */}
+          {/* Braced string, not a bare `//` text node — as raw JSX text it is
+              indistinguishable from a comment (react/jsx-no-comment-textnodes). */}
+          <span className="font-mono text-sm text-accent shrink-0" aria-hidden="true">
+            {"//"}
+          </span>
+          <h2
+            className="font-display text-lg uppercase text-text-primary truncate"
+            {...rail.$?.title}
+          >
+            {rail.title}
+          </h2>
+        </div>
         <div className="flex items-center gap-1" aria-label={`Scroll ${rail.title}`}>
           <button
             onClick={() => scroll("left")}
             className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-full",
-              "border border-[var(--color-border)] bg-[var(--color-bg-surface)]",
-              "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]",
-              "hover:bg-[var(--color-bg-elevated)] transition-colors",
-              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]"
+              "notch-sm flex h-8 w-8 items-center justify-center",
+              "border border-border-control bg-surface",
+              "text-text-secondary hover:border-accent hover:text-accent",
+              "transition-colors"
             )}
             aria-label={`Scroll ${rail.title} left`}
           >
@@ -51,11 +62,10 @@ export function Rail({ rail, ...props }: RailProps) {
           <button
             onClick={() => scroll("right")}
             className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-full",
-              "border border-[var(--color-border)] bg-[var(--color-bg-surface)]",
-              "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]",
-              "hover:bg-[var(--color-bg-elevated)] transition-colors",
-              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]"
+              "notch-sm flex h-8 w-8 items-center justify-center",
+              "border border-border-control bg-surface",
+              "text-text-secondary hover:border-accent hover:text-accent",
+              "transition-colors"
             )}
             aria-label={`Scroll ${rail.title} right`}
           >
@@ -67,7 +77,7 @@ export function Rail({ rail, ...props }: RailProps) {
       {/* Scrollable rail */}
       <div
         ref={scrollRef}
-        className="scroll-rail flex gap-4 px-4 sm:px-6 lg:px-8 pb-4"
+        className="scroll-rail rail-fade flex gap-4 px-4 sm:px-6 lg:px-8 pb-4"
         role="list"
         aria-label={`${rail.title} titles`}
         onKeyDown={(e) => {

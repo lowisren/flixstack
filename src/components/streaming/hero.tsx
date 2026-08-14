@@ -43,7 +43,9 @@ export function Hero({ banners }: HeroProps) {
       aria-label="Featured content"
       aria-live="polite"
       aria-atomic="true"
-      className="relative w-full h-[60vh] min-h-100 max-h-175 overflow-hidden bg-elevated"
+      // Fixed dark ground, not bg-elevated: the copy is white in both themes,
+      // so a theme-following surface would put white text on a light ground.
+      className="hud-frame relative w-full h-[60vh] min-h-100 max-h-175 overflow-hidden bg-[#05070A]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -59,15 +61,12 @@ export function Hero({ banners }: HeroProps) {
         />
       )}
 
-      {/* Gradient overlay */}
-      <div
-        className="absolute inset-0 bg-linear-to-r from-black/80 via-black/40 to-transparent"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-0 bg-linear-to-t from-background via-transparent to-transparent"
-        aria-hidden="true"
-      />
+      {/* Three-layer scrim: horizontal wash + bottom vignette (both in
+          .hero-scrim, at a fixed dark ink) plus scanlines. The previous
+          version faded to `from-background`, which in light mode put the
+          white title at 1.12:1. Worst case over pure-white artwork is now
+          10.21:1 for the title and 7.23:1 for the subtitle. */}
+      <div className="hero-scrim scanlines absolute inset-0" aria-hidden="true" />
 
       {/* Content */}
       <div className="relative h-full flex items-end pb-12 px-4 sm:px-6 lg:px-8">
@@ -78,13 +77,13 @@ export function Hero({ banners }: HeroProps) {
             </Badge>
           )}
           <h1
-            className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight mb-3"
+            className="font-display chromatic text-3xl sm:text-4xl md:text-5xl uppercase text-white leading-tight mb-3"
             {...banner.$?.title}
           >
             {banner.title}
           </h1>
           <p
-            className="text-white/80 text-base sm:text-lg mb-6 leading-relaxed line-clamp-2"
+            className="text-white/85 text-base sm:text-lg mb-6 leading-relaxed line-clamp-2"
             {...banner.$?.subtitle}
           >
             {banner.subtitle}
@@ -123,10 +122,9 @@ export function Hero({ banners }: HeroProps) {
           <button
             onClick={prev}
             className={cn(
-              "absolute left-4 top-1/2 -translate-y-1/2",
-              "flex h-10 w-10 items-center justify-center rounded-full",
-              "bg-black/40 text-white hover:bg-black/60 transition-colors",
-              "focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)"
+              "absolute left-4 top-1/2 -translate-y-1/2 notch-sm",
+              "flex h-10 w-10 items-center justify-center border border-white/25",
+              "bg-black/50 text-white hover:border-accent hover:text-accent transition-colors"
             )}
             aria-label="Previous featured title"
           >
@@ -135,10 +133,9 @@ export function Hero({ banners }: HeroProps) {
           <button
             onClick={next}
             className={cn(
-              "absolute right-4 top-1/2 -translate-y-1/2",
-              "flex h-10 w-10 items-center justify-center rounded-full",
-              "bg-black/40 text-white hover:bg-black/60 transition-colors",
-              "focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)"
+              "absolute right-4 top-1/2 -translate-y-1/2 notch-sm",
+              "flex h-10 w-10 items-center justify-center border border-white/25",
+              "bg-black/50 text-white hover:border-accent hover:text-accent transition-colors"
             )}
             aria-label="Next featured title"
           >

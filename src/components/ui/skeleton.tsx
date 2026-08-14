@@ -16,7 +16,7 @@ export function Skeleton({
   return (
     <div
       aria-hidden="true"
-      className={cn("skeleton rounded-panel", className)}
+      className={cn("skeleton relative rounded-panel", className)}
       {...props}
     />
   );

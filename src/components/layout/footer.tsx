@@ -52,7 +52,7 @@ export function Footer({ footer, siteName = "Flixstack" }: FooterProps) {
   const FOOTER_COLUMNS = footer?.columns && footer.columns.length > 0 ? footer.columns : FALLBACK_FOOTER_COLUMNS;
   return (
     <footer
-      className="grid-backdrop border-t border-border bg-surface mt-auto"
+      className="grid-backdrop relative border-t border-border bg-surface mt-auto"
       role="contentinfo"
       aria-label="Site footer"
     >

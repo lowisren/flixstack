@@ -17,7 +17,7 @@ export function Nav({ links, pathname, variant, onLinkClick }: NavProps) {
   // aria-current itself for assistive tech.
   const linkClassName = (href: string) =>
     cn(
-      "nav-link font-mono text-xs uppercase tracking-wider transition-colors",
+      "nav-link relative font-mono text-xs uppercase tracking-wider transition-colors",
       variant === "desktop" ? "px-3 py-2" : "block px-3 py-2",
       pathname === href
         ? "text-accent"

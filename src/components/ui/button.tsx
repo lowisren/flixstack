@@ -27,7 +27,7 @@ const variantClasses = {
   danger:
     "bg-(--color-error) text-(--color-bg-base) hover:opacity-90",
   terminal:
-    "btn-terminal bg-transparent text-accent hover:bg-accent-subtle",
+    "btn-terminal relative bg-transparent text-accent hover:bg-accent-subtle",
 };
 
 const sizeClasses = {

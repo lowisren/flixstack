@@ -24,7 +24,6 @@ export function TitleCard({
   fullWidth = false,
   ...props
 }: TitleCardProps) {
-  const [hovered, setHovered] = useState(false);
   const [imgError, setImgError] = useState(false);
 
   const href = `/watch/${title.slug}`;
@@ -33,10 +32,11 @@ export function TitleCard({
 
   return (
     <article
-      className="group relative shrink-0 rounded-lg overflow-hidden bg-elevated transition-transform duration-200 hover:scale-105 hover:z-10 focus-within:scale-105 focus-within:z-10"
+      // `notch` + `sweep-host` replace the old hover:scale-105. Scaling the
+      // whole card forces layout work for every card in a rail; the sweep is a
+      // transform on a pseudo-element, which composites.
+      className="notch group sweep-host relative shrink-0 overflow-hidden bg-elevated"
       style={{ width: fullWidth ? "100%" : layout === "portrait" ? "160px" : "280px" }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       data-cs-entry={props["data-cs-entry"]}
       data-cs-content-type={props["data-cs-content-type"]}
     >
@@ -63,25 +63,28 @@ export function TitleCard({
           </div>
         )}
 
-        {/* Hover overlay */}
-        <div
-          className={cn(
-            "absolute inset-0 bg-black/60 flex items-center justify-center transition-opacity duration-200",
-            hovered ? "opacity-100" : "opacity-0"
-          )}
-          aria-hidden="true"
-        >
+        {/* Scan sweep — decorative, gated by --fx-sweep-opacity */}
+        <span className="sweep" aria-hidden="true" />
+
+        {/* Hover / focus overlay.
+            Not aria-hidden: it holds the watchlist button, and an aria-hidden
+            container with a focusable child is an ARIA violation (axe
+            `aria-hidden-focus`) — it also let keyboard users focus an
+            invisible control. The overlay now reveals on focus-within too, so
+            the button is visible whenever it is focused. Only the duplicate
+            play link is hidden, since the title link already goes there. */}
+        <div className="absolute inset-0 bg-black/65 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
           <div className="flex items-center gap-2">
             <Link
               href={href}
               tabIndex={-1}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground hover:bg-accent-hover transition-colors"
-              aria-label={`Play ${title.title}`}
+              aria-hidden="true"
+              className="notch-sm flex h-10 w-10 items-center justify-center bg-accent text-accent-foreground hover:bg-accent-hover transition-colors"
             >
               <Play className="h-4 w-4 fill-current" aria-hidden="true" />
             </Link>
             <button
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
+              className="focus-inset notch-sm flex h-10 w-10 items-center justify-center border border-white/30 bg-white/15 text-white hover:border-accent hover:text-accent transition-colors"
               aria-label={`Add ${title.title} to watchlist`}
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
@@ -94,9 +97,7 @@ export function TitleCard({
           {title.content_tier === "premium" && (
             <Badge variant="premium">Premium</Badge>
           )}
-          {!isMovie && (
-            <Badge variant="default">Series</Badge>
-          )}
+          {!isMovie && <Badge variant="info">Series</Badge>}
         </div>
       </div>
 
@@ -104,31 +105,28 @@ export function TitleCard({
       <div className="p-3">
         <Link
           href={href}
-          className="block font-semibold text-sm text-(--color-text-primary) hover:text-accent transition-colors line-clamp-1 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-(--color-focus-ring) rounded-sm"
+          className="focus-inset chromatic font-display block text-sm text-text-primary hover:text-accent transition-colors line-clamp-1"
           {...title.$?.title}
         >
           {title.title}
         </Link>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs text-text-secondary">
+        {/* Metadata reads as a terminal readout: mono, tabular figures so
+            years and runtimes line up down a rail. */}
+        <div className="flex items-center gap-2 mt-1 font-mono text-xs tabular-nums">
+          <span className="text-text-secondary">
             {new Date(title.release_date).getFullYear()}
           </span>
           {runtime && (
-            <span className="text-xs text-text-secondary">
-              · {formatRuntime(runtime)}
-            </span>
+            <span className="text-text-secondary">· {formatRuntime(runtime)}</span>
           )}
-          <span className="flex items-center gap-0.5 text-xs text-accent ml-auto">
+          <span className="flex items-center gap-0.5 text-accent ml-auto">
             <Star className="h-3 w-3 fill-current" aria-hidden="true" />
             <span aria-label={`Score: ${title.score} out of 100`}>{title.score}</span>
           </span>
         </div>
-        <div className="flex gap-1 mt-2 flex-wrap">
+        <div className="flex gap-2 mt-2 flex-wrap font-mono text-xs uppercase tracking-wider">
           {title.genres.slice(0, 2).map((g) => (
-            <span
-              key={g.uid}
-              className="text-xs text-text-disabled leading-none"
-            >
+            <span key={g.uid} className="text-text-disabled leading-none">
               {g.title}
             </span>
           ))}
