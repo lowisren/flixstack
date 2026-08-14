@@ -40,10 +40,10 @@ export function ModularBlockRenderer({ blocks }: ModularBlockRendererProps) {
                 key={`promo-${i}`}
                 data-cs-entry={promo.uid}
                 data-cs-content-type="promo_block"
-                className={`flex flex-col md:flex-row ${isReversed ? "md:flex-row-reverse" : ""} gap-8 items-center px-4 sm:px-6 lg:px-8 py-8 rounded-2xl bg-surface border border-border mx-4 sm:mx-6 lg:mx-8`}
+                className={`flex flex-col md:flex-row ${isReversed ? "md:flex-row-reverse" : ""} gap-8 items-center px-4 sm:px-6 lg:px-8 py-8 notch relative bg-surface border border-border mx-4 sm:mx-6 lg:mx-8`}
               >
                 <div className="flex-1 max-w-xl">
-                  <h2 className="text-2xl font-bold text-(--color-text-primary) mb-3">
+                  <h2 className="font-display text-2xl uppercase text-text-primary mb-3">
                     {promo.headline}
                   </h2>
                   <p className="text-text-secondary leading-relaxed mb-5">
@@ -51,13 +51,13 @@ export function ModularBlockRenderer({ blocks }: ModularBlockRendererProps) {
                   </p>
                   <Link
                     href={promo.cta_url}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent text-accent-foreground font-semibold text-sm hover:bg-accent-hover transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+                    className="notch-sm inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-accent-foreground font-mono font-semibold text-xs uppercase tracking-wider hover:bg-accent-hover transition-colors"
                   >
                     {promo.cta_label}
                   </Link>
                 </div>
                 {promo.image && (
-                  <div className="flex-1 relative aspect-video w-full max-w-md rounded-xl overflow-hidden">
+                  <div className="notch flex-1 relative aspect-video w-full max-w-md overflow-hidden">
                     <Image
                       src={promo.image.url}
                       alt={promo.headline}
@@ -81,16 +81,16 @@ export function ModularBlockRenderer({ blocks }: ModularBlockRendererProps) {
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div
-                    className="h-6 w-1.5 rounded-full"
+                    className="h-6 w-1.5"
                     style={{ backgroundColor: spotlight.genre.color_accent }}
                     aria-hidden="true"
                   />
-                  <h2 className="text-xl font-bold text-(--color-text-primary)">
+                  <h2 className="font-display text-xl uppercase text-text-primary">
                     {spotlight.genre.title}
                   </h2>
                   <Link
                     href={`/genre/${spotlight.genre.slug}`}
-                    className="text-sm text-accent hover:underline ml-auto focus-visible:outline-2 focus-visible:outline-(--color-focus-ring) rounded-sm"
+                    className="focus-inset font-mono text-xs uppercase tracking-wider text-accent hover:underline ml-auto"
                   >
                     View all →
                   </Link>

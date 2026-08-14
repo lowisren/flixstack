@@ -45,21 +45,25 @@ export default async function GenrePage({ params, searchParams }: PageProps) {
     <div>
       {/* Genre hero */}
       <section
-        className="relative h-48 sm:h-64 overflow-hidden"
+        className="hud-frame relative h-48 sm:h-64 overflow-hidden bg-[#05070A]"
         aria-label={`${genre.title} genre`}
         data-cs-entry={genre.uid}
         data-cs-content-type="genre"
-        style={{ backgroundColor: genre.color_accent + "20" }}
       >
         {genre.hero_image && (
           <Image
             src={genre.hero_image.url}
             alt=""
             fill
-            className="object-cover opacity-30"
+            className="object-cover opacity-40"
             aria-hidden="true"
           />
         )}
+        {/* Genre identity tint, then the same fixed-dark scrim as the other
+            heroes. The copy below is white, so its contrast must not depend on
+            color_accent — that field is editor-chosen in Contentstack, and a
+            light accent (e.g. a yellow "Comedy") took the heading to 3.40:1 in
+            dark mode when the text sat directly on the tint. */}
         <div
           className="absolute inset-0"
           style={{
@@ -67,19 +71,20 @@ export default async function GenrePage({ params, searchParams }: PageProps) {
           }}
           aria-hidden="true"
         />
+        <div className="hero-scrim scanlines absolute inset-0" aria-hidden="true" />
         <div className="relative h-full flex flex-col justify-end px-4 sm:px-6 lg:px-8 pb-8">
           <div className="flex items-center gap-3 mb-2">
             <div
-              className="h-1 w-8 rounded-full"
+              className="h-1 w-8"
               style={{ backgroundColor: genre.color_accent }}
               aria-hidden="true"
             />
-            <span className="text-sm font-medium text-[var(--color-text-secondary)]">Genre</span>
+            <span className="font-mono text-xs uppercase tracking-widest text-white/70">Genre</span>
           </div>
-          <h1 className="text-4xl font-bold text-[var(--color-text-primary)]" {...genre.$?.title}>
+          <h1 className="font-display chromatic text-4xl uppercase text-white" {...genre.$?.title}>
             {genre.title}
           </h1>
-          <p className="text-[var(--color-text-secondary)] mt-1 max-w-xl" {...genre.$?.description}>
+          <p className="text-white/85 mt-1 max-w-xl" {...genre.$?.description}>
             {genre.description}
           </p>
         </div>
@@ -88,8 +93,8 @@ export default async function GenrePage({ params, searchParams }: PageProps) {
       {/* Titles grid */}
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
-          <p className="text-[var(--color-text-secondary)] text-sm">
-            {titles.length} title{titles.length !== 1 ? "s" : ""} in {genre.title}
+          <p className="font-mono text-xs uppercase tracking-widest text-accent tabular-nums">
+            [ {titles.length} title{titles.length !== 1 ? "s" : ""} in {genre.title} ]
           </p>
         </div>
 
@@ -111,8 +116,11 @@ export default async function GenrePage({ params, searchParams }: PageProps) {
             ))}
           </div>
         ) : (
-          <div className="py-20 text-center">
-            <p className="text-[var(--color-text-secondary)]">
+          <div className="notch scanlines relative mx-auto max-w-md border border-border-control bg-surface py-14 px-6 text-center">
+            <p className="font-mono text-xs uppercase tracking-widest text-signal mb-2">
+              No signal
+            </p>
+            <p className="text-text-secondary">
               No titles found in {genre.title} yet.
             </p>
           </div>

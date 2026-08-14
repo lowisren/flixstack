@@ -69,7 +69,7 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
           <button
             type="button"
             onClick={() => setNowPlaying(null)}
-            className="absolute top-4 right-4 z-10 flex items-center gap-1.5 rounded-lg bg-black/60 px-3 py-2 text-sm font-medium text-white backdrop-blur hover:bg-black/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+            className="notch-sm absolute top-4 right-4 z-10 flex items-center gap-1.5 border border-white/25 bg-black/60 px-3 py-2 font-mono text-xs uppercase tracking-wider text-white backdrop-blur hover:border-accent hover:text-accent transition-colors"
           >
             <X className="h-4 w-4" aria-hidden="true" />
             Close player
@@ -77,7 +77,7 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
         </section>
       ) : (
         <section
-          className="relative w-full h-[55vh] min-h-95 overflow-hidden bg-elevated"
+          className="hud-frame relative w-full h-[55vh] min-h-95 overflow-hidden bg-[#05070A]"
           aria-label={`${title.title} hero image`}
           data-cs-entry={title.uid}
           data-cs-content-type={title.content_type}
@@ -92,20 +92,16 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
               {...title.$?.hero_image}
             />
           )}
-          <div
-            className="absolute inset-0 bg-linear-to-r from-black/80 via-black/50 to-transparent"
-            aria-hidden="true"
-          />
-          <div
-            className="absolute inset-0 bg-linear-to-t from-background via-transparent to-transparent"
-            aria-hidden="true"
-          />
+          {/* Same fixed-dark scrim as the homepage hero: this copy is
+              text-white in both themes, so a theme-following vignette put it
+              on a near-white ground in light mode. */}
+          <div className="hero-scrim scanlines absolute inset-0" aria-hidden="true" />
 
           {/* Content overlay */}
           <div className="relative h-full flex items-end pb-8 px-4 sm:px-6 lg:px-8">
             <div className="flex items-end gap-6">
               {/* Thumbnail */}
-              <div className="hidden sm:block w-32 rounded-xl overflow-hidden shadow-2xl shrink-0 border border-white/10">
+              <div className="notch hidden sm:block w-32 overflow-hidden shrink-0 border border-white/15">
                 {title.thumbnail && (
                   <Image
                     src={title.thumbnail.url}
@@ -125,38 +121,38 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
                   <Badge variant="rating" className={getRatingColor(title.rating)}>
                     {title.rating}
                   </Badge>
-                  <span className="text-white/60 text-sm">
+                  <span className="font-mono text-xs text-white/70 tabular-nums">
                     {new Date(title.release_date).getFullYear()}
                   </span>
                   {movie && (
-                    <span className="text-white/60 text-sm flex items-center gap-1">
+                    <span className="font-mono text-xs text-white/70 flex items-center gap-1 tabular-nums">
                       <Clock className="h-3 w-3" aria-hidden="true" />
                       {formatRuntime(movie.runtime)}
                     </span>
                   )}
                   {series && (
-                    <span className="text-white/60 text-sm flex items-center gap-1">
+                    <span className="font-mono text-xs text-white/70 flex items-center gap-1">
                       <Tv className="h-3 w-3" aria-hidden="true" />
                       {series.seasons.length} Season{series.seasons.length !== 1 ? "s" : ""}
                     </span>
                   )}
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3 leading-tight" {...title.$?.title}>
+                <h1 className="font-display chromatic text-3xl sm:text-4xl uppercase text-white mb-3 leading-tight" {...title.$?.title}>
                   {title.title}
                 </h1>
 
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="flex items-center gap-1 text-accent font-semibold">
+                  <span className="flex items-center gap-1 font-mono font-semibold text-accent tabular-nums">
                     <Star className="h-4 w-4 fill-current" aria-hidden="true" />
                     <span aria-label={`Score: ${title.score} out of 100`}>{title.score}</span>
-                    <span className="text-white/40 text-sm font-normal">/100</span>
+                    <span className="text-white/60 text-xs font-normal">/100</span>
                   </span>
                   {title.genres.map((g) => (
                     <Link
                       key={g.uid}
                       href={`/genre/${g.slug}`}
-                      className="text-sm text-white/60 hover:text-white transition-colors focus-visible:outline-2 focus-visible:outline-(--color-focus-ring) rounded-sm"
+                      className="font-mono text-xs uppercase tracking-wider text-white/70 hover:text-accent transition-colors"
                     >
                       {g.title}
                     </Link>
@@ -195,7 +191,7 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
           {/* Synopsis + episodes */}
           <div className="lg:col-span-2 flex flex-col gap-8">
             <section aria-label="Synopsis">
-              <h2 className="text-xl font-bold text-(--color-text-primary) mb-3">About</h2>
+              <h2 className="font-display text-xl uppercase text-text-primary mb-3">About</h2>
               <p
                 className="text-text-secondary leading-relaxed text-base"
                 {...title.$?.synopsis}
@@ -206,19 +202,19 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
             {/* Episode list for series */}
             {series && (
               <section aria-label="Episodes">
-                <h2 className="text-xl font-bold text-(--color-text-primary) mb-4">Episodes</h2>
+                <h2 className="font-display text-xl uppercase text-text-primary mb-4">Episodes</h2>
                 <div className="flex flex-col gap-4">
                   {series.seasons.map((season) => (
                     <details
                       key={season.uid}
-                      className="group rounded-xl border border-border bg-surface overflow-hidden"
+                      className="notch group relative border border-border bg-surface overflow-hidden"
                     >
-                      <summary className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-elevated transition-colors list-none focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)">
-                        <span className="font-semibold text-(--color-text-primary)">
+                      <summary className="focus-inset flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-elevated transition-colors list-none">
+                        <span className="font-display uppercase text-text-primary">
                           Season {season.season_number}
                         </span>
                         <div className="flex items-center gap-3">
-                          <span className="text-sm text-text-secondary">
+                          <span className="font-mono text-xs uppercase tracking-wider text-text-secondary tabular-nums">
                             {season.episodes.length} episodes
                           </span>
                           <ChevronDown
@@ -249,7 +245,7 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
                                   playable ? `Play ${ep.title}` : `${ep.title} — no video available`
                                 }
                                 title={playable ? undefined : "No video available yet"}
-                                className="group/ep shrink-0 relative w-24 aspect-video rounded-lg overflow-hidden bg-elevated focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring) disabled:cursor-not-allowed"
+                                className="focus-inset notch-sm group/ep shrink-0 relative w-24 aspect-video overflow-hidden bg-elevated disabled:cursor-not-allowed"
                               >
                                 {ep.thumbnail && (
                                   <Image
@@ -273,21 +269,21 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
                               </button>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs text-text-disabled">
+                                  <span className="font-mono text-xs text-accent tabular-nums">
                                     E{ep.episode_number}
                                   </span>
                                   <h3
-                                    className="font-semibold text-sm text-(--color-text-primary) truncate"
+                                    className="font-display text-sm text-text-primary truncate"
                                     {...ep.$?.title}
                                   >
                                     {ep.title}
                                   </h3>
                                   {active && (
-                                    <Badge variant="default" className="shrink-0">
+                                    <Badge variant="signal" className="shrink-0">
                                       Now Playing
                                     </Badge>
                                   )}
-                                  <span className="ml-auto text-xs text-text-disabled shrink-0">
+                                  <span className="ml-auto font-mono text-xs text-text-disabled shrink-0 tabular-nums">
                                     {formatRuntime(ep.duration)}
                                   </span>
                                 </div>
@@ -329,8 +325,8 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
             data-cs-entry={title.uid}
             data-cs-content-type="person"
           >
-            <div className="rounded-xl border border-border bg-surface p-5">
-              <h2 className="font-semibold text-(--color-text-primary) mb-4 text-sm uppercase tracking-wider">
+            <div className="notch relative border border-border bg-surface p-5">
+              <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-text-secondary mb-4">
                 Cast & Crew
               </h2>
               <dl className="flex flex-col gap-4">
@@ -339,12 +335,12 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
                   if (!lead) return null;
                   return (
                     <div>
-                      <dt className="text-xs text-text-disabled mb-1">
+                      <dt className="font-mono text-xs uppercase tracking-wider text-text-secondary mb-1">
                         {isMovie ? "Director" : "Creator"}
                       </dt>
                       <dd>
                         <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full overflow-hidden bg-elevated shrink-0">
+                          <div className="h-8 w-8 rounded-pod overflow-hidden bg-elevated shrink-0">
                             {lead.photo && (
                               <Image
                                 src={lead.photo.url}
@@ -357,7 +353,7 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
                             )}
                           </div>
                           <span
-                            className="text-sm text-(--color-text-primary) font-medium"
+                            className="text-sm text-text-primary font-medium"
                             {...lead.$?.title}
                           >
                             {lead.name}
@@ -368,12 +364,12 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
                   );
                 })()}
                 <div>
-                  <dt className="text-xs text-text-disabled mb-2">Cast</dt>
+                  <dt className="font-mono text-xs uppercase tracking-wider text-text-secondary mb-2">Cast</dt>
                   <dd>
                     <ul className="flex flex-col gap-2" role="list">
                       {title.cast.map((person) => (
                         <li key={person.uid} className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full overflow-hidden bg-elevated shrink-0">
+                          <div className="h-8 w-8 rounded-pod overflow-hidden bg-elevated shrink-0">
                             {person.photo && (
                               <Image
                                 src={person.photo.url}
@@ -385,7 +381,7 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
                               />
                             )}
                           </div>
-                          <span className="text-sm text-(--color-text-primary)" {...person.$?.title}>
+                          <span className="text-sm text-text-primary" {...person.$?.title}>
                             {person.name}
                           </span>
                         </li>
@@ -397,14 +393,14 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
             </div>
 
             {/* Quick meta */}
-            <div className="rounded-xl border border-border bg-surface p-5">
-              <h2 className="font-semibold text-(--color-text-primary) mb-4 text-sm uppercase tracking-wider">
+            <div className="notch relative border border-border bg-surface p-5">
+              <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-text-secondary mb-4">
                 Details
               </h2>
               <dl className="flex flex-col gap-3">
                 <div className="flex justify-between items-center">
-                  <dt className="text-xs text-text-disabled">Release</dt>
-                  <dd className="text-sm text-(--color-text-primary) flex items-center gap-1">
+                  <dt className="font-mono text-xs uppercase tracking-wider text-text-secondary">Release</dt>
+                  <dd className="font-mono text-sm text-text-primary flex items-center gap-1 tabular-nums">
                     <Calendar className="h-3 w-3 text-text-disabled" aria-hidden="true" />
                     {new Date(title.release_date).toLocaleDateString("en-US", {
                       year: "numeric",
@@ -414,27 +410,27 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
                   </dd>
                 </div>
                 <div className="flex justify-between items-center">
-                  <dt className="text-xs text-text-disabled">Rating</dt>
+                  <dt className="font-mono text-xs uppercase tracking-wider text-text-secondary">Rating</dt>
                   <dd className={cn("text-sm font-mono font-semibold", getRatingColor(title.rating))}>
                     {title.rating}
                   </dd>
                 </div>
                 {movie && (
                   <div className="flex justify-between items-center">
-                    <dt className="text-xs text-text-disabled">Runtime</dt>
-                    <dd className="text-sm text-(--color-text-primary)">
+                    <dt className="font-mono text-xs uppercase tracking-wider text-text-secondary">Runtime</dt>
+                    <dd className="font-mono text-sm text-text-primary tabular-nums">
                       {formatRuntime(movie.runtime)}
                     </dd>
                   </div>
                 )}
                 {series && (
                   <div className="flex justify-between items-center">
-                    <dt className="text-xs text-text-disabled">Status</dt>
-                    <dd className="text-sm text-(--color-text-primary) capitalize">{series.status}</dd>
+                    <dt className="font-mono text-xs uppercase tracking-wider text-text-secondary">Status</dt>
+                    <dd className="font-mono text-sm text-text-primary capitalize">{series.status}</dd>
                   </div>
                 )}
                 <div className="flex justify-between items-center">
-                  <dt className="text-xs text-text-disabled">Tier</dt>
+                  <dt className="font-mono text-xs uppercase tracking-wider text-text-secondary">Tier</dt>
                   <dd>
                     <Badge
                       variant={title.content_tier === "premium" ? "premium" : "default"}
