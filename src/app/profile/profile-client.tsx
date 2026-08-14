@@ -72,7 +72,7 @@ export function ProfileClient({ watchlist, history, genres }: ProfileClientProps
                     unoptimized
                   />
                 </div>
-                <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-pod bg-accent border-2 border-(--color-bg-surface)" aria-label="Online" />
+                <div role="img" aria-label="Online" className="absolute -bottom-1 -right-1 h-5 w-5 rounded-pod bg-accent border-2 border-(--color-bg-surface)" />
               </div>
               <div>
                 <h2 className="font-display text-lg uppercase text-text-primary">
@@ -103,7 +103,7 @@ export function ProfileClient({ watchlist, history, genres }: ProfileClientProps
               </div>
               <p className="text-xs text-text-secondary mt-2">
                 These segments drive personalized content on your home page.{" "}
-                <Link href="/setup#personalization" className="text-accent hover:underline">
+                <Link href="/setup#personalization" className="text-accent underline underline-offset-2">
                   Learn more →
                 </Link>
               </p>
@@ -234,7 +234,8 @@ export function ProfileClient({ watchlist, history, genres }: ProfileClientProps
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" role="list">
                 {watchlist.map((title) => (
                   <div key={title.uid} role="listitem">
-                    <TitleCard title={title} layout="portrait" data-cs-entry={title.uid} data-cs-content-type={title.content_type} />
+                    <TitleCard title={title} layout="portrait"
+                      fullWidth data-cs-entry={title.uid} data-cs-content-type={title.content_type} />
                   </div>
                 ))}
               </div>
@@ -255,7 +256,8 @@ export function ProfileClient({ watchlist, history, genres }: ProfileClientProps
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" role="list">
                 {history.map((title) => (
                   <div key={title.uid} role="listitem">
-                    <TitleCard title={title} layout="portrait" data-cs-entry={title.uid} data-cs-content-type={title.content_type} />
+                    <TitleCard title={title} layout="portrait"
+                      fullWidth data-cs-entry={title.uid} data-cs-content-type={title.content_type} />
                   </div>
                 ))}
               </div>

@@ -109,6 +109,7 @@ export default async function GenrePage({ params, searchParams }: PageProps) {
                 <TitleCard
                   title={title}
                   layout="portrait"
+                      fullWidth
                   data-cs-entry={title.uid}
                   data-cs-content-type={title.content_type}
                 />

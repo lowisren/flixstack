@@ -129,10 +129,10 @@ export function Footer({ footer, siteName = "Flixstack" }: FooterProps) {
 
         <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
           <ReduceEffectsControl />
-          <p className="font-mono text-xs text-text-disabled" {...footer?.$?.legal_text}>
+          <p className="font-mono text-xs text-text-secondary" {...footer?.$?.legal_text}>
             {footer?.legal_text || `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`}
           </p>
-          <p className="font-mono text-xs text-text-disabled">
+          <p className="font-mono text-xs text-text-secondary">
             <span className="text-accent" aria-hidden="true">
               &gt;{" "}
             </span>
@@ -141,7 +141,7 @@ export function Footer({ footer, siteName = "Flixstack" }: FooterProps) {
               href="https://contentstack.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-accent hover:underline"
+              className="text-accent underline underline-offset-2"
             >
               Contentstack
             </a>{" "}

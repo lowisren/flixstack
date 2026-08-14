@@ -66,7 +66,7 @@ export default function SearchPage() {
             // caret-accent turns the *native* text cursor phosphor, which is a
             // real terminal caret rather than a decorative blinking block —
             // nothing extra to animate or gate.
-            className="w-full h-14 pl-11 pr-12 bg-transparent font-mono text-base text-text-primary caret-accent placeholder:text-text-disabled focus-visible:outline-none"
+            className="w-full h-14 pl-11 pr-12 bg-transparent font-mono text-base text-text-primary caret-accent placeholder:text-text-secondary focus-visible:outline-none"
             aria-label="Search movies and TV shows"
             aria-controls="search-results"
             aria-describedby="search-status"
@@ -116,6 +116,7 @@ export default function SearchPage() {
                   <TitleCard
                     title={title}
                     layout="portrait"
+                      fullWidth
                     data-cs-entry={title.uid}
                     data-cs-content-type={title.content_type}
                   />
@@ -149,7 +150,7 @@ export default function SearchPage() {
               </span>
               awaiting query
             </p>
-            <p className="text-sm mt-4 text-text-disabled max-w-md mx-auto">
+            <p className="text-sm mt-4 text-text-secondary max-w-md mx-auto">
               Search runs across every movie, TV show and genre, powered by
               Contentstack&rsquo;s Delivery API search capability.
             </p>

@@ -51,3 +51,4 @@ next-env.d.ts
 
 # Recovered asset binaries (local backup for manual re-migration)
 assets-backup/
+reports/

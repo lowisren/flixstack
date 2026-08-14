@@ -12,7 +12,7 @@ export default function NotFound() {
         {/* Status strip */}
         <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-2.5 font-mono text-xs uppercase tracking-widest">
           <span className="text-signal">Signal lost</span>
-          <span className="text-text-disabled tabular-nums">err 404</span>
+          <span className="text-text-secondary tabular-nums">err 404</span>
         </div>
 
         <div className="px-5 py-8 sm:px-8">
@@ -32,7 +32,7 @@ export default function NotFound() {
             or removed.
           </p>
 
-          <p className="mt-5 font-mono text-xs text-text-disabled">
+          <p className="mt-5 font-mono text-xs text-text-secondary">
             <span className="text-accent" aria-hidden="true">
               &gt;{" "}
             </span>

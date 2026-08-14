@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* Tailwind v4's `dark:` variant defaults to the prefers-color-scheme media
+   query, but this app switches themes with a `.dark` class on <html>
+   (next-themes, attribute="class"). Without this the two disagree: a visitor on
+   a light OS with the app in dark mode would get dark surfaces and light-mode
+   `dark:` utilities. That is not hypothetical — it is how getRatingColor came to
+   render its light-theme red on a dark card, which axe caught at 3.73:1.
+   No `dark:` utilities remain today, so this is preventive: it makes the next
+   one written behave the way its author will expect. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ============================================================
    FLIXSTACK DESIGN SYSTEM v2 — CSS Custom Properties
    Light mode = default (:root), dark mode applied via .dark class.

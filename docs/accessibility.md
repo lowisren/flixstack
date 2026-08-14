@@ -4,21 +4,37 @@ Flixstack targets **WCAG 2.1 Level AA** compliance in both light and dark mode.
 
 ## Audit Tools
 
-> ⚠ **There is no `npm run a11y` script yet.** This doc previously documented one
-> (writing `reports/a11y-report.json`), but no such script or axe dependency exists in
-> `package.json`. Verification is currently **manual**, plus the contrast computation
-> described below. Adding a real automated audit is PR 6 of the cyber redesign — see
-> [cyber-redesign-plan.md](./cyber-redesign-plan.md).
+Two checks ship with the repo and both exit non-zero on failure, so either can gate CI.
 
-Contrast ratios in this doc are computed with the WCAG relative-luminance formula rather
-than eyeballed. Every pair in the table below has been verified against the shipped tokens
-in [globals.css](../src/app/globals.css).
+```bash
+# 1. axe-core across every route, in both themes
+npm run dev            # in another terminal (or `npm run build && npm start`)
+npm run a11y           # -> reports/a11y-report.json
+npm run a11y -- --url=http://localhost:3001
 
-Manual testing with:
-- **macOS VoiceOver** (Cmd + F5)
-- **NVDA** on Windows
-- **axe DevTools** browser extension
-- **Lighthouse** accessibility audit
+# 2. WCAG contrast guard over the design tokens
+npm run check-contrast
+npm run check-contrast -- --json
+```
+
+[`scripts/a11y.mjs`](../scripts/a11y.mjs) drives headless Chrome over the DevTools Protocol
+— no Selenium or Playwright dependency, and `axe-core` itself has none. Set `CHROME_PATH`
+if your browser is somewhere unusual.
+
+[`scripts/check-contrast.mjs`](../scripts/check-contrast.mjs) parses the real token values
+out of [globals.css](../src/app/globals.css) and checks all 76 shipped pairs. It exists
+because this document once asserted the light accent was 5.0:1 on white when it was
+actually **3.30:1** — a real WCAG 1.4.3 failure that sat unnoticed precisely because the
+number was written by hand. Reverting that token makes the guard fail with 5 errors, so the
+check is known to work rather than merely known to pass.
+
+**Current status:** axe-core 4.13.0, 22 runs (11 routes x 2 themes), **0 violations**.
+Contrast guard: **76/76 pass**.
+
+Manual testing still recommended for what automation cannot judge:
+- **macOS VoiceOver** (Cmd + F5) / **NVDA** on Windows — announcement quality and order
+- **Windows High Contrast** — `forced-colors` fallbacks
+- **Lighthouse** — performance interactions with the texture layer
 
 ---
 
@@ -67,7 +83,10 @@ elevated fill.
 `--color-accent-foreground` `#FFFFFF` on the accent fill: **6.19:1**.
 
 `--color-text-disabled` is the one token held only to 3:1 (3.42 dark / 3.55 light on
-elevated) and is therefore restricted to non-essential text.
+elevated). **It is for decorative `aria-hidden` icons and genuinely disabled controls only
+— never for text a sighted user is expected to read.** WCAG 1.4.3 exempts inactive
+components, not quiet ones. Using it for card genre names produced 231 axe violations at
+3.41:1 (finding 8 below); real-but-secondary content takes `--color-text-secondary`.
 
 ### Two kinds of border
 
@@ -102,11 +121,25 @@ immediately instead of fading in over 150ms.
 - **Skip to main content** link is the first focusable element on every page
 - **Rails** support `ArrowLeft`/`ArrowRight` for horizontal scrolling
 - **Hero carousel** pause/prev/next are keyboard accessible
-- **Mobile nav** can be opened/closed with Enter/Space and dismissed with Escape
-- **Modals / panels** (e.g., CS Inspector) trap focus correctly and return focus on close
+- **Mobile nav** can be opened/closed with Enter/Space
+- **Season accordions** use native `<details>`/`<summary>`
 - **Dropdowns and selects** use native `<select>` for full keyboard support
 
----
+Every focusable element has a visible focus indicator. Verified by focusing each one in turn
+and asserting a non-`none` `outline` or `box-shadow` (or an inset ring on its notched
+ancestor): **414 focusable elements across 7 routes, 0 without an indicator.**
+
+The rail edge fade is disabled on `:focus-within`, because a CSS mask clips painting and
+would otherwise fade out the focus ring of a card scrolled to the boundary.
+
+## Reflow and Zoom
+
+- **320px reflow** (WCAG 1.4.10): verified on all routes with no horizontal overflow. This
+  needed three fixes — see items 13–15 above.
+- **200% zoom** (WCAG 1.4.4): verified on all routes with no overflow or clipping.
+- Uppercase and letter-spacing are applied with `text-transform`/`letter-spacing`, never by
+  changing the source string, so assistive tech reads normal-case text and WCAG 1.4.12
+  text-spacing overrides do not break headings.
 
 ## Semantic HTML
 
@@ -136,6 +169,9 @@ immediately instead of fading in over 150ms.
 | Profile switches | `role="switch"`, `aria-checked` |
 | Loading spinner | `aria-busy="true"` on button, `aria-live` region |
 | Search results | `aria-live="polite"`, `aria-atomic="true"` |
+| Reduce-effects toggle | `role="switch"`, `aria-checked` |
+| Avatar status dot | `role="img"` + `aria-label` (an `aria-label` on a bare `div` is prohibited) |
+| Loading skeletons | one `role="status"` per *group*, not per placeholder |
 
 ---
 
@@ -196,6 +232,39 @@ All inputs in Flixstack (search, profile preferences) have:
 - Error announcements via `aria-live` regions
 
 ---
+
+## Defects Found and Fixed
+
+Recorded because several were invisible to inspection and only surfaced under measurement.
+Every ratio below was measured on rendered pixels, not modelled.
+
+| # | Defect | Was | Now |
+|---|---|---|---|
+| 1 | Light accent `#16A34A` failed AA — affected all accent text, accent badges and the whole white-on-green primary button | 3.30:1 | 6.19:1 (`#0E7038`) |
+| 2 | Light-mode `error` and `premium` fell below 4.5:1 on the elevated surface | 3.87 / 4.02:1 | 5.18 / 5.21:1 |
+| 3 | Search input drew its only affordance with the *decorative* divider colour (WCAG 1.4.11) | ~1.3:1 | 3.73:1 (`--color-border-control`) |
+| 4 | Theme toggle read `theme` not `resolvedTheme`, so with `enableSystem` it announced the wrong mode to screen readers while rendering the other one | wrong `aria-label` | correct in all 4 setting/OS combinations |
+| 5 | Hero bottom vignette used `from-background` behind `text-white`, so in light mode the title faded into a near-white ground. Same bug on `/watch/[slug]` and `/genre/[slug]` | 1.12:1 | 16.92 / 13.71:1 (title / subtitle) |
+| 6 | Genre hero put theme-coloured text on an editor-chosen `color_accent` tint, so contrast depended on a CMS field. A light accent (`#FDE047`) computed to 3.40:1 | 4.61:1 measured | 16.27:1, independent of the field |
+| 7 | Title card hover overlay was `aria-hidden` but held a focusable watchlist button (axe `aria-hidden-focus`); keyboard users could focus an invisible control | violation | overlay reveals on `focus-within` |
+| 8 | `--color-text-disabled` (3.41:1) was used for genre names and other real content, not just disabled controls | 231 axe violations | `--color-text-secondary` (7.31:1); the token is now icons-only |
+| 9 | Inline links in prose were distinguished by colour alone (WCAG 1.4.1) | 13 violations | always underlined |
+| 10 | `aria-label` on a `div` with no role (avatar status dot) | violation | `role="img"` |
+| 11 | `getRatingColor` returned raw Tailwind palette classes bypassing the tokens, and failed contrast | 3.73:1 | design tokens, all >= 4.5:1 |
+| 12 | Tailwind v4's `dark:` variant keys off `prefers-color-scheme`, but this app themes with a `.dark` class — so `dark:` utilities tracked the OS, not the app | silent mismatch | `@custom-variant dark` |
+| 13 | Portrait `TitleCard`s in responsive grids kept their fixed 160px width, overflowing a 320px viewport (WCAG 1.4.10) | 328px min | reflows to 320px |
+| 14 | `/setup` prose could not break long env-var names at 320px | 419px min | `break-words` |
+| 15 | Header wordmark in display caps pushed the header past 320px | 349px min | wordmark hides below `sm` |
+
+Two regressions were introduced *during* the redesign and caught the same way:
+
+- A `position` declared in an unlayered utility class silently overrode Tailwind's
+  positioning utilities (unlayered CSS beats `@layer utilities` regardless of specificity).
+  This turned the sticky header into `position: relative`, and separately collapsed the
+  hero scrim to **0px tall** so it painted nothing. No utility declares `position` any
+  more — see the note at the top of the utilities section in `globals.css`.
+- The reduce-effects preference silently failed on the 404 route, which renders its shell
+  on the client where inline scripts in React components never execute.
 
 ## Known Patterns to Watch
 

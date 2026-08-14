@@ -34,7 +34,7 @@ export default async function SetupPage({
           {guide.title}
         </h1>
         <div
-          className="text-lg text-text-secondary max-w-2xl leading-relaxed [&_p]:mb-3 [&_p:last-child]:mb-0"
+          className="text-lg text-text-secondary max-w-2xl leading-relaxed break-words [&_p]:mb-3 [&_p:last-child]:mb-0"
           dangerouslySetInnerHTML={{ __html: guide.intro }}
           {...guide.$?.intro}
         />
@@ -71,7 +71,7 @@ export default async function SetupPage({
           {guide.steps.map((step, i) => (
             <li
               key={i}
-              className="notch relative flex gap-5 p-6 border border-border bg-surface"
+              className="notch relative flex gap-4 sm:gap-5 p-4 sm:p-6 border border-border bg-surface"
             >
               <div
                 className="notch-sm shrink-0 flex h-8 w-8 items-center justify-center bg-accent text-accent-foreground font-mono font-bold text-sm tabular-nums"
@@ -79,18 +79,18 @@ export default async function SetupPage({
               >
                 {i + 1}
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 break-words">
                 <h3 className="font-display uppercase text-text-primary mb-1" {...step.$?.heading}>
                   {step.heading}
                 </h3>
                 <div
-                  className="text-sm text-text-secondary mb-3 [&_p]:mb-2 [&_p:last-child]:mb-0"
+                  className="text-sm text-text-secondary mb-3 break-words [&_p]:mb-2 [&_p:last-child]:mb-0"
                   dangerouslySetInnerHTML={{ __html: step.description }}
                   {...step.$?.description}
                 />
                 {step.detail && (
                   <div
-                    className="text-sm text-text-secondary bg-elevated rounded-lg px-4 py-3 mb-3 [&_p]:mb-2 [&_p:last-child]:mb-0"
+                    className="text-sm text-text-secondary bg-elevated rounded-panel px-4 py-3 mb-3 break-words [&_p]:mb-2 [&_p:last-child]:mb-0"
                     dangerouslySetInnerHTML={{ __html: step.detail }}
                     {...step.$?.detail}
                   />

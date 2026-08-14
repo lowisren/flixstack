@@ -20,7 +20,7 @@ function FeatureCallouts() {
         {!isCSConfigured && (
           <Badge variant="outline" className="text-xs">
             Using mock data —{" "}
-            <Link href="/setup" className="text-accent hover:underline">
+            <Link href="/setup" className="text-accent underline underline-offset-2">
               connect ContentStack
             </Link>
           </Badge>

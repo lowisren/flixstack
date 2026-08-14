@@ -283,7 +283,7 @@ export function WatchContent({ title, related }: { title: Title; related: Title[
                                       Now Playing
                                     </Badge>
                                   )}
-                                  <span className="ml-auto font-mono text-xs text-text-disabled shrink-0 tabular-nums">
+                                  <span className="ml-auto font-mono text-xs text-text-secondary shrink-0 tabular-nums">
                                     {formatRuntime(ep.duration)}
                                   </span>
                                 </div>

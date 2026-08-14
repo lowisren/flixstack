@@ -126,7 +126,7 @@ export function TitleCard({
         </div>
         <div className="flex gap-2 mt-2 flex-wrap font-mono text-xs uppercase tracking-wider">
           {title.genres.slice(0, 2).map((g) => (
-            <span key={g.uid} className="text-text-disabled leading-none">
+            <span key={g.uid} className="text-text-secondary leading-none">
               {g.title}
             </span>
           ))}

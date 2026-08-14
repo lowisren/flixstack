@@ -61,7 +61,11 @@ export function Header({ header, siteName = "Flixstack" }: HeaderProps) {
                 <Play className="h-4 w-4 fill-accent-foreground text-accent-foreground" />
               </span>
             )}
-            <span className="font-display text-xl uppercase">{siteName}</span>
+            {/* Wordmark hides below sm: in Chakra Petch caps it is ~117px wide, which
+                pushed the header past a 320px viewport (WCAG 1.4.10 Reflow). The
+                logo mark stays, and the link's aria-label already carries the
+                site name, so nothing is lost for assistive tech. */}
+            <span className="hidden sm:inline font-display text-xl uppercase">{siteName}</span>
           </Link>
 
           {/* Desktop nav */}

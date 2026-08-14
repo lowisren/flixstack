@@ -19,7 +19,9 @@
     "customize-fields": "node scripts/customize-editor-fields.mjs",
     "setup-workflow": "node scripts/setup-workflow.mjs",
     "content-governance": "node scripts/content-governance.mjs",
-    "fix-url-patterns": "node scripts/fix-url-patterns.mjs"
+    "fix-url-patterns": "node scripts/fix-url-patterns.mjs",
+    "a11y": "node scripts/a11y.mjs",
+    "check-contrast": "node scripts/check-contrast.mjs"
   },
   "dependencies": {
     "@contentstack/delivery-sdk": "^5.2.2",
@@ -40,6 +42,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "axe-core": "^4.13.0",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
