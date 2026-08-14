@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Hero } from "@/components/streaming/hero";
 import { Rail } from "@/components/streaming/rail";
-import { HeroSkeleton, TitleCardSkeleton } from "@/components/ui/skeleton";
+import { HeroSkeleton, Skeleton, SkeletonGroup, TitleCardSkeleton } from "@/components/ui/skeleton";
 import { getHeroBanners, getHomepageRails, parseLivePreviewParams } from "@/lib/contentstack/queries";
 import { isCSConfigured } from "@/lib/contentstack/client";
 import { Badge } from "@/components/ui/badge";
@@ -69,10 +69,10 @@ async function HomeRails({ livePreview }: { livePreview?: LivePreviewQuery }) {
 
 function RailSkeletonGroup() {
   return (
-    <div className="flex flex-col gap-10 py-8">
+    <SkeletonGroup label="Loading titles…" className="flex flex-col gap-10 py-8">
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className="px-4 sm:px-6 lg:px-8">
-          <div className="h-6 w-40 skeleton rounded mb-4" />
+          <Skeleton className="h-6 w-40 mb-4" />
           <div className="flex gap-4 overflow-hidden">
             {Array.from({ length: 5 }).map((_, j) => (
               <div key={j} className="shrink-0 w-70">
@@ -82,7 +82,7 @@ function RailSkeletonGroup() {
           </div>
         </div>
       ))}
-    </div>
+    </SkeletonGroup>
   );
 }
 

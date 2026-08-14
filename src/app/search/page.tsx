@@ -37,7 +37,7 @@ export default function SearchPage() {
     <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="max-w-2xl mx-auto mb-10">
-        <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-6 text-center">
+        <h1 className="text-3xl font-bold text-(--color-text-primary) mb-6 text-center">
           Search Flixstack
         </h1>
 
@@ -47,7 +47,7 @@ export default function SearchPage() {
             Search movies and TV shows
           </label>
           <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--color-text-disabled)]"
+            className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-text-disabled"
             aria-hidden="true"
           />
           <input
@@ -57,7 +57,9 @@ export default function SearchPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search movies, shows, genres, cast…"
-            className="w-full h-14 pl-12 pr-12 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-disabled)] text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)] transition-colors"
+            // border-control, not the decorative divider colour: this border is
+            // the input's only affordance, so it owes 3:1 (WCAG 1.4.11).
+            className="w-full h-14 pl-12 pr-12 rounded-control border border-border-control bg-surface text-text-primary placeholder:text-text-disabled text-base transition-colors"
             aria-label="Search movies and TV shows"
             aria-controls="search-results"
             aria-describedby="search-status"
@@ -65,10 +67,10 @@ export default function SearchPage() {
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-[var(--color-bg-elevated)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--color-focus-ring)]"
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-elevated transition-colors focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)"
               aria-label="Clear search"
             >
-              <X className="h-4 w-4 text-[var(--color-text-secondary)]" aria-hidden="true" />
+              <X className="h-4 w-4 text-text-secondary" aria-hidden="true" />
             </button>
           )}
         </div>
@@ -91,7 +93,7 @@ export default function SearchPage() {
         {hasQuery && results.length > 0 && (
           <>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+              <h2 className="text-lg font-semibold text-(--color-text-primary)">
                 {results.length} result{results.length !== 1 ? "s" : ""} for &ldquo;{deferredQuery}&rdquo;
               </h2>
             </div>
@@ -115,22 +117,22 @@ export default function SearchPage() {
 
         {hasQuery && results.length === 0 && (
           <div className="py-20 text-center max-w-md mx-auto">
-            <Search className="h-12 w-12 text-[var(--color-text-disabled)] mx-auto mb-4" aria-hidden="true" />
-            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">
+            <Search className="h-12 w-12 text-text-disabled mx-auto mb-4" aria-hidden="true" />
+            <h2 className="text-xl font-semibold text-(--color-text-primary) mb-2">
               No results for &ldquo;{deferredQuery}&rdquo;
             </h2>
-            <p className="text-[var(--color-text-secondary)]">
+            <p className="text-text-secondary">
               Try searching by title, genre, cast, or tags.
             </p>
           </div>
         )}
 
         {!hasQuery && (
-          <div className="py-16 text-center text-[var(--color-text-secondary)]">
+          <div className="py-16 text-center text-text-secondary">
             <p className="text-lg">
               Start typing to search across all movies, TV shows, and genres.
             </p>
-            <p className="text-sm mt-2 text-[var(--color-text-disabled)]">
+            <p className="text-sm mt-2 text-text-disabled">
               Search is powered by ContentStack&rsquo;s Delivery API search capability.
             </p>
           </div>

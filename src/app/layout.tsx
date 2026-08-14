@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Chakra_Petch, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/layout/providers";
 import { SiteChrome } from "@/components/layout/site-chrome";
@@ -15,6 +15,16 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+// Display face — headings and short labels only, never running text.
+// Chakra Petch is not a variable font, so weights are explicit: 600/700
+// are the only cuts used, and the 300/400/500 files would be dead payload.
+const chakraPetch = Chakra_Petch({
+  variable: "--font-chakra-petch",
+  weight: ["600", "700"],
   subsets: ["latin"],
   display: "swap",
 });
@@ -44,7 +54,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${chakraPetch.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-screen flex flex-col">

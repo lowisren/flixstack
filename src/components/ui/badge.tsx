@@ -1,7 +1,14 @@
 import { cn } from "@/lib/utils";
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: "default" | "accent" | "premium" | "rating" | "outline";
+  variant?:
+    | "default"
+    | "accent"
+    | "info"
+    | "signal"
+    | "premium"
+    | "rating"
+    | "outline";
 }
 
 export function Badge({
@@ -10,23 +17,31 @@ export function Badge({
   children,
   ...props
 }: BadgeProps) {
+  // Every subtle/foreground pair below is verified at >= 4.5:1 — see the
+  // token tables in docs/cyber-redesign-plan.md.
   const variants = {
     default:
-      "bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] border border-[var(--color-border)]",
+      "bg-elevated text-text-secondary border border-border-control",
     accent:
-      "bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-accent)]/20",
+      "bg-accent-subtle text-accent border border-accent/40",
+    info:
+      "bg-info-subtle text-info border border-info/40",
+    signal:
+      "bg-signal-subtle text-signal border border-signal/40",
     premium:
-      "bg-[var(--color-premium-subtle)] text-[var(--color-premium)] border border-[var(--color-premium)]/20",
+      "bg-premium-subtle text-premium border border-premium/40",
     rating:
-      "bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] border border-[var(--color-border)] font-mono",
+      "bg-elevated text-text-primary border border-border-control",
     outline:
-      "border border-[var(--color-border)] text-[var(--color-text-secondary)]",
+      "border border-border-control text-text-secondary",
   };
 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium",
+        // Badges carry data, so they take the mono voice and tabular figures —
+        // scores and years line up in a column across a rail.
+        "inline-flex items-center gap-1 px-2 py-0.5 rounded-chip font-mono text-xs font-medium uppercase tracking-wider tabular-nums",
         variants[variant],
         className
       )}
