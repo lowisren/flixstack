@@ -73,6 +73,7 @@
   --grain-opacity: 0.015;
   --grid-line: #c3ccd1;
   --grid-opacity: 0.5;
+  --underglow-opacity: 0.4;
 
   --glow-accent: 0 0 0 1px color-mix(in srgb, var(--color-accent) 22%, transparent);
   --glow-info: 0 0 0 1px color-mix(in srgb, var(--color-info) 22%, transparent);
@@ -129,6 +130,7 @@
   --grain-opacity: 0.025;
   --grid-line: #1e2a38;
   --grid-opacity: 1;
+  --underglow-opacity: 0.75;
 
   /* Capped at two layers — glow is decorative and must never be the
      only thing carrying contrast or identifying a control. */
@@ -166,6 +168,7 @@
   --scanline-opacity: 0;
   --grain-opacity: 0;
   --grid-opacity: 0;
+  --underglow-opacity: 0;
   --glow-accent: none;
   --glow-info: none;
   --glow-signal: none;
@@ -413,6 +416,7 @@ body {
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 64px 64px;
   opacity: var(--grid-opacity);
+  z-index: 0;
   mask-image: radial-gradient(ellipse 120% 80% at 50% 0%, #000 0%, transparent 75%);
 }
 
@@ -432,6 +436,57 @@ body {
     transparent 0.5px
   );
   background-size: 3px 3px;
+}
+
+/* Header underglow — a phosphor hairline instead of a flat divider. Sits on
+   top of the real border, which stays put so the header keeps an edge when
+   .reduce-fx or forced-colors switches the glow off. */
+.chrome-underglow {
+  position: relative;
+}
+.chrome-underglow::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  opacity: var(--underglow-opacity);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-accent) 60%, transparent) 20%,
+    color-mix(in srgb, var(--color-accent) 60%, transparent) 80%,
+    transparent
+  );
+}
+
+/* Nav links — an underscore caret that grows on hover/focus and sits full
+   width on the active route. Driven by [aria-current="page"], which nav.tsx
+   already sets, so the indicator derives from real semantics rather than a
+   parallel "isActive" class. Never the only cue: the active link also shifts
+   to the accent colour and carries aria-current for assistive tech. */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.25rem;
+  height: 2px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 180ms ease;
+}
+.nav-link:hover::after,
+.nav-link:focus-visible::after {
+  transform: scaleX(0.4);
+}
+.nav-link[aria-current="page"]::after {
+  transform: scaleX(1);
 }
 
 /* Terminal bracket affordance for Button variant="terminal".
@@ -616,7 +671,8 @@ body {
   }
   .scanlines::after,
   .grid-backdrop::before,
-  .grain::after {
+  .grain::after,
+  .chrome-underglow::after {
     display: none;
   }
   .chromatic:hover,
@@ -632,6 +688,7 @@ body {
     --scanline-opacity: 0;
     --grain-opacity: 0;
     --grid-opacity: 0;
+    --underglow-opacity: 0;
     --fx-chromatic: none;
     --color-border: var(--color-border-control);
   }
