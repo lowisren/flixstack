@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bell, Play, Heart, Settings, CheckCircle } from "lucide-react";
+import { Bell, Play, Heart, Settings, CheckCircle, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TitleCard } from "@/components/streaming/title-card";
+import { ReduceEffectsToggle } from "@/components/layout/reduce-effects-toggle";
 import type { Genre, Movie, TvSeries } from "@/lib/types";
 
 const MOCK_USER = {
@@ -180,6 +181,25 @@ export function ProfileClient({ watchlist, history, genres }: ProfileClientProps
                   </button>
                 </div>
               ))}
+
+              {/* Reduce effects. Its state lives on <html> + localStorage
+                  rather than in this component, so the pre-hydration script can
+                  apply it before first paint — hence the shared control instead
+                  of another entry in the list above. */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-4 w-4 text-text-secondary mt-0.5 shrink-0" aria-hidden="true" />
+                  <div>
+                    <p className="font-mono text-xs uppercase tracking-wider text-text-primary">
+                      Reduce Effects
+                    </p>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      Turn off scanlines, grain and glow
+                    </p>
+                  </div>
+                </div>
+                <ReduceEffectsToggle />
+              </div>
             </div>
 
             <Button

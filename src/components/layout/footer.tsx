@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Play, GitBranch, X as XIcon } from "lucide-react";
+import { ReduceEffectsControl } from "./reduce-effects-toggle";
 import type { Footer as FooterData, FooterColumn } from "@/lib/types";
 
 const FALLBACK_FOOTER_COLUMNS: FooterColumn[] = [
@@ -127,6 +128,7 @@ export function Footer({ footer, siteName = "Flixstack" }: FooterProps) {
         </div>
 
         <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+          <ReduceEffectsControl />
           <p className="font-mono text-xs text-text-disabled" {...footer?.$?.legal_text}>
             {footer?.legal_text || `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`}
           </p>

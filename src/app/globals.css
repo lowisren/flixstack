@@ -76,6 +76,7 @@
   --underglow-opacity: 0.4;
   --fx-hud-opacity: 0.5;
   --fx-sweep-opacity: 0.7;
+  --fx-glitch: glitch-tear 180ms steps(3, end) 3;
 
   --glow-accent: 0 0 0 1px color-mix(in srgb, var(--color-accent) 22%, transparent);
   --glow-info: 0 0 0 1px color-mix(in srgb, var(--color-info) 22%, transparent);
@@ -135,6 +136,7 @@
   --underglow-opacity: 0.75;
   --fx-hud-opacity: 1;
   --fx-sweep-opacity: 1;
+  --fx-glitch: glitch-tear 180ms steps(3, end) 3;
 
   /* Capped at two layers — glow is decorative and must never be the
      only thing carrying contrast or identifying a control. */
@@ -175,6 +177,7 @@
   --underglow-opacity: 0;
   --fx-hud-opacity: 0;
   --fx-sweep-opacity: 0;
+  --fx-glitch: none;
   --glow-accent: none;
   --glow-info: none;
   --glow-signal: none;
@@ -250,6 +253,24 @@ html {
 
 body {
   background-color: var(--color-bg-base);
+  /* CRT texture lives in the body BACKGROUND, behind every surface, rather
+     than in an overlay on top. A fixed full-screen overlay would put texture
+     over poster art and body copy, which is exactly what the design guardrail
+     forbids. Alpha comes from the gated tokens via color-mix, so .reduce-fx
+     switches it off with everything else. */
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--scanline-color) calc(var(--scanline-opacity) * 100%), transparent) 0 1px,
+      transparent 1px 3px
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in srgb, var(--scanline-color) calc(var(--grain-opacity) * 100%), transparent) 0.5px,
+      transparent 0.5px
+    );
+  background-size: 100% 3px, 3px 3px;
+  background-attachment: fixed;
   color: var(--color-text-primary);
   font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
   line-height: 1.6;
@@ -687,6 +708,26 @@ body {
   animation: caret-blink 1.06s steps(1, end) infinite;
 }
 
+/* Glitch displacement — Strange Days signal tear. Used on the 404 numeral
+   only, and only three times before stopping for good.
+
+   This is displacement plus a chromatic offset, never a luminance strobe, so
+   it is not a "flash" under WCAG 2.3.1 — and the element is a small decorative
+   numeral, far under the large-flash area threshold. It is still motion, so it
+   is gated by prefers-reduced-motion and by --fx-glitch below. */
+@keyframes glitch-tear {
+  0% { transform: translate3d(0, 0, 0); }
+  20% { transform: translate3d(-4px, 1px, 0); }
+  40% { transform: translate3d(3px, -1px, 0); }
+  60% { transform: translate3d(-2px, 0, 0); }
+  80% { transform: translate3d(2px, 1px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+.glitch {
+  animation: var(--fx-glitch);
+  text-shadow: var(--fx-chromatic);
+}
+
 /* Skeleton — scanline sweep, single direction, no flash */
 @keyframes skeleton-sweep {
   from {
@@ -757,6 +798,11 @@ body {
   .sweep::after {
     animation: none !important;
   }
+  .glitch {
+    animation: none !important;
+    transform: none;
+    text-shadow: none;
+  }
   .chromatic:hover,
   .chromatic:focus-visible {
     text-shadow: none;
@@ -778,6 +824,11 @@ body {
 }
 .reduce-fx .sweep::after {
   animation: none;
+}
+.reduce-fx .glitch {
+  animation: none;
+  transform: none;
+  text-shadow: none;
 }
 
 /* ============================================================
@@ -805,6 +856,13 @@ body {
   .glow-signal {
     box-shadow: none;
     border: 1px solid CanvasText;
+  }
+  body {
+    background-image: none;
+  }
+  .glitch {
+    animation: none;
+    text-shadow: none;
   }
   .scanlines::after,
   .grid-backdrop::before,
@@ -839,6 +897,7 @@ body {
     --underglow-opacity: 0;
     --fx-hud-opacity: 0;
     --fx-sweep-opacity: 0;
+    --fx-glitch: none;
     --fx-chromatic: none;
     --color-border: var(--color-border-control);
   }

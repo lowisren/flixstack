@@ -17,7 +17,7 @@ export default function NotFound() {
 
         <div className="px-5 py-8 sm:px-8">
           <p
-            className="font-display text-6xl sm:text-7xl leading-none text-signal/25 select-none"
+            className="glitch font-display text-6xl sm:text-7xl leading-none text-signal/25 select-none"
             aria-hidden="true"
           >
             404

@@ -22,7 +22,7 @@ export default async function SetupPage({
   const guide = await getSetupGuide(parseLivePreviewParams(await searchParams));
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
+    <div className="grid-backdrop relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
       {/* Header */}
       <div className="mb-10">
         {guide.badge_label && (

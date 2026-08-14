@@ -58,6 +58,21 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-screen flex flex-col">
+        {/* Applies the reduce-effects preference before first paint.
+            A blocking inline script, not next/script: `beforeInteractive`
+            explicitly "does not block page hydration", which would let the
+            effects paint once before being suppressed — the exact flash this
+            preference exists to avoid. next-themes uses the same technique in
+            this app for the same reason.
+            A cookie read in this layout would also work and needs no script,
+            but `cookies()` opts every route into dynamic rendering (per
+            next/dist/docs .../functions/cookies.md), which would deoptimise
+            /search and /_not-found from static. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem('flixstack-reduce-fx')==='1')document.documentElement.classList.add('reduce-fx')}catch(e){}`,
+          }}
+        />
         <Lytics />
         <LivePreviewInit />
         <Providers>
