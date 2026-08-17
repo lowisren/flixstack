@@ -34,10 +34,15 @@ export function stripHtml(html: string): string {
 }
 
 export function getRatingColor(rating: string): string {
+  // Design tokens, not raw Tailwind palette colours. The previous values
+  // (text-red-600 dark:text-red-400 etc.) bypassed the token system and failed
+  // WCAG 1.4.3 — axe measured the R/TV-MA red at 3.73:1 on the elevated
+  // surface. Every token below is verified >= 4.5:1 on all three surfaces of
+  // both themes by scripts/check-contrast.mjs.
   const r = rating.toUpperCase();
-  if (r === "G") return "text-green-600 dark:text-green-400";
-  if (r === "PG") return "text-blue-600 dark:text-blue-400";
-  if (r === "PG-13") return "text-yellow-600 dark:text-yellow-400";
-  if (r === "R" || r === "TV-MA") return "text-red-600 dark:text-red-400";
-  return "text-[var(--color-text-secondary)]";
+  if (r === "G") return "text-accent";
+  if (r === "PG") return "text-info";
+  if (r === "PG-13") return "text-premium";
+  if (r === "R" || r === "TV-MA") return "text-(--color-error)";
+  return "text-text-secondary";
 }

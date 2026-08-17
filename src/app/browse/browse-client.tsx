@@ -49,11 +49,11 @@ export function BrowseClient({ titles, genres, heading }: BrowseClientProps) {
     <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 py-8">
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-(--color-text-primary) mb-2">
+        <h1 className="font-display text-3xl uppercase text-text-primary mb-2">
           {heading ?? "Browse All Titles"}
         </h1>
-        <p className="text-text-secondary">
-          {filtered.length} title{filtered.length !== 1 ? "s" : ""} available
+        <p className="font-mono text-xs uppercase tracking-widest text-accent tabular-nums">
+          [ {filtered.length} title{filtered.length !== 1 ? "s" : ""} available ]
         </p>
       </div>
 
@@ -64,11 +64,10 @@ export function BrowseClient({ titles, genres, heading }: BrowseClientProps) {
           <button
             onClick={() => setGenreFilter("all")}
             className={cn(
-              "px-4 py-2 rounded-full text-sm font-medium transition-colors",
-              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)",
+              "notch-sm border px-4 py-2 font-mono text-xs uppercase tracking-wider transition-colors",
               genreFilter === "all"
-                ? "bg-accent text-accent-foreground"
-                : "bg-elevated text-text-secondary hover:text-(--color-text-primary)"
+                ? "border-accent bg-accent text-accent-foreground"
+                : "border-border-control bg-elevated text-text-secondary hover:border-accent hover:text-accent"
             )}
             aria-pressed={genreFilter === "all"}
           >
@@ -79,11 +78,10 @@ export function BrowseClient({ titles, genres, heading }: BrowseClientProps) {
               key={genre.uid}
               onClick={() => setGenreFilter(genre.slug)}
               className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium transition-colors",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)",
+                "notch-sm border px-4 py-2 font-mono text-xs uppercase tracking-wider transition-colors",
                 genreFilter === genre.slug
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-elevated text-text-secondary hover:text-(--color-text-primary)"
+                  ? "border-accent bg-accent text-accent-foreground"
+                  : "border-border-control bg-elevated text-text-secondary hover:border-accent hover:text-accent"
               )}
               aria-pressed={genreFilter === genre.slug}
             >
@@ -102,7 +100,7 @@ export function BrowseClient({ titles, genres, heading }: BrowseClientProps) {
         <Filter className="h-4 w-4 text-text-secondary" aria-hidden="true" />
 
         {/* Type filter */}
-        <div className="flex items-center gap-1 bg-elevated rounded-lg p-1" role="radiogroup" aria-label="Content type">
+        <div className="flex items-center gap-1 border border-border bg-elevated p-1" role="radiogroup" aria-label="Content type">
           {(["all", "movie", "tv_series"] as ContentFilter[]).map((type) => (
             <button
               key={type}
@@ -110,11 +108,10 @@ export function BrowseClient({ titles, genres, heading }: BrowseClientProps) {
               role="radio"
               aria-checked={typeFilter === type}
               className={cn(
-                "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                "focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)",
+                "px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-colors",
                 typeFilter === type
-                  ? "bg-surface text-(--color-text-primary) shadow-sm"
-                  : "text-text-secondary hover:text-(--color-text-primary)"
+                  ? "bg-surface text-accent"
+                  : "text-text-secondary hover:text-text-primary"
               )}
             >
               {type === "all" ? "All" : type === "movie" ? "Movies" : "TV Shows"}
@@ -123,7 +120,7 @@ export function BrowseClient({ titles, genres, heading }: BrowseClientProps) {
         </div>
 
         {/* Tier filter */}
-        <div className="flex items-center gap-1 bg-elevated rounded-lg p-1" role="radiogroup" aria-label="Content tier">
+        <div className="flex items-center gap-1 border border-border bg-elevated p-1" role="radiogroup" aria-label="Content tier">
           {["all", "free", "premium"].map((tier) => (
             <button
               key={tier}
@@ -131,11 +128,10 @@ export function BrowseClient({ titles, genres, heading }: BrowseClientProps) {
               role="radio"
               aria-checked={tierFilter === tier}
               className={cn(
-                "px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize",
-                "focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)",
+                "px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-colors",
                 tierFilter === tier
-                  ? "bg-surface text-(--color-text-primary) shadow-sm"
-                  : "text-text-secondary hover:text-(--color-text-primary)"
+                  ? "bg-surface text-accent"
+                  : "text-text-secondary hover:text-text-primary"
               )}
             >
               {tier === "all" ? "All Tiers" : tier}
@@ -145,11 +141,11 @@ export function BrowseClient({ titles, genres, heading }: BrowseClientProps) {
 
         {/* Sort */}
         <label className="flex items-center gap-2 ml-auto text-sm">
-          <span className="text-text-secondary">Sort:</span>
+          <span className="font-mono text-xs uppercase tracking-wider text-text-secondary">Sort:</span>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortOption)}
-            className="bg-elevated border border-border text-(--color-text-primary) rounded-lg px-3 py-1.5 text-sm focus-visible:outline-2 focus-visible:outline-(--color-focus-ring)"
+            className="border border-border-control bg-elevated px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-text-primary"
             aria-label="Sort titles by"
           >
             <option value="score">Top Rated</option>
@@ -179,9 +175,12 @@ export function BrowseClient({ titles, genres, heading }: BrowseClientProps) {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <Grid className="h-12 w-12 text-text-disabled mb-4" aria-hidden="true" />
-          <h2 className="text-lg font-semibold text-(--color-text-primary) mb-2">
+        <div className="notch scanlines relative mx-auto max-w-md border border-border-control bg-surface flex flex-col items-center justify-center py-16 px-6 text-center">
+          <Grid className="h-10 w-10 text-text-disabled mb-4" aria-hidden="true" />
+          <p className="font-mono text-xs uppercase tracking-widest text-signal mb-2">
+            No signal
+          </p>
+          <h2 className="font-display text-lg uppercase text-text-primary mb-2">
             No titles found
           </h2>
           <p className="text-text-secondary mb-4">
@@ -189,7 +188,7 @@ export function BrowseClient({ titles, genres, heading }: BrowseClientProps) {
           </p>
           <button
             onClick={() => { setTypeFilter("all"); setGenreFilter("all"); setTierFilter("all"); }}
-            className="text-accent hover:underline text-sm font-medium focus-visible:outline-2 focus-visible:outline-(--color-focus-ring) rounded-sm"
+            className="focus-inset font-mono text-xs uppercase tracking-wider text-accent hover:underline"
           >
             Clear all filters
           </button>

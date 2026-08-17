@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Hero } from "@/components/streaming/hero";
 import { Rail } from "@/components/streaming/rail";
-import { HeroSkeleton, TitleCardSkeleton } from "@/components/ui/skeleton";
+import { HeroSkeleton, Skeleton, SkeletonGroup, TitleCardSkeleton } from "@/components/ui/skeleton";
 import { getHeroBanners, getHomepageRails, parseLivePreviewParams } from "@/lib/contentstack/queries";
 import { isCSConfigured } from "@/lib/contentstack/client";
 import { Badge } from "@/components/ui/badge";
@@ -13,13 +13,14 @@ function FeatureCallouts() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6">
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
-          ContentStack Features on this Page
+        <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-text-secondary">
+          <span className="text-accent" aria-hidden="true">{"// "}</span>
+          Contentstack modules on this page
         </h2>
         {!isCSConfigured && (
           <Badge variant="outline" className="text-xs">
             Using mock data —{" "}
-            <Link href="/setup" className="text-accent hover:underline">
+            <Link href="/setup" className="text-accent underline underline-offset-2">
               connect ContentStack
             </Link>
           </Badge>
@@ -35,11 +36,11 @@ function FeatureCallouts() {
           <Link
             key={label}
             href={href}
-            className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface hover:border-accent hover:bg-accent-subtle transition-colors group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+            className="notch-sm group flex flex-col gap-2 border border-border-control bg-surface p-3 transition-colors hover:border-accent hover:bg-accent-subtle"
           >
             <Icon className="h-4 w-4 text-accent" aria-hidden="true" />
             <div>
-              <p className="text-xs font-semibold text-(--color-text-primary) group-hover:text-accent transition-colors">
+              <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-primary transition-colors group-hover:text-accent">
                 {label}
               </p>
               <p className="text-xs text-text-secondary mt-0.5">{desc}</p>
@@ -69,10 +70,10 @@ async function HomeRails({ livePreview }: { livePreview?: LivePreviewQuery }) {
 
 function RailSkeletonGroup() {
   return (
-    <div className="flex flex-col gap-10 py-8">
+    <SkeletonGroup label="Loading titles…" className="flex flex-col gap-10 py-8">
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className="px-4 sm:px-6 lg:px-8">
-          <div className="h-6 w-40 skeleton rounded mb-4" />
+          <Skeleton className="h-6 w-40 mb-4" />
           <div className="flex gap-4 overflow-hidden">
             {Array.from({ length: 5 }).map((_, j) => (
               <div key={j} className="shrink-0 w-70">
@@ -82,7 +83,7 @@ function RailSkeletonGroup() {
           </div>
         </div>
       ))}
-    </div>
+    </SkeletonGroup>
   );
 }
 

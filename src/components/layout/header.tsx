@@ -33,7 +33,7 @@ export function Header({ header, siteName = "Flixstack" }: HeaderProps) {
 
   return (
     <header
-      className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg-surface)]/95 backdrop-blur-md"
+      className="chrome-underglow sticky top-0 z-50 border-b border-border bg-surface/95 backdrop-blur-md"
       role="banner"
     >
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
@@ -41,7 +41,7 @@ export function Header({ header, siteName = "Flixstack" }: HeaderProps) {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)] rounded-md"
+            className="flex items-center gap-2 shrink-0"
             aria-label={`${siteName} — go to home page`}
           >
             {header?.logo?.url ? (
@@ -50,18 +50,22 @@ export function Header({ header, siteName = "Flixstack" }: HeaderProps) {
                 alt={header.logo.title ?? siteName}
                 width={32}
                 height={32}
-                className="h-8 w-8 rounded-lg object-cover"
+                className="notch-sm h-8 w-8 object-cover"
                 {...header.$?.logo}
               />
             ) : (
               <span
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-accent)]"
+                className="notch-sm flex h-8 w-8 items-center justify-center bg-accent"
                 aria-hidden="true"
               >
-                <Play className="h-4 w-4 fill-[var(--color-accent-foreground)] text-[var(--color-accent-foreground)]" />
+                <Play className="h-4 w-4 fill-accent-foreground text-accent-foreground" />
               </span>
             )}
-            <span className="text-xl font-bold tracking-tight">{siteName}</span>
+            {/* Wordmark hides below sm: in Chakra Petch caps it is ~117px wide, which
+                pushed the header past a 320px viewport (WCAG 1.4.10 Reflow). The
+                logo mark stays, and the link's aria-label already carries the
+                site name, so nothing is lost for assistive tech. */}
+            <span className="hidden sm:inline font-display text-xl uppercase">{siteName}</span>
           </Link>
 
           {/* Desktop nav */}
@@ -81,9 +85,8 @@ export function Header({ header, siteName = "Flixstack" }: HeaderProps) {
               <Link
                 href="/search"
                 className={cn(
-                  "inline-flex items-center justify-center p-2 rounded-lg transition-colors",
-                  "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]",
-                  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]"
+                  "notch-sm inline-flex items-center justify-center p-2 transition-colors",
+                  "text-text-secondary hover:text-accent hover:bg-elevated"
                 )}
                 aria-label="Search titles"
               >
@@ -97,9 +100,8 @@ export function Header({ header, siteName = "Flixstack" }: HeaderProps) {
               <Link
                 href="/profile"
                 className={cn(
-                  "inline-flex items-center justify-center p-2 rounded-lg transition-colors",
-                  "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]",
-                  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]"
+                  "notch-sm inline-flex items-center justify-center p-2 transition-colors",
+                  "text-text-secondary hover:text-accent hover:bg-elevated"
                 )}
                 aria-label="User profile"
               >

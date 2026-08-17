@@ -12,13 +12,16 @@ interface NavProps {
 }
 
 export function Nav({ links, pathname, variant, onLinkClick }: NavProps) {
+  // The active route is marked three ways, never by colour alone: the accent
+  // colour, the underscore caret (`.nav-link`, driven by aria-current), and
+  // aria-current itself for assistive tech.
   const linkClassName = (href: string) =>
     cn(
-      "rounded-md text-sm font-medium transition-colors",
+      "nav-link relative font-mono text-xs uppercase tracking-wider transition-colors",
       variant === "desktop" ? "px-3 py-2" : "block px-3 py-2",
       pathname === href
-        ? "text-[var(--color-accent)] bg-[var(--color-accent-subtle)]"
-        : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]"
+        ? "text-accent"
+        : "text-text-secondary hover:text-text-primary"
     );
 
   // Keyed on the Contentstack per-item uid, not href: two menu items may
@@ -44,7 +47,7 @@ export function Nav({ links, pathname, variant, onLinkClick }: NavProps) {
       <nav
         id="mobile-nav"
         aria-label="Mobile navigation"
-        className="md:hidden border-t border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-4"
+        className="md:hidden border-t border-border bg-surface px-4 py-4"
       >
         <ul className="flex flex-col gap-1" role="list">
           {links.map((link, i) => (

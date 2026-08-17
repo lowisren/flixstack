@@ -1,99 +1,252 @@
 @import "tailwindcss";
 
+/* Tailwind v4's `dark:` variant defaults to the prefers-color-scheme media
+   query, but this app switches themes with a `.dark` class on <html>
+   (next-themes, attribute="class"). Without this the two disagree: a visitor on
+   a light OS with the app in dark mode would get dark surfaces and light-mode
+   `dark:` utilities. That is not hypothetical — it is how getRatingColor came to
+   render its light-theme red on a dark card, which axe caught at 3.73:1.
+   No `dark:` utilities remain today, so this is preventive: it makes the next
+   one written behave the way its author will expect. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ============================================================
-   FLIXSTACK DESIGN SYSTEM — CSS Custom Properties
-   Light mode = default, dark mode applied via .dark class
-   All green accent values are WCAG AA validated:
-     #16A34A on white → 5.0:1 ratio (AA pass)
-     #4ADE80 on #0D0D0D → 9.4:1 ratio (AAA pass)
+   FLIXSTACK DESIGN SYSTEM v2 — CSS Custom Properties
+   Light mode = default (:root), dark mode applied via .dark class.
+
+   Four signal hues with distinct jobs, replacing the single
+   utility green that previously served as accent + success + focus:
+     accent  (phosphor green) — interactive / primary
+     info    (cyan)           — informational / data
+     signal  (magenta)        — live / attention
+     premium (amber)          — premium tier, the warm counterpoint
+
+   Every value below is computed against every surface it can sit on.
+   Text pairs clear 4.5:1 (WCAG 1.4.3); control borders and focus
+   rings clear 3:1 (WCAG 1.4.11). See docs/cyber-redesign-plan.md
+   for the full ratio tables.
+
+   NOTE: light-mode accent was #16A34A, documented as 5.0:1 on white
+   but actually 3.30:1 — a real AA failure for accent text and for
+   the white-on-green primary button. It is now #0E7038 (6.19:1).
    ============================================================ */
 
 :root {
-  /* Backgrounds */
-  --color-bg-base: #f8f9fa;
+  /* Backgrounds — "daylight terminal" */
+  --color-bg-base: #edf1f2;
   --color-bg-surface: #ffffff;
-  --color-bg-elevated: #f1f3f5;
+  --color-bg-elevated: #e1e7e9;
 
   /* Text */
-  --color-text-primary: #111111;
-  --color-text-secondary: #4a4a4a;
-  --color-text-disabled: #9ca3af;
+  --color-text-primary: #0a1014;    /* 19.14:1 on surface, 16.83:1 on base */
+  --color-text-secondary: #47535c;  /* 7.90 / 6.94 / 6.32:1 */
+  --color-text-disabled: #6b7a83;   /* 3.55:1 on elevated — non-essential text only */
 
-  /* Accent — green, WCAG AA on white */
-  --color-accent: #16a34a;
-  --color-accent-hover: #15803d;
-  --color-accent-subtle: #dcfce7;
-  --color-accent-foreground: #ffffff;
+  /* Accent — phosphor green, darkened for paper */
+  --color-accent: #0e7038;          /* 6.19 / 5.44 / 4.95:1 */
+  --color-accent-hover: #0a5c2e;    /* 8.13 / 7.15 / 6.51:1 */
+  --color-accent-subtle: #dcfce7;   /* accent on subtle = 5.63:1 */
+  --color-accent-foreground: #ffffff; /* 6.19:1 on accent fill */
 
-  /* Borders */
-  --color-border: #e5e7eb;
+  /* Info — cyan */
+  --color-info: #0b5f76;            /* 7.21 / 6.34 / 5.77:1 */
+  --color-info-subtle: #cffafe;     /* info on subtle = 6.44:1 */
+
+  /* Signal — magenta */
+  --color-signal: #86198f;          /* 8.24 / 7.24 / 6.59:1 */
+  --color-signal-subtle: #fae8ff;   /* signal on subtle = 7.08:1 */
+
+  /* Borders — decorative dividers vs. control boundaries.
+     Dividers are exempt from 1.4.11; control borders are not, because
+     the border is the only affordance identifying an input. */
+  --color-border: #d3dbde;
+  --color-border-control: #6e7d86;  /* 4.25 / 3.74 / 3.40:1 */
 
   /* Focus ring */
-  --color-focus-ring: #16a34a;
+  --color-focus-ring: #0e7038;
 
-  /* Premium badge */
-  --color-premium: #d97706;
-  --color-premium-subtle: #fef3c7;
+  /* Premium badge — amber */
+  --color-premium: #9a4508;         /* 6.50 / 5.72 / 5.21:1 */
+  --color-premium-subtle: #fef3c7;  /* premium on subtle = 5.84:1 */
 
   /* Status */
-  --color-error: #dc2626;
-  --color-error-subtle: #fef2f2;
-  --color-success: #16a34a;
-  --color-warning: #d97706;
+  --color-error: #b91c1c;           /* 6.47 / 5.69 / 5.18:1 */
+  --color-error-subtle: #fee2e2;    /* error on subtle = 5.30:1 */
+  --color-success: #0e7038;
+  --color-warning: #9a4508;
+
+  /* --- Texture & glow. Light mode is deliberately near-flat: the
+     cyber treatment is dark-native, so daylight keeps the geometry
+     and typography but almost none of the CRT artefacts. --- */
+  --scanline-color: #0a1014;
+  --scanline-opacity: 0.02;
+  --grain-opacity: 0.015;
+  --grid-line: #c3ccd1;
+  --grid-opacity: 0.5;
+  --underglow-opacity: 0.4;
+  --fx-hud-opacity: 0.5;
+  --fx-sweep-opacity: 0.7;
+  --fx-glitch: glitch-tear 180ms steps(3, end) 3;
+
+  --glow-accent: 0 0 0 1px color-mix(in srgb, var(--color-accent) 22%, transparent);
+  --glow-info: 0 0 0 1px color-mix(in srgb, var(--color-info) 22%, transparent);
+  --glow-signal: 0 0 0 1px color-mix(in srgb, var(--color-signal) 22%, transparent);
+  --shadow-panel: 0 1px 2px rgb(10 16 20 / 0.06), 0 2px 8px -2px rgb(10 16 20 / 0.08);
+  --fx-chromatic: none;
 }
 
 .dark {
-  /* Backgrounds */
-  --color-bg-base: #0d0d0d;
-  --color-bg-surface: #1a1a1a;
-  --color-bg-elevated: #242424;
+  /* Backgrounds — blue-black, not neutral black */
+  --color-bg-base: #05070a;
+  --color-bg-surface: #0b0f14;
+  --color-bg-elevated: #121822;
 
   /* Text */
-  --color-text-primary: #f2f2f2;
-  --color-text-secondary: #a0a0a0;
-  --color-text-disabled: #555555;
+  --color-text-primary: #e6f1f5;    /* 17.54 / 16.72 / 15.49:1 */
+  --color-text-secondary: #94a9b8;  /* 8.28 / 7.89 / 7.31:1 */
+  --color-text-disabled: #5c6f7e;   /* 3.42:1 on elevated */
 
-  /* Accent — lighter green, WCAG AA on dark bg */
-  --color-accent: #4ade80;
-  --color-accent-hover: #86efac;
-  --color-accent-subtle: #052e16;
-  --color-accent-foreground: #052e16;
+  /* Accent — phosphor green */
+  --color-accent: #3dff9e;          /* 15.36 / 14.64 / 13.56:1 */
+  --color-accent-hover: #7dffbf;    /* 16.26 / 15.49 / 14.35:1 */
+  --color-accent-subtle: #06231a;   /* accent on subtle = 12.66:1 */
+  --color-accent-foreground: #04120a; /* 14.59:1 on accent fill */
+
+  /* Info — cyan */
+  --color-info: #22d3ee;            /* 11.16 / 10.63 / 9.85:1 */
+  --color-info-subtle: #04222b;     /* info on subtle = 9.16:1 */
+
+  /* Signal — magenta */
+  --color-signal: #ff4fd8;          /* 7.07 / 6.74 / 6.24:1 */
+  --color-signal-subtle: #2a0724;   /* signal on subtle = 6.38:1 */
 
   /* Borders */
-  --color-border: #2e2e2e;
+  --color-border: #1e2a38;
+  --color-border-control: #56708a;  /* 3.92 / 3.73 / 3.46:1 */
 
   /* Focus ring */
-  --color-focus-ring: #4ade80;
+  --color-focus-ring: #3dff9e;
 
-  /* Premium badge */
-  --color-premium: #fbbf24;
-  --color-premium-subtle: #451a03;
+  /* Premium badge — amber */
+  --color-premium: #fbbf24;         /* 12.08 / 11.51 / 10.67:1 */
+  --color-premium-subtle: #2b1c02;  /* premium on subtle = 9.91:1 */
 
   /* Status */
-  --color-error: #f87171;
-  --color-error-subtle: #450a0a;
-  --color-success: #4ade80;
+  --color-error: #ff6b6b;           /* 7.27 / 6.93 / 6.42:1 */
+  --color-error-subtle: #2b0a0a;    /* error on subtle = 6.58:1 */
+  --color-success: #3dff9e;
   --color-warning: #fbbf24;
+
+  /* --- Texture & glow --- */
+  --scanline-color: #e6f1f5;
+  --scanline-opacity: 0.035;
+  --grain-opacity: 0.025;
+  --grid-line: #1e2a38;
+  --grid-opacity: 1;
+  --underglow-opacity: 0.75;
+  --fx-hud-opacity: 1;
+  --fx-sweep-opacity: 1;
+  --fx-glitch: glitch-tear 180ms steps(3, end) 3;
+
+  /* Capped at two layers — glow is decorative and must never be the
+     only thing carrying contrast or identifying a control. */
+  --glow-accent:
+    0 0 0 1px color-mix(in srgb, var(--color-accent) 40%, transparent),
+    0 0 12px -2px color-mix(in srgb, var(--color-accent) 55%, transparent);
+  --glow-info:
+    0 0 0 1px color-mix(in srgb, var(--color-info) 40%, transparent),
+    0 0 12px -2px color-mix(in srgb, var(--color-info) 55%, transparent);
+  --glow-signal:
+    0 0 0 1px color-mix(in srgb, var(--color-signal) 40%, transparent),
+    0 0 12px -2px color-mix(in srgb, var(--color-signal) 55%, transparent);
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 16px -4px rgb(0 0 0 / 0.6);
+
+  /* Strange Days chromatic fringe — 1px cyan/magenta offset */
+  --fx-chromatic:
+    -1px 0 0 color-mix(in srgb, var(--color-signal) 55%, transparent),
+    1px 0 0 color-mix(in srgb, var(--color-info) 55%, transparent);
+}
+
+/* ============================================================
+   .reduce-fx — the user-facing "reduce effects" escape hatch.
+
+   Gating happens at the TOKEN level, not per-selector, so texture
+   switches off everywhere at once and no effect can escape it.
+   Standing rule for every component: never hardcode an opacity,
+   glow, or shadow that bypasses these tokens.
+
+   The class is applied to <html> (see PR 5 for persistence + UI).
+   This is a *preference* and never a substitute for
+   prefers-reduced-motion — that media query works independently
+   below, and always wins.
+   ============================================================ */
+.reduce-fx {
+  --scanline-opacity: 0;
+  --grain-opacity: 0;
+  --grid-opacity: 0;
+  --underglow-opacity: 0;
+  --fx-hud-opacity: 0;
+  --fx-sweep-opacity: 0;
+  --fx-glitch: none;
+  --glow-accent: none;
+  --glow-info: none;
+  --glow-signal: none;
+  --fx-chromatic: none;
 }
 
 @theme inline {
   --color-background: var(--color-bg-base);
   --color-foreground: var(--color-text-primary);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-chakra-petch);
 
   --color-accent: var(--color-accent);
   --color-accent-hover: var(--color-accent-hover);
   --color-accent-subtle: var(--color-accent-subtle);
   --color-accent-foreground: var(--color-accent-foreground);
 
+  --color-info: var(--color-info);
+  --color-info-subtle: var(--color-info-subtle);
+  --color-signal: var(--color-signal);
+  --color-signal-subtle: var(--color-signal-subtle);
+  --color-premium: var(--color-premium);
+  --color-premium-subtle: var(--color-premium-subtle);
+
   --color-surface: var(--color-bg-surface);
   --color-elevated: var(--color-bg-elevated);
   --color-border: var(--color-border);
+  --color-border-control: var(--color-border-control);
 
   --color-text-primary: var(--color-text-primary);
   --color-text-secondary: var(--color-text-secondary);
   --color-text-disabled: var(--color-text-disabled);
+
+  /* Shape scale. Semantic names for new work — and the stock Tailwind
+     radii are deliberately re-pointed at the same sharp scale so the
+     ~40 existing `rounded-lg`/`rounded-md` call sites adopt the new
+     geometry without a churn-only find-and-replace pass. Later phases
+     migrate to the semantic names. `rounded-full` is untouched: it is
+     the eXistenZ pod curve. */
+  --radius-chip: 1px;
+  --radius-panel: 2px;
+  --radius-control: 3px;
+  --radius-pod: 999px;
+
+  --radius-xs: 1px;
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 3px;
+  --radius-2xl: 4px;
+  --radius-3xl: 6px;
+}
+
+/* Corner-cut size for notched HUD panels */
+:root {
+  --notch: 10px;
+  --notch-sm: 6px;
 }
 
 /* Base resets */
@@ -110,6 +263,24 @@ html {
 
 body {
   background-color: var(--color-bg-base);
+  /* CRT texture lives in the body BACKGROUND, behind every surface, rather
+     than in an overlay on top. A fixed full-screen overlay would put texture
+     over poster art and body copy, which is exactly what the design guardrail
+     forbids. Alpha comes from the gated tokens via color-mix, so .reduce-fx
+     switches it off with everything else. */
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--scanline-color) calc(var(--scanline-opacity) * 100%), transparent) 0 1px,
+      transparent 1px 3px
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in srgb, var(--scanline-color) calc(var(--grain-opacity) * 100%), transparent) 0.5px,
+      transparent 0.5px
+    );
+  background-size: 100% 3px, 3px 3px;
+  background-attachment: fixed;
   color: var(--color-text-primary);
   font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
   line-height: 1.6;
@@ -117,11 +288,75 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Display face — headings and short labels only. Uppercase is applied
+   with text-transform (never by changing the source string) so
+   assistive tech still reads normal-case text. Never applied to
+   sentences or paragraphs. */
+.font-display {
+  font-family: var(--font-chakra-petch), var(--font-geist-sans, sans-serif);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-wrap: balance;
+}
+
 /* Accessible focus ring — only for keyboard nav */
 :focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 2px;
+}
+
+/* ============================================================
+   Notched HUD panels.
+
+   clip-path clips an element's OUTLINE, and overflow:hidden on an
+   ancestor clips a descendant's outline. So a notch would silently
+   destroy the :focus-visible ring above — an accessibility
+   regression that is invisible in a screenshot.
+
+   Fix: notched elements take their focus indicator as an inset
+   box-shadow ring, which is clipped WITH the shape and stays
+   visible. `:has()` covers notched containers whose focusable
+   child would otherwise have its own ring clipped.
+   ============================================================ */
+.notch {
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+}
+
+.notch-sm {
+  clip-path: polygon(
+    var(--notch-sm) 0,
+    100% 0,
+    100% calc(100% - var(--notch-sm)),
+    calc(100% - var(--notch-sm)) 100%,
+    0 100%,
+    0 var(--notch-sm)
+  );
+}
+
+/* Two-tone inset ring, and it has to be two-tone: a single ring in
+   --color-focus-ring is invisible on the primary button, whose fill IS
+   the accent colour. The inner band is the page ground and the outer
+   band is the focus colour, so whichever way the fill goes, one of the
+   two always contrasts:
+     - on accent / error fills → the ground band carries it (>= 7.2:1)
+     - on surface / elevated / transparent → the accent band carries it
+   Both bands are inset, so the notch's clip-path cannot clip them. */
+.notch:focus-visible,
+.notch-sm:focus-visible,
+.notch:has(:focus-visible),
+.notch-sm:has(:focus-visible) {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 2px var(--color-bg-base),
+    inset 0 0 0 4px var(--color-focus-ring);
 }
 
 /* Skip to main content — accessibility */
@@ -145,9 +380,12 @@ body {
   background: var(--color-accent);
   color: var(--color-accent-foreground);
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-control);
   font-weight: 600;
   font-size: 1rem;
+  font-family: var(--font-geist-mono, monospace);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 /* Scrollbar styling */
@@ -159,18 +397,17 @@ body {
   background: var(--color-bg-base);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 4px;
+  background: var(--color-border-control);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-disabled);
+  background: var(--color-accent);
 }
 
 /* Rail horizontal scroll */
 .scroll-rail {
   overflow-x: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
+  scrollbar-color: var(--color-border-control) transparent;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
 }
@@ -178,18 +415,366 @@ body {
   height: 4px;
 }
 
-/* Skeleton animation */
-@keyframes skeleton-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-.skeleton {
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
-  background: var(--color-bg-elevated);
-  border-radius: 6px;
+/* ============================================================
+   Texture utilities — chrome only. None of these may sit over
+   poster artwork or body copy: if texture never touches text,
+   text contrast stays computable.
+   All are pointer-events:none and driven by gated tokens.
+   ============================================================ */
+
+/* CRT scanlines */
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--scanline-color) 0 1px,
+    transparent 1px 3px
+  );
+  opacity: var(--scanline-opacity);
 }
 
-/* Reduced motion */
+/* Hackers isometric wireframe grid */
+.grid-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: var(--grid-opacity);
+  z-index: 0;
+  mask-image: radial-gradient(ellipse 120% 80% at 50% 0%, #000 0%, transparent 75%);
+}
+
+/* Film grain */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: radial-gradient(
+    circle at 50% 50%,
+    var(--scanline-color) 0.5px,
+    transparent 0.5px
+  );
+  background-size: 3px 3px;
+}
+
+/* ============================================================
+   CASCADE RULE for every utility below.
+
+   These classes are UNLAYERED, and Tailwind's utilities live in
+   @layer utilities. Unlayered CSS beats layered CSS regardless of
+   specificity — so a `position` declared here silently overrides
+   `absolute` / `sticky` / `fixed` from a Tailwind class on the same
+   element. That already cost us twice: `.chrome-underglow` turned the
+   sticky header into a relative one, and `.scanlines` collapsed the
+   hero scrim to 0px tall by overriding `absolute inset-0`.
+
+   So: none of these classes declare `position`. Each one needs a
+   positioning context for its pseudo-element, and the CONSUMER
+   supplies it with a Tailwind class (`relative`, `absolute`, `sticky`).
+   ============================================================ */
+
+/* Header underglow — a phosphor hairline instead of a flat divider. Sits on
+   top of the real border, which stays put so the header keeps an edge when
+   .reduce-fx or forced-colors switches the glow off. */
+.chrome-underglow::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  opacity: var(--underglow-opacity);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-accent) 60%, transparent) 20%,
+    color-mix(in srgb, var(--color-accent) 60%, transparent) 80%,
+    transparent
+  );
+}
+
+/* Nav links — an underscore caret that grows on hover/focus and sits full
+   width on the active route. Driven by [aria-current="page"], which nav.tsx
+   already sets, so the indicator derives from real semantics rather than a
+   parallel "isActive" class. Never the only cue: the active link also shifts
+   to the accent colour and carries aria-current for assistive tech. */
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.25rem;
+  height: 2px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 180ms ease;
+}
+.nav-link:hover::after,
+.nav-link:focus-visible::after {
+  transform: scaleX(0.4);
+}
+.nav-link[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+/* ============================================================
+   Hero scrim — three layers: a horizontal wash where the copy sits,
+   a bottom vignette, and scanlines (added separately via .scanlines).
+
+   Both gradients are a FIXED dark ink in both themes, deliberately not
+   a theme token. Hero copy is white in both themes, so a scrim that
+   followed the theme would fade white text into a near-white ground in
+   light mode — which is exactly what shipped before: the old bottom
+   vignette used `from-background` and put the title at 1.12:1 in light
+   mode.
+
+   Worst case over pure-white artwork, sampled across the whole text
+   region: title 10.21:1, subtitle (white/80) 7.23:1. So hero copy never
+   depends on the CMS supplying a dark image.
+   ============================================================ */
+.hero-scrim {
+  background-image:
+    linear-gradient(
+      to right,
+      rgb(5 7 10 / 0.95) 0%,
+      rgb(5 7 10 / 0.8) 30%,
+      rgb(5 7 10 / 0.35) 60%,
+      rgb(5 7 10 / 0) 85%
+    ),
+    linear-gradient(
+      to top,
+      rgb(5 7 10 / 0.98) 0%,
+      rgb(5 7 10 / 0.75) 25%,
+      rgb(5 7 10 / 0.15) 55%,
+      rgb(5 7 10 / 0) 75%
+    );
+}
+
+/* Corner HUD brackets — two corners only, echoing the notch direction */
+.hud-frame::before,
+.hud-frame::after {
+  content: "";
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  pointer-events: none;
+  opacity: var(--fx-hud-opacity);
+  border-color: color-mix(in srgb, var(--color-accent) 70%, transparent);
+  border-style: solid;
+  border-width: 0;
+}
+.hud-frame::before {
+  top: 14px;
+  left: 14px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+.hud-frame::after {
+  bottom: 14px;
+  right: 14px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+/* Scan sweep — replaces hover:scale on cards. A transform on a pseudo
+   element composites, where scaling a whole card forces layout work for
+   every card in a rail. Fires on hover AND focus-within so keyboard
+   users get the same feedback. */
+@keyframes scan-sweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(110%);
+  }
+}
+.sweep {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+.sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-110%);
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    color-mix(in srgb, var(--color-accent) 22%, transparent) 50%,
+    transparent 58%
+  );
+}
+.sweep-host:hover .sweep,
+.sweep-host:focus-within .sweep {
+  opacity: var(--fx-sweep-opacity);
+}
+.sweep-host:hover .sweep::after,
+.sweep-host:focus-within .sweep::after {
+  animation: scan-sweep 520ms ease-out;
+}
+
+/* Inset focus ring for focusable elements *inside* a notched container.
+   A parent's clip-path clips descendant painting, and outline-offset
+   pushes a ring outward — so a child's outline can land outside the clip
+   and vanish. An inset ring sits within the child's own box and survives.
+   Single-tone is enough here: these sit on neutral surfaces, not on an
+   accent fill (see .notch:focus-visible for why that case needs two). */
+.focus-inset:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-focus-ring);
+}
+
+/* Rail edge fade. Disabled while anything inside has focus: a mask clips
+   painting, so a focused card scrolled to the boundary would have its
+   focus ring faded out. Keyboard users get no fade at all. */
+.rail-fade:not(:focus-within) {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 2rem,
+    #000 calc(100% - 2rem),
+    transparent 100%
+  );
+}
+
+/* Terminal bracket affordance for Button variant="terminal".
+   Drawn with borders rather than "[" / "]" characters so screen
+   readers have no punctuation to announce. */
+.btn-terminal::before,
+.btn-terminal::after {
+  content: "";
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  width: 4px;
+  border: 1px solid currentColor;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.btn-terminal::before {
+  left: 6px;
+  border-right: 0;
+}
+.btn-terminal::after {
+  right: 6px;
+  border-left: 0;
+}
+
+/* Glow helpers — decorative only, and deliberately not used on
+   focusable controls: a hover glow and an inset focus ring both
+   occupy box-shadow, and the focus indicator must always win. */
+.glow-accent {
+  box-shadow: var(--glow-accent);
+}
+.glow-info {
+  box-shadow: var(--glow-info);
+}
+.glow-signal {
+  box-shadow: var(--glow-signal);
+}
+
+/* Strange Days chromatic fringe — hover/focus only, single-shot */
+.chromatic {
+  transition: text-shadow 120ms ease;
+}
+.chromatic:hover,
+.chromatic:focus-visible {
+  text-shadow: var(--fx-chromatic);
+}
+
+/* Terminal caret — 1.06s ≈ 0.94 Hz, the fastest repeating element
+   on the site and well under the WCAG 2.3.1 three-flashes ceiling. */
+@keyframes caret-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+.terminal-caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-left: 0.15em;
+  vertical-align: -0.15em;
+  background: var(--color-accent);
+  animation: caret-blink 1.06s steps(1, end) infinite;
+}
+
+/* Glitch displacement — Strange Days signal tear. Used on the 404 numeral
+   only, and only three times before stopping for good.
+
+   This is displacement plus a chromatic offset, never a luminance strobe, so
+   it is not a "flash" under WCAG 2.3.1 — and the element is a small decorative
+   numeral, far under the large-flash area threshold. It is still motion, so it
+   is gated by prefers-reduced-motion and by --fx-glitch below. */
+@keyframes glitch-tear {
+  0% { transform: translate3d(0, 0, 0); }
+  20% { transform: translate3d(-4px, 1px, 0); }
+  40% { transform: translate3d(3px, -1px, 0); }
+  60% { transform: translate3d(-2px, 0, 0); }
+  80% { transform: translate3d(2px, 1px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+.glitch {
+  animation: var(--fx-glitch);
+  text-shadow: var(--fx-chromatic);
+}
+
+/* Skeleton — scanline sweep, single direction, no flash */
+@keyframes skeleton-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+.skeleton {
+  overflow: hidden;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-panel);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-accent) 12%, transparent),
+    transparent
+  );
+  animation: skeleton-sweep 1.8s ease-in-out infinite;
+}
+
+/* ============================================================
+   Reduced motion.
+
+   The blanket duration override is kept for inherited transitions,
+   but it is NOT safe on its own for directional keyframes: forcing
+   a sweep or glitch to 0.01ms freezes it at an arbitrary offset and
+   can leave an element visibly displaced. So every named animation
+   above also gets an explicit `animation: none` plus a defined safe
+   static state.
+   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -198,13 +783,139 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Safe static states */
   .skeleton {
-    animation: none;
     opacity: 0.6;
+  }
+  .skeleton::after {
+    animation: none !important;
+    display: none;
+  }
+  .terminal-caret::after {
+    animation: none !important;
+    opacity: 1;
+  }
+  .sweep,
+  .sweep-host:hover .sweep,
+  .sweep-host:focus-within .sweep {
+    opacity: 0;
+  }
+  .sweep::after {
+    animation: none !important;
+  }
+  .glitch {
+    animation: none !important;
+    transform: none;
+    text-shadow: none;
+  }
+  .chromatic:hover,
+  .chromatic:focus-visible {
+    text-shadow: none;
   }
 }
 
-/* Dev overlay highlight */
+/* Same safe static states for the user-facing toggle. Kept separate
+   from the media query so the OS setting always wins on its own. */
+.reduce-fx .skeleton::after {
+  animation: none;
+  display: none;
+}
+.reduce-fx .skeleton {
+  opacity: 0.6;
+}
+.reduce-fx .terminal-caret::after {
+  animation: none;
+  opacity: 1;
+}
+.reduce-fx .sweep::after {
+  animation: none;
+}
+.reduce-fx .glitch {
+  animation: none;
+  transform: none;
+  text-shadow: none;
+}
+
+/* ============================================================
+   Forced colours (Windows High Contrast).
+   The OS replaces the palette and drops box-shadow entirely, so any
+   affordance carried only by a glow or a clipped shape disappears.
+   Restore real borders and remove decorative overlays.
+   ============================================================ */
+@media (forced-colors: active) {
+  .notch,
+  .notch-sm {
+    clip-path: none;
+    border: 1px solid CanvasText;
+  }
+  .notch:focus-visible,
+  .notch-sm:focus-visible,
+  .notch:has(:focus-visible),
+  .notch-sm:has(:focus-visible) {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+  .glow-accent,
+  .glow-info,
+  .glow-signal {
+    box-shadow: none;
+    border: 1px solid CanvasText;
+  }
+  body {
+    background-image: none;
+  }
+  .glitch {
+    animation: none;
+    text-shadow: none;
+  }
+  .scanlines::after,
+  .grid-backdrop::before,
+  .grain::after,
+  .chrome-underglow::after,
+  .hud-frame::before,
+  .hud-frame::after,
+  .sweep {
+    display: none;
+  }
+  .focus-inset:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+  .rail-fade:not(:focus-within) {
+    mask-image: none;
+  }
+  .chromatic:hover,
+  .chromatic:focus-visible {
+    text-shadow: none;
+  }
+}
+
+/* Higher-contrast preference — drop texture, strengthen boundaries */
+@media (prefers-contrast: more) {
+  :root,
+  .dark {
+    --scanline-opacity: 0;
+    --grain-opacity: 0;
+    --grid-opacity: 0;
+    --underglow-opacity: 0;
+    --fx-hud-opacity: 0;
+    --fx-sweep-opacity: 0;
+    --fx-glitch: none;
+    --fx-chromatic: none;
+    --color-border: var(--color-border-control);
+  }
+}
+
+/* Dev overlay highlight.
+   Uses outline, so it is subject to the same clipping trap as the
+   focus ring — notched entries get the inset ring instead. */
 .cs-inspect-active [data-cs-entry] {
   outline: 2px dashed var(--color-accent);
   outline-offset: 2px;
@@ -214,4 +925,9 @@ body {
 .cs-inspect-active [data-cs-entry]:hover {
   outline-color: var(--color-accent-hover);
   background-color: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+.cs-inspect-active [data-cs-entry].notch,
+.cs-inspect-active [data-cs-entry].notch-sm {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-accent);
 }

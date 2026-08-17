@@ -22,7 +22,7 @@ export default async function SetupPage({
   const guide = await getSetupGuide(parseLivePreviewParams(await searchParams));
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
+    <div className="grid-backdrop relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
       {/* Header */}
       <div className="mb-10">
         {guide.badge_label && (
@@ -30,18 +30,18 @@ export default async function SetupPage({
             {guide.badge_label}
           </Badge>
         )}
-        <h1 className="text-4xl font-bold text-(--color-text-primary) mb-4" {...guide.$?.title}>
+        <h1 className="font-display text-4xl uppercase text-text-primary mb-4" {...guide.$?.title}>
           {guide.title}
         </h1>
         <div
-          className="text-lg text-text-secondary max-w-2xl leading-relaxed [&_p]:mb-3 [&_p:last-child]:mb-0"
+          className="text-lg text-text-secondary max-w-2xl leading-relaxed break-words [&_p]:mb-3 [&_p:last-child]:mb-0"
           dangerouslySetInnerHTML={{ __html: guide.intro }}
           {...guide.$?.intro}
         />
 
         {/* CS connection status — runtime state, not editorial content */}
         <div
-          className={`mt-5 flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium ${
+          className={`notch-sm mt-5 flex items-center gap-3 px-4 py-3 border font-mono text-xs uppercase tracking-wider ${
             isCSConfigured
               ? "border-accent/30 bg-accent-subtle text-accent"
               : "border-border bg-surface text-text-secondary"
@@ -64,40 +64,40 @@ export default async function SetupPage({
 
       {/* Setup steps */}
       <section aria-label="Setup steps" className="mb-16">
-        <h2 className="text-2xl font-bold text-(--color-text-primary) mb-6" {...guide.$?.steps_heading}>
+        <h2 className="font-display text-2xl uppercase text-text-primary mb-6" {...guide.$?.steps_heading}>
           {guide.steps_heading}
         </h2>
         <ol className="flex flex-col gap-6" role="list">
           {guide.steps.map((step, i) => (
             <li
               key={i}
-              className="flex gap-5 p-6 rounded-2xl border border-border bg-surface"
+              className="notch relative flex gap-4 sm:gap-5 p-4 sm:p-6 border border-border bg-surface"
             >
               <div
-                className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground font-bold text-sm"
+                className="notch-sm shrink-0 flex h-8 w-8 items-center justify-center bg-accent text-accent-foreground font-mono font-bold text-sm tabular-nums"
                 aria-hidden="true"
               >
                 {i + 1}
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-(--color-text-primary) mb-1" {...step.$?.heading}>
+              <div className="flex-1 min-w-0 break-words">
+                <h3 className="font-display uppercase text-text-primary mb-1" {...step.$?.heading}>
                   {step.heading}
                 </h3>
                 <div
-                  className="text-sm text-text-secondary mb-3 [&_p]:mb-2 [&_p:last-child]:mb-0"
+                  className="text-sm text-text-secondary mb-3 break-words [&_p]:mb-2 [&_p:last-child]:mb-0"
                   dangerouslySetInnerHTML={{ __html: step.description }}
                   {...step.$?.description}
                 />
                 {step.detail && (
                   <div
-                    className="text-sm text-text-secondary bg-elevated rounded-lg px-4 py-3 mb-3 [&_p]:mb-2 [&_p:last-child]:mb-0"
+                    className="text-sm text-text-secondary bg-elevated rounded-panel px-4 py-3 mb-3 break-words [&_p]:mb-2 [&_p:last-child]:mb-0"
                     dangerouslySetInnerHTML={{ __html: step.detail }}
                     {...step.$?.detail}
                   />
                 )}
                 {step.code && (
                   <pre
-                    className="text-xs font-mono bg-elevated border border-border text-(--color-text-primary) rounded-xl p-4 overflow-x-auto whitespace-pre mb-3"
+                    className="text-xs font-mono bg-elevated border border-border-control text-text-primary rounded-panel p-4 overflow-x-auto whitespace-pre mb-3"
                     {...step.$?.code}
                   >
                     {step.code}
@@ -108,7 +108,7 @@ export default async function SetupPage({
                     href={step.docs_link.href}
                     target={step.docs_link.open_in_new_tab ? "_blank" : undefined}
                     rel={step.docs_link.open_in_new_tab ? "noopener noreferrer" : undefined}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-(--color-focus-ring) rounded-sm"
+                    className="focus-inset inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-accent hover:underline"
                   >
                     <ExternalLink className="h-3 w-3" aria-hidden="true" />
                     {step.docs_link.label || "View Documentation"}
@@ -122,7 +122,7 @@ export default async function SetupPage({
 
       {/* Feature deep-dives */}
       <section aria-label="Contentstack features" className="mb-16">
-        <h2 className="text-2xl font-bold text-(--color-text-primary) mb-2" {...guide.$?.features_heading}>
+        <h2 className="font-display text-2xl uppercase text-text-primary mb-2" {...guide.$?.features_heading}>
           {guide.features_heading}
         </h2>
         <div
@@ -138,14 +138,14 @@ export default async function SetupPage({
               <div
                 key={feature.anchor_id || i}
                 id={feature.anchor_id}
-                className="p-6 rounded-2xl border border-border bg-surface"
+                className="notch relative p-6 border border-border bg-surface"
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-subtle shrink-0">
+                  <div className="notch-sm flex h-10 w-10 items-center justify-center bg-accent-subtle shrink-0">
                     <Icon className="h-5 w-5 text-accent" aria-hidden="true" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-(--color-text-primary) text-lg mb-2" {...feature.$?.heading}>
+                    <h3 className="font-display uppercase text-text-primary text-lg mb-2" {...feature.$?.heading}>
                       {feature.heading}
                     </h3>
                     <div
@@ -157,7 +157,7 @@ export default async function SetupPage({
                       {feature.field_tags.map((f) => (
                         <code
                           key={f}
-                          className="text-xs font-mono px-2 py-1 rounded-md bg-elevated text-(--color-text-primary) border border-border"
+                          className="text-xs font-mono px-2 py-1 rounded-chip bg-elevated text-text-primary border border-border-control"
                         >
                           {f}
                         </code>
@@ -168,7 +168,7 @@ export default async function SetupPage({
                         href={feature.learn_link.href}
                         target={feature.learn_link.open_in_new_tab ? "_blank" : undefined}
                         rel={feature.learn_link.open_in_new_tab ? "noopener noreferrer" : undefined}
-                        className="inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-(--color-focus-ring) rounded-sm"
+                        className="focus-inset inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-accent hover:underline"
                       >
                         <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         {feature.learn_link.label || "Learn More"}
@@ -184,7 +184,7 @@ export default async function SetupPage({
 
       {/* Quick links */}
       <section aria-label="Documentation links">
-        <h2 className="text-2xl font-bold text-(--color-text-primary) mb-6" {...guide.$?.docs_heading}>
+        <h2 className="font-display text-2xl uppercase text-text-primary mb-6" {...guide.$?.docs_heading}>
           {guide.docs_heading}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -194,10 +194,10 @@ export default async function SetupPage({
               href={item.link.href}
               target={item.link.open_in_new_tab ? "_blank" : undefined}
               rel={item.link.open_in_new_tab ? "noopener noreferrer" : undefined}
-              className="flex items-start gap-3 p-4 rounded-xl border border-border bg-surface hover:border-accent hover:bg-accent-subtle transition-colors group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+              className="notch-sm group flex items-start gap-3 p-4 border border-border-control bg-surface hover:border-accent hover:bg-accent-subtle transition-colors"
             >
               <div className="flex-1">
-                <p className="font-semibold text-sm text-(--color-text-primary) group-hover:text-accent transition-colors">
+                <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-primary group-hover:text-accent transition-colors">
                   {item.link.label}
                 </p>
                 <p className="text-xs text-text-secondary mt-0.5">{item.description}</p>

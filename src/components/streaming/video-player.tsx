@@ -38,7 +38,11 @@ export function VideoPlayer({ playback, poster, label, autoPlay = true, classNam
       playsInline
       poster={posterSrc}
       aria-label={`Video player: ${label}`}
-      className={className ?? "w-full h-full bg-black"}
+      // Native controls, deliberately: replacing them is an accessibility
+      // regression for keyboard, screen-reader and caption users. Only the
+      // container chrome changes — no clip-path, which would clip the
+      // browser's own control bar at the corners.
+      className={className ?? "w-full h-full border border-border-control bg-black"}
     >
       <source src={src} type={type} />
       {playback.captions.map((c, i) => (
