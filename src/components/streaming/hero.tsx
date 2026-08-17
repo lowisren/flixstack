@@ -153,9 +153,14 @@ export function Hero({ banners }: HeroProps) {
             </button>
           </div>
 
-          {/* Dot indicators */}
+          {/* Dot indicators.
+              `right-14`, not `right-8`: the .hud-frame corner bracket occupies
+              14–40px in from the right edge, so at `right-8` (32px) the last dot
+              overlapped it by 8x8px at every viewport. 56px clears the bracket's
+              left edge with a 16px gap, so the dots and the bracket read as
+              separate marks instead of colliding. */}
           <div
-            className="absolute bottom-4 right-8 flex gap-2"
+            className="absolute bottom-4 right-14 flex gap-2"
             role="tablist"
             aria-label="Featured content slides"
           >
