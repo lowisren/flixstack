@@ -116,35 +116,51 @@ export function Hero({ banners }: HeroProps) {
         </div>
       </div>
 
-      {/* Navigation controls */}
+      {/* Navigation controls.
+          Grouped in the top-right rather than centred on the left and right
+          edges. Vertically-centred side arrows collided with the copy: the copy
+          is bottom-anchored and its height is CMS-driven (a title can wrap to
+          two or three lines), while the hero is only 60vh — so as the viewport
+          shortens, the copy's top edge rises past the vertical midpoint. The
+          left arrow overlapped the badge at 1440x900, 1280x800, 1024x768 and
+          390x780, and the h1 as well below 1280. Any fixed vertical offset has
+          the same failure mode, so the controls move out of the copy's column
+          entirely — the top-right is always clear of bottom-anchored content. */}
       {banners.length > 1 && (
         <>
-          <button
-            onClick={prev}
-            className={cn(
-              "absolute left-4 top-1/2 -translate-y-1/2 notch-sm",
-              "flex h-10 w-10 items-center justify-center border border-white/25",
-              "bg-black/50 text-white hover:border-accent hover:text-accent transition-colors"
-            )}
-            aria-label="Previous featured title"
-          >
-            <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-          </button>
-          <button
-            onClick={next}
-            className={cn(
-              "absolute right-4 top-1/2 -translate-y-1/2 notch-sm",
-              "flex h-10 w-10 items-center justify-center border border-white/25",
-              "bg-black/50 text-white hover:border-accent hover:text-accent transition-colors"
-            )}
-            aria-label="Next featured title"
-          >
-            <ChevronRight className="h-5 w-5" aria-hidden="true" />
-          </button>
+          <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+            <button
+              onClick={prev}
+              className={cn(
+                "notch-sm flex h-10 w-10 items-center justify-center border border-white/25",
+                // bg-black/70, not /50: this sits where the scrim is weakest, so
+                // over pale artwork the composite must still carry the icon.
+                "bg-black/70 text-white hover:border-accent hover:text-accent transition-colors"
+              )}
+              aria-label="Previous featured title"
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <button
+              onClick={next}
+              className={cn(
+                "notch-sm flex h-10 w-10 items-center justify-center border border-white/25",
+                "bg-black/70 text-white hover:border-accent hover:text-accent transition-colors"
+              )}
+              aria-label="Next featured title"
+            >
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div>
 
-          {/* Dot indicators */}
+          {/* Dot indicators.
+              `right-14`, not `right-8`: the .hud-frame corner bracket occupies
+              14–40px in from the right edge, so at `right-8` (32px) the last dot
+              overlapped it by 8x8px at every viewport. 56px clears the bracket's
+              left edge with a 16px gap, so the dots and the bracket read as
+              separate marks instead of colliding. */}
           <div
-            className="absolute bottom-4 right-8 flex gap-2"
+            className="absolute bottom-4 right-14 flex gap-2"
             role="tablist"
             aria-label="Featured content slides"
           >
