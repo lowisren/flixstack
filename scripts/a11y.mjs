@@ -20,6 +20,11 @@ import { dirname, join } from "node:path";
 import { arg, launchChrome, sleep } from "./lib/chrome.mjs";
 import { ROUTES } from "./lib/routes.mjs";
 
+// The design-system catalog is audited too (it is not screenshotted: it has no
+// pre-refactor baseline). It renders only in dev or with NEXT_PUBLIC_DESIGN_SYSTEM=true.
+const CATALOG = "/design-system";
+const AUDIT_ROUTES = [...ROUTES, CATALOG];
+
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const BASE = arg("url", "http://localhost:3000").replace(/\/$/, "");
 const PORT = Number(arg("cdp-port", "9222"));
@@ -43,7 +48,7 @@ for (const theme of ["dark", "light"]) {
       : `localStorage.removeItem('theme')`
   );
 
-  for (const route of ROUTES) {
+  for (const route of AUDIT_ROUTES) {
     await send("Page.navigate", { url: BASE + route });
     await sleep(2600);
     await evaluate(axeSource);
@@ -64,8 +69,31 @@ for (const theme of ["dark", "light"]) {
       true
     );
     const parsed = JSON.parse(result);
+
+    // Live Preview edit tags on the catalog: every example that renders CMS
+    // fields must carry at least one data-cslp. Only meaningful when Live
+    // Preview is on (no tags anywhere means it is off, so the check is skipped).
+    if (route === CATALOG) {
+      const missing = await evaluate(`(() => {
+        if (!document.querySelector('[data-cslp]')) return null;
+        return [...document.querySelectorAll('[data-specimen-cms]')]
+          .filter((el) => !el.querySelector('[data-cslp]'))
+          .map((el) => el.dataset.specimen);
+      })()`);
+      if (missing === null) {
+        console.log(`${theme.padEnd(5)} ${route.padEnd(26)} edit-tag check skipped (Live Preview off)`);
+      } else if (missing.length) {
+        parsed.violations.push({
+          id: "cslp-missing", impact: "serious",
+          help: `Specimens render CMS fields without Live Preview edit tags: ${missing.join(", ")}`,
+          helpUrl: "docs/design-system-plan.md", nodes: [], count: missing.length,
+        });
+      }
+    }
+
     const n = parsed.violations.reduce((s, v) => s + v.count, 0);
     totalViolations += n;
+
     report.runs.push({ theme, route, violations: parsed.violations });
     const label = `${theme.padEnd(5)} ${route.padEnd(26)}`;
     if (n === 0) console.log(`${label} clean`);
