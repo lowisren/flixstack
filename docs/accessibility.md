@@ -7,7 +7,7 @@ Flixstack targets **WCAG 2.1 Level AA** compliance in both light and dark mode.
 Two checks ship with the repo and both exit non-zero on failure, so either can gate CI.
 
 ```bash
-# 1. axe-core across every route, in both themes
+# 1. axe-core across every route and /design-system, in both themes
 npm run dev            # in another terminal (or `npm run build && npm start`)
 npm run a11y           # -> reports/a11y-report.json
 npm run a11y -- --url=http://localhost:3001
@@ -18,18 +18,30 @@ npm run check-contrast -- --json
 ```
 
 [`scripts/a11y.mjs`](../scripts/a11y.mjs) drives headless Chrome over the DevTools Protocol
-— no Selenium or Playwright dependency, and `axe-core` itself has none. Set `CHROME_PATH`
-if your browser is somewhere unusual.
+(via [`scripts/lib/chrome.mjs`](../scripts/lib/chrome.mjs)) — no Selenium or Playwright
+dependency, and `axe-core` itself has none. Set `CHROME_PATH` if your browser is somewhere
+unusual. It also audits the [design-system catalog](../src/design-system/README.md) at
+`/design-system`, which shows every component on its own. That matters because axe can't
+compute contrast over a background image, so text on artwork is only checked where the
+catalog shows it on a plain ground. With Live Preview on, the script also fails if a catalog
+example that renders CMS fields has lost its `data-cslp` edit tags.
 
 [`scripts/check-contrast.mjs`](../scripts/check-contrast.mjs) parses the real token values
-out of [globals.css](../src/app/globals.css) and checks all 76 shipped pairs. It exists
+out of [tokens.css](../src/design-system/tokens/tokens.css) and checks all 80 shipped pairs,
+including on-media text over the media ground. It exists
 because this document once asserted the light accent was 5.0:1 on white when it was
 actually **3.30:1** — a real WCAG 1.4.3 failure that sat unnoticed precisely because the
 number was written by hand. Reverting that token makes the guard fail with 5 errors, so the
 check is known to work rather than merely known to pass.
 
-**Current status:** axe-core 4.13.0, 22 runs (11 routes x 2 themes), **0 violations**.
-Contrast guard: **76/76 pass**.
+**Current status:** axe-core 4.13.0, 24 runs (12 routes x 2 themes). Every app route is
+clean. `/design-system` in light mode has **1 known violation**: the hero-size score on
+artwork is 3.25:1. It is a pre-existing defect on the watch page that the catalog exposed;
+see the follow-ups in [design-system-plan.md](./design-system-plan.md). Contrast guard:
+**80/80 pass**.
+
+ESLint also blocks colours that bypass the tokens (raw palette classes, `white`/`black`,
+hex literals), since those would escape both checks.
 
 Manual testing still recommended for what automation cannot judge:
 - **macOS VoiceOver** (Cmd + F5) / **NVDA** on Windows — announcement quality and order
@@ -262,7 +274,8 @@ Two regressions were introduced *during* the redesign and caught the same way:
   positioning utilities (unlayered CSS beats `@layer utilities` regardless of specificity).
   This turned the sticky header into `position: relative`, and separately collapsed the
   hero scrim to **0px tall** so it painted nothing. No utility declares `position` any
-  more — see the note at the top of the utilities section in `globals.css`.
+  more — see the CASCADE RULE note in
+[`effects.css`](../src/design-system/tokens/effects.css).
 - The reduce-effects preference silently failed on the 404 route, which renders its shell
   on the client where inline scripts in React components never execute.
 
