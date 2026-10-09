@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Search, Home } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, Heading, Panel } from "@/design-system";
 
 export default function NotFound() {
   return (
@@ -8,7 +8,7 @@ export default function NotFound() {
       {/* Strange Days "signal lost" panel. The glitch displacement animation
           lands in PR 5 with the rest of the motion layer; the panel itself is
           static so this route carries no ungated animation today. */}
-      <div className="notch scanlines relative w-full max-w-lg border border-border-control bg-surface">
+      <Panel border="control" scanlines className="w-full max-w-lg">
         {/* Status strip */}
         <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-2.5 font-mono text-xs uppercase tracking-widest">
           <span className="text-signal">Signal lost</span>
@@ -23,9 +23,9 @@ export default function NotFound() {
             404
           </p>
 
-          <h1 className="font-display mt-4 text-2xl uppercase text-text-primary">
+          <Heading as="h1" size="2xl" className="mt-4">
             No such transmission
-          </h1>
+          </Heading>
 
           <p className="mt-3 text-text-secondary">
             We couldn&apos;t find what you were looking for. It may have been moved
@@ -54,7 +54,7 @@ export default function NotFound() {
             </Button>
           </div>
         </div>
-      </div>
+      </Panel>
     </div>
   );
 }

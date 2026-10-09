@@ -1,0 +1,23 @@
+/* ============================================================
+   Contentstack Live Preview inspector highlight.
+   Imported last by src/app/globals.css.
+   ============================================================ */
+
+/* Dev overlay highlight.
+   Uses outline, so it is subject to the same clipping trap as the
+   focus ring — notched entries get the inset ring instead. */
+.cs-inspect-active [data-cs-entry] {
+  outline: 2px dashed var(--color-accent);
+  outline-offset: 2px;
+  cursor: pointer;
+  position: relative;
+}
+.cs-inspect-active [data-cs-entry]:hover {
+  outline-color: var(--color-accent-hover);
+  background-color: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+.cs-inspect-active [data-cs-entry].notch,
+.cs-inspect-active [data-cs-entry].notch-sm {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
