@@ -42,7 +42,7 @@ export function VideoPlayer({ playback, poster, label, autoPlay = true, classNam
       // regression for keyboard, screen-reader and caption users. Only the
       // container chrome changes — no clip-path, which would clip the
       // browser's own control bar at the corners.
-      className={className ?? "w-full h-full border border-border-control bg-black"}
+      className={className ?? "w-full h-full border border-border-control bg-media-shade"}
     >
       <source src={src} type={type} />
       {playback.captions.map((c, i) => (

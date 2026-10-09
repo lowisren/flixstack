@@ -1,6 +1,11 @@
 import Link from "next/link";
-import { Play, GitBranch, X as XIcon } from "lucide-react";
-import { ReduceEffectsControl } from "./reduce-effects-toggle";
+import { GitBranch, X as XIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { containers, gutterX } from "../tokens/layout";
+import { Eyebrow } from "../primitives/eyebrow";
+import { LogoMark } from "../primitives/logo-mark";
+import { TextLink } from "../primitives/text-link";
+import { ReduceEffectsControl } from "../patterns/reduce-effects-toggle";
 import type { Footer as FooterData, FooterColumn } from "@/lib/types";
 
 const FALLBACK_FOOTER_COLUMNS: FooterColumn[] = [
@@ -49,6 +54,9 @@ interface FooterProps {
   siteName?: string;
 }
 
+const socialLinkClass = "text-text-secondary hover:text-accent transition-colors p-1";
+
+/** Site footer: brand, CMS-driven link columns, effects preference and legal line. */
 export function Footer({ footer, siteName = "Flixstack" }: FooterProps) {
   const FOOTER_COLUMNS = footer?.columns && footer.columns.length > 0 ? footer.columns : FALLBACK_FOOTER_COLUMNS;
   return (
@@ -59,7 +67,7 @@ export function Footer({ footer, siteName = "Flixstack" }: FooterProps) {
     >
       {/* relative + z-10: .grid-backdrop's pseudo-element is positioned, so
           without a positioned wrapper it would paint over this content. */}
-      <div className="relative z-10 mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 py-12">
+      <div className={cn("relative z-10 py-12", containers.wide, gutterX)}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
@@ -68,9 +76,7 @@ export function Footer({ footer, siteName = "Flixstack" }: FooterProps) {
               className="flex items-center gap-2 mb-4 w-fit"
               aria-label={`${siteName} home`}
             >
-              <span className="notch-sm flex h-8 w-8 items-center justify-center bg-accent">
-                <Play className="h-4 w-4 fill-accent-foreground text-accent-foreground" aria-hidden="true" />
-              </span>
+              <LogoMark />
               <span className="font-display text-lg uppercase">{siteName}</span>
             </Link>
             <p className="text-sm text-text-secondary max-w-xs leading-relaxed">
@@ -82,7 +88,7 @@ export function Footer({ footer, siteName = "Flixstack" }: FooterProps) {
                 href="https://contentstack.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-text-secondary hover:text-accent transition-colors p-1"
+                className={socialLinkClass}
                 aria-label="ContentStack (opens in new tab)"
               >
                 <GitBranch className="h-5 w-5" aria-hidden="true" />
@@ -91,7 +97,7 @@ export function Footer({ footer, siteName = "Flixstack" }: FooterProps) {
                 href="https://twitter.com/contentstack"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-text-secondary hover:text-accent transition-colors p-1"
+                className={socialLinkClass}
                 aria-label="ContentStack on Twitter (opens in new tab)"
               >
                 <XIcon className="h-5 w-5" aria-hidden="true" />
@@ -102,12 +108,16 @@ export function Footer({ footer, siteName = "Flixstack" }: FooterProps) {
           {/* Link columns */}
           {FOOTER_COLUMNS.map((col) => (
             <div key={col.heading}>
-              <h2
-                className="font-mono text-xs font-semibold uppercase tracking-widest text-text-primary mb-3"
+              <Eyebrow
+                as="h2"
+                tone="primary"
+                tracking="widest"
+                weight="semibold"
+                className="mb-3"
                 {...col.$?.heading}
               >
                 {col.heading}
-              </h2>
+              </Eyebrow>
               <ul className="space-y-2" role="list">
                 {(col.links?.links ?? []).map((link) => (
                   <li key={link.href}>
@@ -137,14 +147,9 @@ export function Footer({ footer, siteName = "Flixstack" }: FooterProps) {
               &gt;{" "}
             </span>
             Built with{" "}
-            <a
-              href="https://contentstack.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-accent underline underline-offset-2"
-            >
+            <TextLink href="https://contentstack.com" newTab>
               Contentstack
-            </a>{" "}
+            </TextLink>{" "}
             &middot; Next.js &middot; Tailwind CSS
           </p>
         </div>

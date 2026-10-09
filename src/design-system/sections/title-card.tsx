@@ -1,11 +1,10 @@
-"use client";
-
 import Link from "next/link";
-import Image from "next/image";
-import { Play, Plus, Star } from "lucide-react";
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { Play, Plus } from "lucide-react";
 import { cn, formatRuntime } from "@/lib/utils";
+import { Badge } from "../primitives/badge";
+import { FallbackImage } from "../primitives/fallback-image";
+import { IconButton } from "../primitives/icon-button";
+import { Score } from "../patterns/score";
 import type { Movie, TvSeries } from "@/lib/types";
 
 interface TitleCardProps {
@@ -18,17 +17,25 @@ interface TitleCardProps {
   "data-cs-content-type"?: string;
 }
 
+/**
+ * A movie or series card. A server component: the only client-side piece is
+ * the image's broken-asset fallback (FallbackImage).
+ */
 export function TitleCard({
   title,
   layout = "landscape",
   fullWidth = false,
   ...props
 }: TitleCardProps) {
-  const [imgError, setImgError] = useState(false);
-
   const href = `/watch/${title.slug}`;
   const isMovie = title.content_type === "movie";
   const runtime = isMovie ? (title as Movie).runtime : null;
+
+  const placeholder = (
+    <div className="absolute inset-0 flex items-center justify-center bg-elevated">
+      <Play className="h-8 w-8 text-text-disabled" aria-hidden="true" />
+    </div>
+  );
 
   return (
     <article
@@ -47,20 +54,18 @@ export function TitleCard({
           layout === "portrait" ? "aspect-2/3" : "aspect-video"
         )}
       >
-        {!imgError && title.thumbnail ? (
-          <Image
+        {title.thumbnail ? (
+          <FallbackImage
             src={title.thumbnail.url}
             alt={`${title.title} thumbnail`}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes={layout === "portrait" ? "160px" : "280px"}
-            onError={() => setImgError(true)}
+            fallback={placeholder}
             {...title.$?.thumbnail}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-elevated">
-            <Play className="h-8 w-8 text-text-disabled" aria-hidden="true" />
-          </div>
+          placeholder
         )}
 
         {/* Scan sweep — decorative, gated by --fx-sweep-opacity */}
@@ -70,25 +75,19 @@ export function TitleCard({
             Not aria-hidden: it holds the watchlist button, and an aria-hidden
             container with a focusable child is an ARIA violation (axe
             `aria-hidden-focus`) — it also let keyboard users focus an
-            invisible control. The overlay now reveals on focus-within too, so
+            invisible control. The overlay reveals on focus-within too, so
             the button is visible whenever it is focused. Only the duplicate
             play link is hidden, since the title link already goes there. */}
-        <div className="absolute inset-0 bg-black/65 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
+        <div className="absolute inset-0 bg-media-shade/65 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
           <div className="flex items-center gap-2">
-            <Link
-              href={href}
-              tabIndex={-1}
-              aria-hidden="true"
-              className="notch-sm flex h-10 w-10 items-center justify-center bg-accent text-accent-foreground hover:bg-accent-hover transition-colors"
-            >
-              <Play className="h-4 w-4 fill-current" aria-hidden="true" />
-            </Link>
-            <button
-              className="focus-inset notch-sm flex h-10 w-10 items-center justify-center border border-white/30 bg-white/15 text-white hover:border-accent hover:text-accent transition-colors"
-              aria-label={`Add ${title.title} to watchlist`}
-            >
+            <IconButton asChild variant="accent">
+              <Link href={href} tabIndex={-1} aria-hidden="true">
+                <Play className="h-4 w-4 fill-current" aria-hidden="true" />
+              </Link>
+            </IconButton>
+            <IconButton variant="glass" label={`Add ${title.title} to watchlist`}>
               <Plus className="h-4 w-4" aria-hidden="true" />
-            </button>
+            </IconButton>
           </div>
         </div>
 
@@ -119,10 +118,7 @@ export function TitleCard({
           {runtime && (
             <span className="text-text-secondary">· {formatRuntime(runtime)}</span>
           )}
-          <span className="flex items-center gap-0.5 text-accent ml-auto">
-            <Star className="h-3 w-3 fill-current" aria-hidden="true" />
-            <span aria-label={`Score: ${title.score} out of 100`}>{title.score}</span>
-          </span>
+          <Score value={title.score} className="ml-auto" />
         </div>
         <div className="flex gap-2 mt-2 flex-wrap font-mono text-xs uppercase tracking-wider">
           {title.genres.slice(0, 2).map((g) => (

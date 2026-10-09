@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { ModularBlockRenderer } from "@/components/cms/modular-block-renderer";
+import { ModularPageTemplate } from "@/design-system";
 import { getPageBySlug, parseLivePreviewParams } from "@/lib/contentstack/queries";
 import type { Metadata } from "next";
 
@@ -18,13 +19,8 @@ export default async function TvShowsLandingPage({ searchParams }: PageProps) {
   if (!page) notFound();
 
   return (
-    <div className="py-8">
-      <div className="px-4 sm:px-6 lg:px-8 mb-2">
-        <h1 className="text-3xl font-bold text-[var(--color-text-primary)]" {...page.$?.title}>
-          {page.title}
-        </h1>
-      </div>
+    <ModularPageTemplate title={page.title} editable={page.$?.title}>
       <ModularBlockRenderer blocks={page.sections} />
-    </div>
+    </ModularPageTemplate>
   );
 }

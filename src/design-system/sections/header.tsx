@@ -3,12 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, User, Menu, X, Play } from "lucide-react";
+import { Search, User, Menu, X } from "lucide-react";
 import { useState } from "react";
-import { ThemeToggle } from "./theme-toggle";
-import { Nav } from "./nav";
-import { Button } from "@/components/ui/button";
+import { containers, gutterX } from "../tokens/layout";
+import { Button } from "../primitives/button";
+import { IconButton } from "../primitives/icon-button";
+import { LogoMark } from "../primitives/logo-mark";
+import { ThemeToggle } from "../patterns/theme-toggle";
 import { cn } from "@/lib/utils";
+import { Nav } from "./nav";
 import type { Header as HeaderData, NavLinkItem } from "@/lib/types";
 
 const FALLBACK_NAV_LINKS: NavLinkItem[] = [
@@ -23,6 +26,7 @@ interface HeaderProps {
   siteName?: string;
 }
 
+/** Sticky site header: logo, primary navigation, search, theme and profile. */
 export function Header({ header, siteName = "Flixstack" }: HeaderProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -36,7 +40,7 @@ export function Header({ header, siteName = "Flixstack" }: HeaderProps) {
       className="chrome-underglow sticky top-0 z-50 border-b border-border bg-surface/95 backdrop-blur-md"
       role="banner"
     >
-      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+      <div className={cn(containers.wide, gutterX)}>
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link
@@ -54,12 +58,7 @@ export function Header({ header, siteName = "Flixstack" }: HeaderProps) {
                 {...header.$?.logo}
               />
             ) : (
-              <span
-                className="notch-sm flex h-8 w-8 items-center justify-center bg-accent"
-                aria-hidden="true"
-              >
-                <Play className="h-4 w-4 fill-accent-foreground text-accent-foreground" />
-              </span>
+              <LogoMark />
             )}
             {/* Wordmark hides below sm: in Chakra Petch caps it is ~117px wide, which
                 pushed the header past a 320px viewport (WCAG 1.4.10 Reflow). The
@@ -82,31 +81,21 @@ export function Header({ header, siteName = "Flixstack" }: HeaderProps) {
             )}
 
             {showSearch && (
-              <Link
-                href="/search"
-                className={cn(
-                  "notch-sm inline-flex items-center justify-center p-2 transition-colors",
-                  "text-text-secondary hover:text-accent hover:bg-elevated"
-                )}
-                aria-label="Search titles"
-              >
-                <Search className="h-5 w-5" aria-hidden="true" />
-              </Link>
+              <IconButton asChild variant="ghost" size="pad" label="Search titles">
+                <Link href="/search">
+                  <Search className="h-5 w-5" aria-hidden="true" />
+                </Link>
+              </IconButton>
             )}
 
             <ThemeToggle />
 
             {showProfile && (
-              <Link
-                href="/profile"
-                className={cn(
-                  "notch-sm inline-flex items-center justify-center p-2 transition-colors",
-                  "text-text-secondary hover:text-accent hover:bg-elevated"
-                )}
-                aria-label="User profile"
-              >
-                <User className="h-5 w-5" aria-hidden="true" />
-              </Link>
+              <IconButton asChild variant="ghost" size="pad" label="User profile">
+                <Link href="/profile">
+                  <User className="h-5 w-5" aria-hidden="true" />
+                </Link>
+              </IconButton>
             )}
 
             {/* Mobile menu toggle */}

@@ -378,7 +378,7 @@ const entry = {
   features_intro: rte(
     "Every feature on the site maps to a specific Contentstack capability. Open any entry in Contentstack and launch Visual Editor to see and edit the content model behind any component, live."
   ),
-  // anchor_id values are deep-linked from src/app/page.tsx, components/layout/footer.tsx
+  // anchor_id values are deep-linked from src/app/page.tsx, design-system/sections/footer.tsx
   // and app/profile/profile-client.tsx — renaming one silently breaks those links.
   // icon values must stay inside ICON_MAP in src/app/setup/page.tsx (and the enum above).
   features: [
