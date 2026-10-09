@@ -1,0 +1,260 @@
+/* ============================================================
+   Design tokens — colour, shape and effect custom properties.
+   Imported by src/app/globals.css. Read by scripts/check-contrast.mjs,
+   which parses the first `:root` and `.dark` blocks of THIS file.
+   ============================================================ */
+
+
+/* ============================================================
+   FLIXSTACK DESIGN SYSTEM v2 — CSS Custom Properties
+   Light mode = default (:root), dark mode applied via .dark class.
+
+   Four signal hues with distinct jobs, replacing the single
+   utility green that previously served as accent + success + focus:
+     accent  (phosphor green) — interactive / primary
+     info    (cyan)           — informational / data
+     signal  (magenta)        — live / attention
+     premium (amber)          — premium tier, the warm counterpoint
+
+   Every value below is computed against every surface it can sit on.
+   Text pairs clear 4.5:1 (WCAG 1.4.3); control borders and focus
+   rings clear 3:1 (WCAG 1.4.11). See docs/cyber-redesign-plan.md
+   for the full ratio tables.
+
+   NOTE: light-mode accent was #16A34A, documented as 5.0:1 on white
+   but actually 3.30:1 — a real AA failure for accent text and for
+   the white-on-green primary button. It is now #0E7038 (6.19:1).
+   ============================================================ */
+
+:root {
+  /* Backgrounds — "daylight terminal" */
+  --color-bg-base: #edf1f2;
+  --color-bg-surface: #ffffff;
+  --color-bg-elevated: #e1e7e9;
+
+  /* Text */
+  --color-text-primary: #0a1014;    /* 19.14:1 on surface, 16.83:1 on base */
+  --color-text-secondary: #47535c;  /* 7.90 / 6.94 / 6.32:1 */
+  --color-text-disabled: #6b7a83;   /* 3.55:1 on elevated — non-essential text only */
+
+  /* Accent — phosphor green, darkened for paper */
+  --color-accent: #0e7038;          /* 6.19 / 5.44 / 4.95:1 */
+  --color-accent-hover: #0a5c2e;    /* 8.13 / 7.15 / 6.51:1 */
+  --color-accent-subtle: #dcfce7;   /* accent on subtle = 5.63:1 */
+  --color-accent-foreground: #ffffff; /* 6.19:1 on accent fill */
+
+  /* Info — cyan */
+  --color-info: #0b5f76;            /* 7.21 / 6.34 / 5.77:1 */
+  --color-info-subtle: #cffafe;     /* info on subtle = 6.44:1 */
+
+  /* Signal — magenta */
+  --color-signal: #86198f;          /* 8.24 / 7.24 / 6.59:1 */
+  --color-signal-subtle: #fae8ff;   /* signal on subtle = 7.08:1 */
+
+  /* Borders — decorative dividers vs. control boundaries.
+     Dividers are exempt from 1.4.11; control borders are not, because
+     the border is the only affordance identifying an input. */
+  --color-border: #d3dbde;
+  --color-border-control: #6e7d86;  /* 4.25 / 3.74 / 3.40:1 */
+
+  /* Focus ring */
+  --color-focus-ring: #0e7038;
+
+  /* Premium badge — amber */
+  --color-premium: #9a4508;         /* 6.50 / 5.72 / 5.21:1 */
+  --color-premium-subtle: #fef3c7;  /* premium on subtle = 5.84:1 */
+
+  /* Status */
+  --color-error: #b91c1c;           /* 6.47 / 5.69 / 5.18:1 */
+  --color-error-subtle: #fee2e2;    /* error on subtle = 5.30:1 */
+  --color-success: #0e7038;
+  --color-warning: #9a4508;
+
+  /* --- Texture & glow. Light mode is deliberately near-flat: the
+     cyber treatment is dark-native, so daylight keeps the geometry
+     and typography but almost none of the CRT artefacts. --- */
+  --scanline-color: #0a1014;
+  --scanline-opacity: 0.02;
+  --grain-opacity: 0.015;
+  --grid-line: #c3ccd1;
+  --grid-opacity: 0.5;
+  --underglow-opacity: 0.4;
+  --fx-hud-opacity: 0.5;
+  --fx-sweep-opacity: 0.7;
+  --fx-glitch: glitch-tear 180ms steps(3, end) 3;
+
+  --glow-accent: 0 0 0 1px color-mix(in srgb, var(--color-accent) 22%, transparent);
+  --glow-info: 0 0 0 1px color-mix(in srgb, var(--color-info) 22%, transparent);
+  --glow-signal: 0 0 0 1px color-mix(in srgb, var(--color-signal) 22%, transparent);
+  --shadow-panel: 0 1px 2px rgb(10 16 20 / 0.06), 0 2px 8px -2px rgb(10 16 20 / 0.08);
+  --fx-chromatic: none;
+}
+
+.dark {
+  /* Backgrounds — blue-black, not neutral black */
+  --color-bg-base: #05070a;
+  --color-bg-surface: #0b0f14;
+  --color-bg-elevated: #121822;
+
+  /* Text */
+  --color-text-primary: #e6f1f5;    /* 17.54 / 16.72 / 15.49:1 */
+  --color-text-secondary: #94a9b8;  /* 8.28 / 7.89 / 7.31:1 */
+  --color-text-disabled: #5c6f7e;   /* 3.42:1 on elevated */
+
+  /* Accent — phosphor green */
+  --color-accent: #3dff9e;          /* 15.36 / 14.64 / 13.56:1 */
+  --color-accent-hover: #7dffbf;    /* 16.26 / 15.49 / 14.35:1 */
+  --color-accent-subtle: #06231a;   /* accent on subtle = 12.66:1 */
+  --color-accent-foreground: #04120a; /* 14.59:1 on accent fill */
+
+  /* Info — cyan */
+  --color-info: #22d3ee;            /* 11.16 / 10.63 / 9.85:1 */
+  --color-info-subtle: #04222b;     /* info on subtle = 9.16:1 */
+
+  /* Signal — magenta */
+  --color-signal: #ff4fd8;          /* 7.07 / 6.74 / 6.24:1 */
+  --color-signal-subtle: #2a0724;   /* signal on subtle = 6.38:1 */
+
+  /* Borders */
+  --color-border: #1e2a38;
+  --color-border-control: #56708a;  /* 3.92 / 3.73 / 3.46:1 */
+
+  /* Focus ring */
+  --color-focus-ring: #3dff9e;
+
+  /* Premium badge — amber */
+  --color-premium: #fbbf24;         /* 12.08 / 11.51 / 10.67:1 */
+  --color-premium-subtle: #2b1c02;  /* premium on subtle = 9.91:1 */
+
+  /* Status */
+  --color-error: #ff6b6b;           /* 7.27 / 6.93 / 6.42:1 */
+  --color-error-subtle: #2b0a0a;    /* error on subtle = 6.58:1 */
+  --color-success: #3dff9e;
+  --color-warning: #fbbf24;
+
+  /* --- Texture & glow --- */
+  --scanline-color: #e6f1f5;
+  --scanline-opacity: 0.035;
+  --grain-opacity: 0.025;
+  --grid-line: #1e2a38;
+  --grid-opacity: 1;
+  --underglow-opacity: 0.75;
+  --fx-hud-opacity: 1;
+  --fx-sweep-opacity: 1;
+  --fx-glitch: glitch-tear 180ms steps(3, end) 3;
+
+  /* Capped at two layers — glow is decorative and must never be the
+     only thing carrying contrast or identifying a control. */
+  --glow-accent:
+    0 0 0 1px color-mix(in srgb, var(--color-accent) 40%, transparent),
+    0 0 12px -2px color-mix(in srgb, var(--color-accent) 55%, transparent);
+  --glow-info:
+    0 0 0 1px color-mix(in srgb, var(--color-info) 40%, transparent),
+    0 0 12px -2px color-mix(in srgb, var(--color-info) 55%, transparent);
+  --glow-signal:
+    0 0 0 1px color-mix(in srgb, var(--color-signal) 40%, transparent),
+    0 0 12px -2px color-mix(in srgb, var(--color-signal) 55%, transparent);
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 16px -4px rgb(0 0 0 / 0.6);
+
+  /* Strange Days chromatic fringe — 1px cyan/magenta offset */
+  --fx-chromatic:
+    -1px 0 0 color-mix(in srgb, var(--color-signal) 55%, transparent),
+    1px 0 0 color-mix(in srgb, var(--color-info) 55%, transparent);
+}
+
+/* ============================================================
+   .reduce-fx — the user-facing "reduce effects" escape hatch.
+
+   Gating happens at the TOKEN level, not per-selector, so texture
+   switches off everywhere at once and no effect can escape it.
+   Standing rule for every component: never hardcode an opacity,
+   glow, or shadow that bypasses these tokens.
+
+   The class is applied to <html> (see PR 5 for persistence + UI).
+   This is a *preference* and never a substitute for
+   prefers-reduced-motion — that media query works independently
+   below, and always wins.
+   ============================================================ */
+.reduce-fx {
+  --scanline-opacity: 0;
+  --grain-opacity: 0;
+  --grid-opacity: 0;
+  --underglow-opacity: 0;
+  --fx-hud-opacity: 0;
+  --fx-sweep-opacity: 0;
+  --fx-glitch: none;
+  --glow-accent: none;
+  --glow-info: none;
+  --glow-signal: none;
+  --fx-chromatic: none;
+}
+
+@theme inline {
+  --color-background: var(--color-bg-base);
+  --color-foreground: var(--color-text-primary);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-chakra-petch);
+
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-subtle: var(--color-accent-subtle);
+  --color-accent-foreground: var(--color-accent-foreground);
+
+  --color-info: var(--color-info);
+  --color-info-subtle: var(--color-info-subtle);
+  --color-signal: var(--color-signal);
+  --color-signal-subtle: var(--color-signal-subtle);
+  --color-premium: var(--color-premium);
+  --color-premium-subtle: var(--color-premium-subtle);
+
+  --color-surface: var(--color-bg-surface);
+  --color-elevated: var(--color-bg-elevated);
+  --color-border: var(--color-border);
+  --color-border-control: var(--color-border-control);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-disabled: var(--color-text-disabled);
+
+  /* On-media — chrome that sits on artwork (hero, title detail, genre
+     banner, card overlays). Fixed in BOTH themes, never theme tokens:
+     artwork is the same in light and dark, and these always pair with
+     the fixed dark scrim (.hero-scrim) or ground.
+       text-on-media[/85|/70|/60]       copy on artwork
+       border-on-media/[15|25|30]       strokes on artwork
+       bg-on-media/[15|20|30|40|60]     translucent fills on artwork
+       bg-media-shade[/50|/60|/65|/70]  dimming overlays and control grounds
+       bg-media-ground                  the ground behind artwork while it loads
+     check-contrast.mjs verifies the lowest text alpha on the ground. */
+  --color-on-media: #ffffff;
+  --color-media-shade: #000000;
+  --color-media-ground: #05070a;
+
+  /* Shape scale. Semantic names for new work — and the stock Tailwind
+     radii are deliberately re-pointed at the same sharp scale so the
+     ~40 existing `rounded-lg`/`rounded-md` call sites adopt the new
+     geometry without a churn-only find-and-replace pass. Later phases
+     migrate to the semantic names. `rounded-full` is untouched: it is
+     the eXistenZ pod curve. */
+  --radius-chip: 1px;
+  --radius-panel: 2px;
+  --radius-control: 3px;
+  --radius-pod: 999px;
+
+  --radius-xs: 1px;
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 3px;
+  --radius-2xl: 4px;
+  --radius-3xl: 6px;
+}
+
+/* Corner-cut size for notched HUD panels */
+:root {
+  --notch: 10px;
+  --notch-sm: 6px;
+}
+

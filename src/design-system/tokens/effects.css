@@ -1,0 +1,521 @@
+/* ============================================================
+   Base styles and effect utilities.
+   Imported by src/app/globals.css, after tokens.css.
+   ============================================================ */
+
+/* Base resets */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-bg-base);
+  /* CRT texture lives in the body BACKGROUND, behind every surface, rather
+     than in an overlay on top. A fixed full-screen overlay would put texture
+     over poster art and body copy, which is exactly what the design guardrail
+     forbids. Alpha comes from the gated tokens via color-mix, so .reduce-fx
+     switches it off with everything else. */
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--scanline-color) calc(var(--scanline-opacity) * 100%), transparent) 0 1px,
+      transparent 1px 3px
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in srgb, var(--scanline-color) calc(var(--grain-opacity) * 100%), transparent) 0.5px,
+      transparent 0.5px
+    );
+  background-size: 100% 3px, 3px 3px;
+  background-attachment: fixed;
+  color: var(--color-text-primary);
+  font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
+  line-height: 1.6;
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Display face — headings and short labels only. Uppercase is applied
+   with text-transform (never by changing the source string) so
+   assistive tech still reads normal-case text. Never applied to
+   sentences or paragraphs. */
+.font-display {
+  font-family: var(--font-chakra-petch), var(--font-geist-sans, sans-serif);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-wrap: balance;
+}
+
+/* Accessible focus ring — only for keyboard nav */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ============================================================
+   Notched HUD panels.
+
+   clip-path clips an element's OUTLINE, and overflow:hidden on an
+   ancestor clips a descendant's outline. So a notch would silently
+   destroy the :focus-visible ring above — an accessibility
+   regression that is invisible in a screenshot.
+
+   Fix: notched elements take their focus indicator as an inset
+   box-shadow ring, which is clipped WITH the shape and stays
+   visible. `:has()` covers notched containers whose focusable
+   child would otherwise have its own ring clipped.
+   ============================================================ */
+.notch {
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+}
+
+.notch-sm {
+  clip-path: polygon(
+    var(--notch-sm) 0,
+    100% 0,
+    100% calc(100% - var(--notch-sm)),
+    calc(100% - var(--notch-sm)) 100%,
+    0 100%,
+    0 var(--notch-sm)
+  );
+}
+
+/* Two-tone inset ring, and it has to be two-tone: a single ring in
+   --color-focus-ring is invisible on the primary button, whose fill IS
+   the accent colour. The inner band is the page ground and the outer
+   band is the focus colour, so whichever way the fill goes, one of the
+   two always contrasts:
+     - on accent / error fills → the ground band carries it (>= 7.2:1)
+     - on surface / elevated / transparent → the accent band carries it
+   Both bands are inset, so the notch's clip-path cannot clip them. */
+.notch:focus-visible,
+.notch-sm:focus-visible,
+.notch:has(:focus-visible),
+.notch-sm:has(:focus-visible) {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 2px var(--color-bg-base),
+    inset 0 0 0 4px var(--color-focus-ring);
+}
+
+/* Skip to main content — accessibility */
+.skip-to-main {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: -999;
+}
+.skip-to-main:focus {
+  left: 50%;
+  transform: translateX(-50%);
+  top: 1rem;
+  width: auto;
+  height: auto;
+  overflow: auto;
+  z-index: 9999;
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+  font-size: 1rem;
+  font-family: var(--font-geist-mono, monospace);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-control);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+/* Rail horizontal scroll */
+.scroll-rail {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-control) transparent;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-rail::-webkit-scrollbar {
+  height: 4px;
+}
+
+/* ============================================================
+   Texture utilities — chrome only. None of these may sit over
+   poster artwork or body copy: if texture never touches text,
+   text contrast stays computable.
+   All are pointer-events:none and driven by gated tokens.
+   ============================================================ */
+
+/* CRT scanlines */
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--scanline-color) 0 1px,
+    transparent 1px 3px
+  );
+  opacity: var(--scanline-opacity);
+}
+
+/* Hackers isometric wireframe grid */
+.grid-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: var(--grid-opacity);
+  z-index: 0;
+  mask-image: radial-gradient(ellipse 120% 80% at 50% 0%, #000 0%, transparent 75%);
+}
+
+/* Film grain */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: radial-gradient(
+    circle at 50% 50%,
+    var(--scanline-color) 0.5px,
+    transparent 0.5px
+  );
+  background-size: 3px 3px;
+}
+
+/* ============================================================
+   CASCADE RULE for every utility below.
+
+   These classes are UNLAYERED, and Tailwind's utilities live in
+   @layer utilities. Unlayered CSS beats layered CSS regardless of
+   specificity — so a `position` declared here silently overrides
+   `absolute` / `sticky` / `fixed` from a Tailwind class on the same
+   element. That already cost us twice: `.chrome-underglow` turned the
+   sticky header into a relative one, and `.scanlines` collapsed the
+   hero scrim to 0px tall by overriding `absolute inset-0`.
+
+   So: none of these classes declare `position`. Each one needs a
+   positioning context for its pseudo-element, and the CONSUMER
+   supplies it with a Tailwind class (`relative`, `absolute`, `sticky`).
+   ============================================================ */
+
+/* Header underglow — a phosphor hairline instead of a flat divider. Sits on
+   top of the real border, which stays put so the header keeps an edge when
+   .reduce-fx or forced-colors switches the glow off. */
+.chrome-underglow::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  opacity: var(--underglow-opacity);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-accent) 60%, transparent) 20%,
+    color-mix(in srgb, var(--color-accent) 60%, transparent) 80%,
+    transparent
+  );
+}
+
+/* Nav links — an underscore caret that grows on hover/focus and sits full
+   width on the active route. Driven by [aria-current="page"], which nav.tsx
+   already sets, so the indicator derives from real semantics rather than a
+   parallel "isActive" class. Never the only cue: the active link also shifts
+   to the accent colour and carries aria-current for assistive tech. */
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.25rem;
+  height: 2px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 180ms ease;
+}
+.nav-link:hover::after,
+.nav-link:focus-visible::after {
+  transform: scaleX(0.4);
+}
+.nav-link[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+/* ============================================================
+   Hero scrim — three layers: a horizontal wash where the copy sits,
+   a bottom vignette, and scanlines (added separately via .scanlines).
+
+   Both gradients are a FIXED dark ink in both themes, deliberately not
+   a theme token. Hero copy is white in both themes, so a scrim that
+   followed the theme would fade white text into a near-white ground in
+   light mode — which is exactly what shipped before: the old bottom
+   vignette used `from-background` and put the title at 1.12:1 in light
+   mode.
+
+   Worst case over pure-white artwork, sampled across the whole text
+   region: title 10.21:1, subtitle (white/80) 7.23:1. So hero copy never
+   depends on the CMS supplying a dark image.
+   ============================================================ */
+.hero-scrim {
+  background-image:
+    linear-gradient(
+      to right,
+      rgb(5 7 10 / 0.95) 0%,
+      rgb(5 7 10 / 0.8) 30%,
+      rgb(5 7 10 / 0.35) 60%,
+      rgb(5 7 10 / 0) 85%
+    ),
+    linear-gradient(
+      to top,
+      rgb(5 7 10 / 0.98) 0%,
+      rgb(5 7 10 / 0.75) 25%,
+      rgb(5 7 10 / 0.15) 55%,
+      rgb(5 7 10 / 0) 75%
+    );
+}
+
+/* Corner HUD brackets — two corners only, echoing the notch direction */
+.hud-frame::before,
+.hud-frame::after {
+  content: "";
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  pointer-events: none;
+  opacity: var(--fx-hud-opacity);
+  border-color: color-mix(in srgb, var(--color-accent) 70%, transparent);
+  border-style: solid;
+  border-width: 0;
+}
+.hud-frame::before {
+  top: 14px;
+  left: 14px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+.hud-frame::after {
+  bottom: 14px;
+  right: 14px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+/* Scan sweep — replaces hover:scale on cards. A transform on a pseudo
+   element composites, where scaling a whole card forces layout work for
+   every card in a rail. Fires on hover AND focus-within so keyboard
+   users get the same feedback. */
+@keyframes scan-sweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(110%);
+  }
+}
+.sweep {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+.sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-110%);
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    color-mix(in srgb, var(--color-accent) 22%, transparent) 50%,
+    transparent 58%
+  );
+}
+.sweep-host:hover .sweep,
+.sweep-host:focus-within .sweep {
+  opacity: var(--fx-sweep-opacity);
+}
+.sweep-host:hover .sweep::after,
+.sweep-host:focus-within .sweep::after {
+  animation: scan-sweep 520ms ease-out;
+}
+
+/* Inset focus ring for focusable elements *inside* a notched container.
+   A parent's clip-path clips descendant painting, and outline-offset
+   pushes a ring outward — so a child's outline can land outside the clip
+   and vanish. An inset ring sits within the child's own box and survives.
+   Single-tone is enough here: these sit on neutral surfaces, not on an
+   accent fill (see .notch:focus-visible for why that case needs two). */
+.focus-inset:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-focus-ring);
+}
+
+/* Rail edge fade. Disabled while anything inside has focus: a mask clips
+   painting, so a focused card scrolled to the boundary would have its
+   focus ring faded out. Keyboard users get no fade at all. */
+.rail-fade:not(:focus-within) {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 2rem,
+    #000 calc(100% - 2rem),
+    transparent 100%
+  );
+}
+
+/* Terminal bracket affordance for Button variant="terminal".
+   Drawn with borders rather than "[" / "]" characters so screen
+   readers have no punctuation to announce. */
+.btn-terminal::before,
+.btn-terminal::after {
+  content: "";
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  width: 4px;
+  border: 1px solid currentColor;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.btn-terminal::before {
+  left: 6px;
+  border-right: 0;
+}
+.btn-terminal::after {
+  right: 6px;
+  border-left: 0;
+}
+
+/* Glow helpers — decorative only, and deliberately not used on
+   focusable controls: a hover glow and an inset focus ring both
+   occupy box-shadow, and the focus indicator must always win. */
+.glow-accent {
+  box-shadow: var(--glow-accent);
+}
+.glow-info {
+  box-shadow: var(--glow-info);
+}
+.glow-signal {
+  box-shadow: var(--glow-signal);
+}
+
+/* Strange Days chromatic fringe — hover/focus only, single-shot */
+.chromatic {
+  transition: text-shadow 120ms ease;
+}
+.chromatic:hover,
+.chromatic:focus-visible {
+  text-shadow: var(--fx-chromatic);
+}
+
+/* Terminal caret — 1.06s ≈ 0.94 Hz, the fastest repeating element
+   on the site and well under the WCAG 2.3.1 three-flashes ceiling. */
+@keyframes caret-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+.terminal-caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-left: 0.15em;
+  vertical-align: -0.15em;
+  background: var(--color-accent);
+  animation: caret-blink 1.06s steps(1, end) infinite;
+}
+
+/* Glitch displacement — Strange Days signal tear. Used on the 404 numeral
+   only, and only three times before stopping for good.
+
+   This is displacement plus a chromatic offset, never a luminance strobe, so
+   it is not a "flash" under WCAG 2.3.1 — and the element is a small decorative
+   numeral, far under the large-flash area threshold. It is still motion, so it
+   is gated by prefers-reduced-motion and by --fx-glitch below. */
+@keyframes glitch-tear {
+  0% { transform: translate3d(0, 0, 0); }
+  20% { transform: translate3d(-4px, 1px, 0); }
+  40% { transform: translate3d(3px, -1px, 0); }
+  60% { transform: translate3d(-2px, 0, 0); }
+  80% { transform: translate3d(2px, 1px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+.glitch {
+  animation: var(--fx-glitch);
+  text-shadow: var(--fx-chromatic);
+}
+
+/* Skeleton — scanline sweep, single direction, no flash */
+@keyframes skeleton-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+.skeleton {
+  overflow: hidden;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-panel);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-accent) 12%, transparent),
+    transparent
+  );
+  animation: skeleton-sweep 1.8s ease-in-out infinite;
+}
+

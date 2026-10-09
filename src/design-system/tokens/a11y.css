@@ -1,0 +1,154 @@
+/* ============================================================
+   Accessibility media queries and safe static states.
+   Imported by src/app/globals.css, after effects.css: these rules
+   override the effect utilities, so they must come later.
+   ============================================================ */
+
+/* ============================================================
+   Reduced motion.
+
+   The blanket duration override is kept for inherited transitions,
+   but it is NOT safe on its own for directional keyframes: forcing
+   a sweep or glitch to 0.01ms freezes it at an arbitrary offset and
+   can leave an element visibly displaced. So every named animation
+   above also gets an explicit `animation: none` plus a defined safe
+   static state.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Safe static states */
+  .skeleton {
+    opacity: 0.6;
+  }
+  .skeleton::after {
+    animation: none !important;
+    display: none;
+  }
+  .terminal-caret::after {
+    animation: none !important;
+    opacity: 1;
+  }
+  .sweep,
+  .sweep-host:hover .sweep,
+  .sweep-host:focus-within .sweep {
+    opacity: 0;
+  }
+  .sweep::after {
+    animation: none !important;
+  }
+  .glitch {
+    animation: none !important;
+    transform: none;
+    text-shadow: none;
+  }
+  .chromatic:hover,
+  .chromatic:focus-visible {
+    text-shadow: none;
+  }
+}
+
+/* Same safe static states for the user-facing toggle. Kept separate
+   from the media query so the OS setting always wins on its own. */
+.reduce-fx .skeleton::after {
+  animation: none;
+  display: none;
+}
+.reduce-fx .skeleton {
+  opacity: 0.6;
+}
+.reduce-fx .terminal-caret::after {
+  animation: none;
+  opacity: 1;
+}
+.reduce-fx .sweep::after {
+  animation: none;
+}
+.reduce-fx .glitch {
+  animation: none;
+  transform: none;
+  text-shadow: none;
+}
+
+/* ============================================================
+   Forced colours (Windows High Contrast).
+   The OS replaces the palette and drops box-shadow entirely, so any
+   affordance carried only by a glow or a clipped shape disappears.
+   Restore real borders and remove decorative overlays.
+   ============================================================ */
+@media (forced-colors: active) {
+  .notch,
+  .notch-sm {
+    clip-path: none;
+    border: 1px solid CanvasText;
+  }
+  .notch:focus-visible,
+  .notch-sm:focus-visible,
+  .notch:has(:focus-visible),
+  .notch-sm:has(:focus-visible) {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+  .glow-accent,
+  .glow-info,
+  .glow-signal {
+    box-shadow: none;
+    border: 1px solid CanvasText;
+  }
+  body {
+    background-image: none;
+  }
+  .glitch {
+    animation: none;
+    text-shadow: none;
+  }
+  .scanlines::after,
+  .grid-backdrop::before,
+  .grain::after,
+  .chrome-underglow::after,
+  .hud-frame::before,
+  .hud-frame::after,
+  .sweep {
+    display: none;
+  }
+  .focus-inset:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+  .rail-fade:not(:focus-within) {
+    mask-image: none;
+  }
+  .chromatic:hover,
+  .chromatic:focus-visible {
+    text-shadow: none;
+  }
+}
+
+/* Higher-contrast preference — drop texture, strengthen boundaries */
+@media (prefers-contrast: more) {
+  :root,
+  .dark {
+    --scanline-opacity: 0;
+    --grain-opacity: 0;
+    --grid-opacity: 0;
+    --underglow-opacity: 0;
+    --fx-hud-opacity: 0;
+    --fx-sweep-opacity: 0;
+    --fx-glitch: none;
+    --fx-chromatic: none;
+    --color-border: var(--color-border-control);
+  }
+}
+
