@@ -33,6 +33,7 @@ import type {
   Movie,
   Navigation,
   Page,
+  SeoFields,
   SetupGuide,
   SiteConfig,
   Title,
@@ -297,6 +298,29 @@ export async function getHomepageRailByUid(
  * `promo_block` (inline block with a flattened cta), and `rail_block` (embedded
  * homepage_rail, fetched per-uid so its items resolve fully). `genre_spotlight_block`
  * is not resolved yet — no page uses it. */
+/**
+ * Title and SEO fields of a Studio-built landing page (`/collections/<slug>`).
+ * The page body comes from its Studio composition; Studio only fetches the fields
+ * its sections bind, so the route reads SEO from the entry itself.
+ */
+export async function getLandingPageMeta(
+  url: string
+): Promise<{ title: string; seo?: SeoFields } | undefined> {
+  const result = await stack()
+    .contentType("landing_page")
+    .entry()
+    .only(["title", "seo"])
+    .query()
+    .equalTo("url", url)
+    .find<RawEntry>();
+  const raw = result.entries?.[0];
+  if (!raw) return undefined;
+  return {
+    title: raw.title,
+    seo: raw.seo ? { meta_title: raw.seo.meta_title ?? "", meta_description: raw.seo.meta_description ?? "" } : undefined,
+  };
+}
+
 export async function getPageBySlug(slug: string, livePreview?: LivePreviewQuery): Promise<Page | undefined> {
   const result = await stack(livePreview)
     .contentType("page")

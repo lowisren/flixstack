@@ -314,6 +314,20 @@ Each phase ends with a check-in. Every stack write is listed before it runs.
 - Create T1, then confirm the section-node count and `linked_sections`.
 - Open it in Studio with the seed entry and edit a field inline (Visual Editor tags).
 
+> **Phase 6 results (2026-10-28):**
+> - **Template "Collection page"** (`flix_collection_page`, entry `blt61fc25cbe536dadd`), published to `development`.
+>   - Connected to `landing_page`, URL `/collections/{{entry.title}}` with `url_source: content_type_url_pattern`.
+>   - Six section placements, matching six `linked_sections`. Promo's "Image on the right" is set to false.
+>   - `resolvedReferences`: `hero_banners`, `hero_banners.linked_title`, `featured_title`, `rails`, `rails.items`, `genre`.
+> - **Verified locally on a production build:**
+>   - The SDK resolves every section's scoped data, including `rails.items` two levels deep.
+>   - `/collections/halloween-thrills` returns 200 with all six sections. Desktop and mobile screenshots match the design (rows stack and the grid collapses on mobile).
+>   - A slug with no entry returns 404. Editor-mode requests render in the browser.
+>   - The editor path (`include[]=linked_sections`) resolves the same six sections.
+> - **Change:** the route reads title and description from the entry's `seo` via `getLandingPageMeta`. Studio only fetches bound fields, so the template's name was showing as the title.
+> - **Existing follow-up, not introduced here:** an SEO title that already ends "— Flixstack" gets "| Flixstack" appended by the root title template. `/browse` does the same.
+> - **Still to verify in Studio after the deploy:** the palette, the canvas, opening the template, and a real-screenshot section thumbnail (Save).
+
 **Phase 7: Definition of done, all 10 items from [pack] `complete-the-build`:**
 1. `appendTags`
 2. `studioAttributes` + `wrap:false` + `$` twins

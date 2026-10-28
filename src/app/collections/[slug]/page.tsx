@@ -7,11 +7,13 @@ import {
   isCompositionNotFound,
   isStudioEditorMode,
 } from "@contentstack/studio-react";
+import { getLandingPageMeta } from "@/lib/contentstack/queries";
 import { sdk } from "@/lib/studio/sdk";
 import { StudioPage, StudioPageClient } from "@/studio/studio-page";
 
-// Pages built in Contentstack Studio from the "Collection page" template
-// (connected to `landing_page`, URL `/collections/{{entry.slug}}`).
+// Pages built in Contentstack Studio from the "Collection page" template, connected
+// to `landing_page`. Studio matches the request path against each entry's stored
+// `url` (/collections/<slug>).
 // A dedicated route rather than a site-wide catch-all, so every existing route keeps
 // its URL; a template with a new URL prefix needs its own route like this one.
 
@@ -54,14 +56,18 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const { slug } = await params;
   if (isPreviewRequest(toSearchQuery(await searchParams))) return {};
 
-  const specOptions = await resolveComposition(`/collections/${slug}`);
+  const url = `/collections/${slug}`;
+  const [specOptions, page] = await Promise.all([resolveComposition(url), getLandingPageMeta(url)]);
   if (!specOptions) return { title: "Not Found" };
 
-  const { title, description, ogImage } = getCompositionMetadata(specOptions);
+  // The entry's SEO fields win; the template's own SEO settings are the fallback.
+  const fromTemplate = getCompositionMetadata(specOptions);
+  const title = page?.seo?.meta_title || page?.title || fromTemplate.title;
+  const description = page?.seo?.meta_description || fromTemplate.description;
   return {
     title,
     description,
-    openGraph: { title, description, images: ogImage ? [ogImage] : [] },
+    openGraph: { title, description, images: fromTemplate.ogImage ? [fromTemplate.ogImage] : [] },
   };
 }
 

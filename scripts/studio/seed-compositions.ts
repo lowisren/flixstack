@@ -2,9 +2,10 @@
 // ============================================================
 // Flixstack — Contentstack Studio compositions seed
 //
-// Writes the Studio sections (and, from phase 6, the template) for the
-// "Collection page" layout described in docs/studio-plan.md §7, as entries of the
-// Studio project's compositions content type, then publishes them.
+// Writes the Studio sections and the "Collection page" template described in
+// docs/studio-plan.md §7, as entries of the Studio project's compositions content
+// type, then publishes them. Sections are written first: the template places them
+// by entry uid.
 //
 // Sections are authored by API rather than in the Studio canvas, so this script
 // writes everything the editor would otherwise write for itself:
@@ -20,7 +21,7 @@
 // Usage:
 //   tsx scripts/studio/seed-compositions.ts [--dry] [--only=<key>] [--force-thumbnails]
 //     --dry               build and validate every tree, print a summary, write nothing
-//     --only=<key>        one composition, e.g. --only=promo
+//     --only=<key>        one composition, e.g. --only=promo or --only=collection-page
 //     --force-thumbnails  regenerate ui_preview even where one is set
 //
 // Requires .env.local (override with ENV_FILE=.env.new):
@@ -235,6 +236,37 @@ class Composition {
   sectionSlot(name: string, title: string): UINode {
     const uid = this.uid(name);
     return { uid, type: "section-slot", attrs: {}, metadata: this.meta(title), styles: {}, props: {}, slots: { [uid]: [] } };
+  }
+
+  /**
+   * A placed Section on a template. `selectedField` overrides the section's scope for
+   * this placement (omit it to inherit the section's linked_schemas default);
+   * `exposed` sets the section's exposed props, keyed by exposure uid. Their
+   * static values live on the TEMPLATE entry.
+   */
+  sectionInstance(
+    name: string,
+    title: string,
+    compositionUID: string,
+    selectedField?: string,
+    exposed: Record<string, { type: string; value: unknown }> = {}
+  ): UINode {
+    const uid = this.uid(name);
+    const props: Record<string, unknown> = {};
+    for (const [exposureUid, { type, value }] of Object.entries(exposed)) {
+      const key = `${uid}-${exposureUid}`;
+      this.staticValue[bucketFor(type)].push({ key, value });
+      props[exposureUid] = { type, binding: { type: "static_value", value: key } satisfies Binding };
+    }
+    return {
+      uid,
+      type: "section-composition",
+      attrs: {},
+      metadata: this.meta(title, { compositionUID, ...(selectedField ? { sectionBindingOverride: { selectedField } } : {}) }),
+      styles: DEFAULT_STYLES,
+      props,
+      slots: {},
+    };
   }
 
   /** The `page` root every composition's ui must be. */
@@ -484,6 +516,52 @@ const SECTIONS: SectionDef[] = [
   },
 ];
 
+// ─── the template (docs/studio-plan.md §7) ───────────────────
+
+interface Placement {
+  section: string; // the section's composable_uid
+  title: string;
+  /** Per-placement scope; omitted for whole-entry sections. */
+  selectedField?: string;
+  exposed?: Record<string, { type: string; value: unknown }>;
+}
+
+interface TemplateDef {
+  key: string;
+  title: string;
+  composableUid: string;
+  contentType: string;
+  /**
+   * With `content_type_url_pattern`, Studio matches the request path against each
+   * entry's stored `url` (here /collections/<slug>); the pattern itself is display
+   * metadata and is not substituted. The literal prefix keeps it from claiming
+   * other templates' URLs.
+   */
+  url: string;
+  /** Reference fields to resolve, as CDA include paths on the page entry. */
+  resolvedReferences: string[];
+  placements: Placement[];
+}
+
+const TEMPLATES: TemplateDef[] = [
+  {
+    key: "collection-page",
+    title: "Collection page",
+    composableUid: "flix_collection_page",
+    contentType: PAGE_CT,
+    url: "/collections/{{entry.title}}",
+    resolvedReferences: ["hero_banners", "hero_banners.linked_title", "featured_title", "rails", "rails.items", "genre"],
+    placements: [
+      { section: "flix_hero_carousel", title: "Hero Carousel", selectedField: "hero_banners" },
+      { section: "flix_feature_callouts", title: "Feature Callouts", selectedField: "callouts" },
+      { section: "flix_title_spotlight", title: "Title Spotlight" },
+      { section: "flix_title_rails", title: "Title Rails", selectedField: "rails" },
+      { section: "flix_promo", title: "Promo", selectedField: "promo", exposed: { "promo-image-right": { type: "boolean", value: false } } },
+      { section: "flix_genre_spotlight", title: "Genre Spotlight" },
+    ],
+  },
+];
+
 // ─── CMA ─────────────────────────────────────────────────────
 
 const headers = (json = true) => ({
@@ -554,32 +632,62 @@ function previewSvg(def: SectionDef): string {
 // ─── run ─────────────────────────────────────────────────────
 
 async function main() {
-  const defs = ONLY ? SECTIONS.filter((s) => s.key === ONLY) : SECTIONS;
-  if (!defs.length) throw new Error(`No section with key "${ONLY}". Keys: ${SECTIONS.map((s) => s.key).join(", ")}`);
+  const sections = ONLY ? SECTIONS.filter((d) => d.key === ONLY) : SECTIONS;
+  const templates = ONLY ? TEMPLATES.filter((d) => d.key === ONLY) : TEMPLATES;
+  if (!sections.length && !templates.length) {
+    throw new Error(`Nothing called "${ONLY}". Keys: ${[...SECTIONS, ...TEMPLATES].map((d) => d.key).join(", ")}`);
+  }
 
-  console.log(`${DRY ? "[dry] " : ""}Studio sections → ${COMPOSITIONS_CT} (${REGION}), publish to ${ENVIRONMENT}\n`);
+  console.log(`${DRY ? "[dry] " : ""}Studio compositions → ${COMPOSITIONS_CT} (${REGION}), publish to ${ENVIRONMENT}\n`);
   // publish_details reports environments by uid; also fails early on a bad name.
   const envUid = DRY ? "" : await getEnvironmentUid(ENVIRONMENT);
 
-  for (const def of defs) {
-    const c = new Composition(def.key);
-    const root = def.build(c);
-    preflight(root, def.title);
-    const ui = encodeUi(root);
-    // Round-trip the encoding before trusting it with a write.
-    if (JSON.stringify(decodeUi(ui)) !== JSON.stringify(root)) throw new Error(`${def.title}: ui did not round-trip`);
+  for (const def of sections) await seedSection(def, envUid);
+  for (const def of templates) await seedTemplate(def, envUid);
+}
 
-    const nodeCount = JSON.stringify(root).split('"uid":').length - 1;
-    const staticCount = Object.values(c.staticValue).reduce((n, rows) => n + rows.length, 0);
-    console.log(`• ${def.title} (${def.composableUid}) — ${nodeCount} nodes, ${staticCount} static values, scope ${JSON.stringify(def.linkedSchemas.map((l) => l.selected_field ?? "(whole entry)"))}`);
-    if (DRY) continue;
+/** Encodes and round-trips a tree, and prints a one-line summary. */
+function prepare(c: Composition, root: UINode, label: string, detail: string) {
+  preflight(root, label);
+  const ui = encodeUi(root);
+  if (JSON.stringify(decodeUi(ui)) !== JSON.stringify(root)) throw new Error(`${label}: ui did not round-trip`);
+  const nodeCount = JSON.stringify(root).split('"uid":').length - 1;
+  const staticCount = Object.values(c.staticValue).reduce((n, rows) => n + rows.length, 0);
+  console.log(`• ${label} — ${nodeCount} nodes, ${staticCount} static values, ${detail}`);
+  return ui;
+}
 
-    const existing = await findByComposableUid(def.composableUid);
-    // A CMA PUT replaces the entry, so carry the thumbnail across updates.
-    let previewUid = existing?.ui_preview?.uid;
-    if (!previewUid || FORCE_THUMBNAILS) previewUid = await uploadPreview(def);
+/** Creates or updates by composable_uid, publishes, and reads back with publish details. */
+async function save(composableUid: string, entry: Record<string, unknown>, envUid: string) {
+  const existing = await findByComposableUid(composableUid);
+  const saved = existing
+    ? await cma<{ entry: StoredEntry }>("PUT", `/content_types/${COMPOSITIONS_CT}/entries/${existing.uid}?locale=${LOCALE}`, { entry })
+    : await cma<{ entry: StoredEntry }>("POST", `/content_types/${COMPOSITIONS_CT}/entries?locale=${LOCALE}`, { entry });
+  await publishEntry(saved.entry.uid);
+  // Read back: what the guides call the only trustworthy check.
+  const { entry: back } = await cma<{ entry: StoredEntry }>(
+    "GET",
+    `/content_types/${COMPOSITIONS_CT}/entries/${saved.entry.uid}?locale=${LOCALE}&include_publish_details=true`
+  );
+  if (!(back.publish_details ?? []).some((p) => p.environment === envUid && p.locale === LOCALE)) {
+    throw new Error(`${composableUid}: not published to ${ENVIRONMENT}`);
+  }
+  return { back, created: !existing };
+}
 
-    const entry = {
+async function seedSection(def: SectionDef, envUid: string) {
+  const c = new Composition(def.key);
+  const ui = prepare(c, def.build(c), `${def.title} (${def.composableUid})`, `scope ${JSON.stringify(def.linkedSchemas.map((l) => l.selected_field ?? "(whole entry)"))}`);
+  if (DRY) return;
+
+  // A CMA PUT replaces the entry, so carry the thumbnail across updates.
+  const existing = await findByComposableUid(def.composableUid);
+  let previewUid = existing?.ui_preview?.uid;
+  if (!previewUid || FORCE_THUMBNAILS) previewUid = await uploadPreview(def);
+
+  const { back, created } = await save(
+    def.composableUid,
+    {
       title: def.title,
       composable_uid: def.composableUid,
       connected_content_type: "",
@@ -591,27 +699,67 @@ async function main() {
       static_value: c.staticValue,
       ui,
       ui_preview: previewUid,
-    };
+    },
+    envUid
+  );
 
-    const saved = existing
-      ? await cma<{ entry: StoredEntry }>("PUT", `/content_types/${COMPOSITIONS_CT}/entries/${existing.uid}?locale=${LOCALE}`, { entry })
-      : await cma<{ entry: StoredEntry }>("POST", `/content_types/${COMPOSITIONS_CT}/entries?locale=${LOCALE}`, { entry });
-    await publishEntry(saved.entry.uid);
+  preflight(decodeUi(back.ui as string), `${def.title} (read back)`);
+  const linkedBack = (back.linked_schemas as unknown[] | undefined)?.length ?? 0;
+  if (linkedBack !== def.linkedSchemas.length) throw new Error(`${def.title}: linked_schemas came back with ${linkedBack} rows`);
+  if (!back.ui_preview?.url) throw new Error(`${def.title}: ui_preview did not stick`);
+  console.log(`    ${created ? "created" : "updated"} ${back.uid}, published, thumbnail ${back.ui_preview.url.split("/").pop()}`);
+}
 
-    // Read back: what the guides call the only trustworthy check.
-    const { entry: back } = await cma<{ entry: StoredEntry }>(
-      "GET",
-      `/content_types/${COMPOSITIONS_CT}/entries/${saved.entry.uid}?locale=${LOCALE}&include_publish_details=true`
-    );
-    const backUi = decodeUi(back.ui as string);
-    preflight(backUi, `${def.title} (read back)`);
-    const published = (back.publish_details ?? []).some((p) => p.environment === envUid && p.locale === LOCALE);
-    const linkedBack = (back.linked_schemas as unknown[] | undefined)?.length ?? 0;
-    if (linkedBack !== def.linkedSchemas.length) throw new Error(`${def.title}: linked_schemas came back with ${linkedBack} rows`);
-    if (!back.ui_preview?.url) throw new Error(`${def.title}: ui_preview did not stick`);
-    if (!published) throw new Error(`${def.title}: not published`);
-    console.log(`    ${existing ? "updated" : "created"} ${back.uid}, published, thumbnail ${back.ui_preview.url.split("/").pop()}`);
+async function seedTemplate(def: TemplateDef, envUid: string) {
+  // Sections are placed by entry uid, never composable_uid.
+  const uids: Record<string, string> = {};
+  for (const p of def.placements) {
+    const found = DRY ? { uid: `<${p.section}>` } : await findByComposableUid(p.section);
+    if (!found) throw new Error(`${def.title}: section ${p.section} doesn't exist yet — seed the sections first`);
+    uids[p.section] = found.uid;
   }
+
+  const c = new Composition(def.key);
+  const root = c.root(
+    def.placements.map((p, i) => c.sectionInstance(`s${i + 1}-${p.section.replace(/^flix_/, "")}`, p.title, uids[p.section], p.selectedField, p.exposed))
+  );
+  const ui = prepare(c, root, `${def.title} (${def.composableUid})`, `${def.placements.length} sections on ${def.contentType}`);
+  if (DRY) return;
+
+  const linkedSections = [...new Set(Object.values(uids))].map((uid) => ({ uid, _content_type_uid: COMPOSITIONS_CT }));
+  const { back, created } = await save(
+    def.composableUid,
+    {
+      title: def.title,
+      composable_uid: def.composableUid,
+      connected_content_type: def.contentType,
+      place_composition_as: "page",
+      schema_version: "1.0.0",
+      url: def.url,
+      url_metadata: {
+        url_source: "content_type_url_pattern",
+        url_queries: JSON.stringify({ include: [], only: {}, where: {} }),
+      },
+      data_sources: JSON.stringify([{ uid: "template", data: null, resolvedReferences: { template: def.resolvedReferences } }]),
+      linked_schemas: [],
+      linked_sections: linkedSections,
+      static_value: c.staticValue,
+      ui,
+    },
+    envUid
+  );
+
+  // Structural check: a template must be made of Sections, in the tree AND in
+  // linked_sections (the editor reads the latter; SSR walks the former).
+  const tree = decodeUi(back.ui as string);
+  preflight(tree, `${def.title} (read back)`);
+  const nodes = Object.values(tree.slots).flat().filter((n) => n.type === "section-composition").length;
+  const linked = (back.linked_sections as unknown[] | undefined)?.length ?? 0;
+  const urlMeta = back.url_metadata as { url_source?: string } | undefined;
+  if (!nodes || !linked) throw new Error(`${def.title}: MONOLITH — ${nodes} section nodes, ${linked} linked_sections`);
+  if (linked !== new Set(Object.values(uids)).size) throw new Error(`${def.title}: linked_sections has ${linked} rows`);
+  if (urlMeta?.url_source !== "content_type_url_pattern") throw new Error(`${def.title}: url_metadata was dropped`);
+  console.log(`    ${created ? "created" : "updated"} ${back.uid}, published — ${nodes} section nodes, ${linked} linked_sections, url ${back.url}`);
 }
 
 main().catch((err) => {
