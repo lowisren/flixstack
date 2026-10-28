@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import contentstack from "@contentstack/delivery-sdk";
 import ContentstackLivePreview, { type IStackSdk } from "@contentstack/live-preview-utils";
 import { REGION_MAP, PREVIEW_HOST_MAP } from "@/lib/contentstack/regions";
+import { isStudioCanvasPath } from "@/studio/canvas-path";
 
 // Mounted once in the root layout. Establishes the postMessage bridge between this
 // app and the Contentstack dashboard/Visual Builder iframe. Does not fetch content
@@ -13,10 +14,13 @@ import { REGION_MAP, PREVIEW_HOST_MAP } from "@/lib/contentstack/regions";
 // tells the editor "the page is ready" and refreshes the router on entry changes.
 export function LivePreviewInit() {
   const router = useRouter();
+  // Studio's canvas talks to Studio, not to Live Preview.
+  const onStudioCanvas = isStudioCanvasPath(usePathname());
 
   useEffect(() => {
     // Disabled on production/live environments — no Visual Builder bridge or edit buttons.
     if (process.env.NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW !== "true") return;
+    if (onStudioCanvas) return;
 
     const apiKey = process.env.NEXT_PUBLIC_CONTENTSTACK_API_KEY;
     const environment = process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT;
@@ -51,7 +55,7 @@ export function LivePreviewInit() {
     return () => {
       ContentstackLivePreview.unsubscribeOnEntryChange(callbackUid);
     };
-  }, [router]);
+  }, [router, onStudioCanvas]);
 
   return null;
 }
