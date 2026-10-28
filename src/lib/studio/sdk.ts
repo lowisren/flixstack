@@ -11,8 +11,10 @@
 //     hash (it never clears one), so a preview-enabled singleton would carry one
 //     editor's draft hash into later visitors' requests. Draft/editor renders go
 //     through the client instead (see app/collections/[slug]/page.tsx).
-//   - The browser instance reads published content too: the preview token is
-//     server-only in this app (see .env.local.example).
+//   - The browser instance previews drafts when Live Preview is on (development
+//     only), using NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN. That is the one preview
+//     token the browser ever sees; the app's own previews stay server-side with
+//     CONTENTSTACK_PREVIEW_TOKEN. Each tab holds its own hash, so nothing leaks.
 //
 // Imported for its side effect by app/studio-init.tsx (client) and directly by the
 // /collections server route; both evaluate it once per runtime.
@@ -20,12 +22,17 @@
 
 import contentstack from "@contentstack/delivery-sdk";
 import { studioSdk } from "@contentstack/studio-react";
-import { CS_CONFIG, isCSConfigured } from "@/lib/contentstack/client";
-import { REGION_MAP } from "@/lib/contentstack/regions";
+import { CS_CONFIG, LIVE_PREVIEW_ENABLED, isCSConfigured } from "@/lib/contentstack/client";
+import { PREVIEW_HOST_MAP, REGION_MAP } from "@/lib/contentstack/regions";
 
 /** UID of the content type Studio stores templates and sections in. Set when the project was created. */
 export const STUDIO_CONTENT_TYPE =
   process.env.NEXT_PUBLIC_CONTENTSTACK_STUDIO_CONTENT_TYPE || "compositions";
+
+const browserPreviewToken =
+  typeof window !== "undefined" && LIVE_PREVIEW_ENABLED
+    ? (process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN ?? "")
+    : "";
 
 const stack = contentstack.stack({
   apiKey: CS_CONFIG.apiKey,
@@ -33,6 +40,13 @@ const stack = contentstack.stack({
   environment: CS_CONFIG.environment,
   region: REGION_MAP[CS_CONFIG.region] ?? REGION_MAP.US,
   branch: CS_CONFIG.branch,
+  live_preview: browserPreviewToken
+    ? {
+        enable: true,
+        preview_token: browserPreviewToken,
+        host: PREVIEW_HOST_MAP[CS_CONFIG.region] ?? PREVIEW_HOST_MAP.US,
+      }
+    : undefined,
 });
 
 export const sdk = studioSdk.init({

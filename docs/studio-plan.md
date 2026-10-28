@@ -276,6 +276,15 @@ Each phase ends with a check-in. Every stack write is listed before it runs.
 - Create the `landing_page` content type.
 - Create the seed entry and publish it to `development` (and `studio-local`).
 
+> **Phase 4 results (2026-10-28):**
+> - **`landing_page` created** with `url_prefix` `/collections/`. The `callouts` group has heading and body only (no icon, since no registered component renders one). `SYS_ACL.roles` came back empty, unlike `page`; role access is to be decided by the stack owner.
+> - **Seed entry `bltf35647e0617bc310`, "Halloween Thrills"** (`/collections/halloween-thrills`). The stack has no Horror genre, so it uses Thriller.
+>   - Featured title: *Get Out*, the one title tagged `horror`.
+>   - Hero banners: Oppenheimer and "Find your next favorite".
+>   - Rails: Award Winners and Trending Now. The promo uses the John Wick hero image.
+> - **Published to `development` through the CMA with the management token.** The claude.ai connector's `publish_an_entry` returned 422 "valid parameter for environments" for every format tried.
+> - **Verified on the CDN:** all references resolve, including `rails.items` two levels deep.
+
 **Phase 5: Sections.** Stack writes (D3).
 - Create the 7 Sections, each with its `ui_preview`.
 - Check each one in Preview Mode with real data, not defaults.
