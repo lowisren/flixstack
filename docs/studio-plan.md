@@ -289,7 +289,28 @@ Each phase ends with a check-in. Every stack write is listed before it runs.
 - Create the 7 Sections, each with its `ui_preview`.
 - Check each one in Preview Mode with real data, not defaults.
 
-**Phase 6: Templates.** Stack writes.
+> **Phase 5 results (2026-10-28):**
+> - **Seven sections written and published to `development`** by `scripts/studio/seed-compositions.ts` (`npm run studio:seed`).
+>   - The script is idempotent, matching on `composable_uid`. Each tree passes preflight before writing and again on read-back.
+>   - Every registered prop is written, with choice values as lists.
+>   - Each section's `ui_preview` is a generated SVG schematic (labelled as one). Saving a section in Studio replaces it with a screenshot.
+>
+>   | Section | `composable_uid` | Entry | Scope |
+>   |---|---|---|---|
+>   | Hero Carousel | `flix_hero_carousel` | `bltb7be3919a156b9b6` | `hero_banners` |
+>   | Feature Callouts | `flix_feature_callouts` | `blt9a442509c9f2e0ad` | `callouts` (collection, Repeater) |
+>   | Title Spotlight | `flix_title_spotlight` | `blt6fd27f52662b9a8b` | whole entry, `featured_title.0.*` |
+>   | Title Rails | `flix_title_rails` | `blt0a7a9b78d91e0473` | `rails` (Repeater + Condition) |
+>   | Promo | `flix_promo` | `blt42649c6849b8b98a` | `promo`; exposes "Image on the right" |
+>   | Genre Spotlight | `flix_genre_spotlight` | `blt6dd7a181df9260ec` | whole entry, `genre.0.*` |
+>   | Open Section | `flix_open_section` | `blt88df32f0168bfb0f` | none; contains a Section Slot |
+> - **Differences from §7:**
+>   - Genre Spotlight has no title grid. Genre entries don't reference their titles, so a grid needs a pinned query (Freeform, deferred).
+>   - Title Spotlight and Genre Spotlight use whole-entry scope, because a section's `selected_field` can't index into a single reference's one-item array.
+> - **Prop schemas moved** to `src/studio/schemas.ts` (pure data), shared by `register.ts` and the seed script.
+> - **Not yet verified:** rendering. Sections only get data when placed on a template, so the render check happens in Phase 6.
+
+**Phase 6: Templates.** Stack writes. Use `url_source: content_type_url_pattern` rather than `user_specified_pattern`: `landing_page` has a URL pattern and its entries store a real `url`, so this is the guide's recommended source. The template's `data_sources.resolvedReferences` must cover `hero_banners`, `hero_banners.linked_title`, `featured_title`, `rails`, `rails.items` and `genre`.
 - Create T1, then confirm the section-node count and `linked_sections`.
 - Open it in Studio with the seed entry and edit a field inline (Visual Editor tags).
 

@@ -22,7 +22,8 @@
     "fix-url-patterns": "node scripts/fix-url-patterns.mjs",
     "a11y": "node scripts/a11y.mjs",
     "check-contrast": "node scripts/check-contrast.mjs",
-    "snapshot": "node scripts/snapshot.mjs"
+    "snapshot": "node scripts/snapshot.mjs",
+    "studio:seed": "tsx scripts/studio/seed-compositions.ts"
   },
   "dependencies": {
     "@contentstack/delivery-sdk": "^5.2.2",
