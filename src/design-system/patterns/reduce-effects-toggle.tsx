@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { Switch } from "../primitives/switch";
 
 /**
  * Storage key for the "reduce effects" preference. Kept in sync with the
@@ -74,32 +75,18 @@ export function useReduceEffects() {
  * A `role="switch"` control for the reduce-effects preference.
  *
  * This is a *user preference*, never a substitute for `prefers-reduced-motion`
- * — that media query is honoured independently in globals.css and always wins,
+ * — that media query is honoured independently in tokens/a11y.css and always wins,
  * so a visitor with the OS setting on gets reduced motion whatever this says.
  */
 export function ReduceEffectsToggle({ className }: { className?: string }) {
   const [enabled, setEnabled] = useReduceEffects();
-
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={enabled}
-      aria-label="Reduce visual effects"
-      onClick={() => setEnabled(!enabled)}
-      className={`relative inline-flex h-6 w-11 shrink-0 items-center border transition-colors ${
-        enabled ? "border-accent bg-accent" : "border-border-control bg-elevated"
-      } ${className ?? ""}`}
-    >
-      <span
-        className={`inline-block h-4 w-4 transform rounded-pod transition-transform ${
-          enabled
-            ? "translate-x-6 bg-(--color-accent-foreground)"
-            : "translate-x-1 bg-(--color-text-secondary)"
-        }`}
-        aria-hidden="true"
-      />
-    </button>
+    <Switch
+      checked={enabled}
+      onCheckedChange={setEnabled}
+      label="Reduce visual effects"
+      className={className}
+    />
   );
 }
 

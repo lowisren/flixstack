@@ -21,7 +21,8 @@
     "content-governance": "node scripts/content-governance.mjs",
     "fix-url-patterns": "node scripts/fix-url-patterns.mjs",
     "a11y": "node scripts/a11y.mjs",
-    "check-contrast": "node scripts/check-contrast.mjs"
+    "check-contrast": "node scripts/check-contrast.mjs",
+    "snapshot": "node scripts/snapshot.mjs"
   },
   "dependencies": {
     "@contentstack/delivery-sdk": "^5.2.2",
@@ -46,6 +47,8 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "tsx": "^4.23.0",

@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const css = readFileSync(join(root, "src/app/globals.css"), "utf8");
+const css = readFileSync(join(root, "src/design-system/tokens/tokens.css"), "utf8");
 
 /** Pull `--token: #value;` declarations out of a top-level CSS block. */
 function parseBlock(selector) {
@@ -110,6 +110,31 @@ for (const [theme, tokens] of Object.entries(THEMES)) {
   add(theme, "--color-text-disabled", "--color-bg-elevated", 3.0, tokens);
   for (const [fg, bg, min] of FILLS) add(theme, fg, bg, min, tokens);
   for (const [fg, bg] of SUBTLE_PAIRS) add(theme, fg, bg, 4.5, tokens);
+}
+
+// On-media text is theme-independent and translucent, so it is checked once,
+// composited over the media ground. This is a floor, not a guarantee over
+// arbitrary artwork — that depends on the scrim (see .hero-scrim). It catches
+// an on-media alpha lowered below what can ever pass.
+const ON_MEDIA_TEXT_ALPHAS = [1, 0.85, 0.7, 0.6];
+const tokenAnywhere = (name) =>
+  css.match(new RegExp(`${name}\\s*:\\s*(#[0-9a-fA-F]{6})`))?.[1].toLowerCase();
+const blend = (fg, bg, alpha) => {
+  const ch = (hex, i) => parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
+  return (
+    "#" +
+    [0, 1, 2]
+      .map((i) => Math.round(ch(fg, i) * alpha + ch(bg, i) * (1 - alpha)).toString(16).padStart(2, "0"))
+      .join("")
+  );
+};
+const MEDIA = { "--color-on-media": tokenAnywhere("--color-on-media"), "--color-media-ground": tokenAnywhere("--color-media-ground") };
+THEMES.media = MEDIA;
+for (const alpha of ON_MEDIA_TEXT_ALPHAS) {
+  const tok = `--color-on-media/${Math.round(alpha * 100)}`;
+  if (MEDIA["--color-on-media"] && MEDIA["--color-media-ground"])
+    MEDIA[tok] = blend(MEDIA["--color-on-media"], MEDIA["--color-media-ground"], alpha);
+  add("media", tok, "--color-media-ground", 4.5, MEDIA);
 }
 
 const failed = results.filter((r) => !r.pass);

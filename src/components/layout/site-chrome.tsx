@@ -3,8 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import ContentstackLivePreview from "@contentstack/live-preview-utils";
-import { Header } from "./header";
-import { Footer } from "./footer";
+import { Footer, Header } from "@/design-system";
 import type { Footer as FooterData, Header as HeaderData } from "@/lib/types";
 
 interface SiteChromeProps {

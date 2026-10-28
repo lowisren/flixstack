@@ -1,7 +1,4 @@
-"use client";
-
-import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { NavLink } from "../patterns/nav-link";
 import type { NavLinkItem } from "@/lib/types";
 
 interface NavProps {
@@ -11,35 +8,21 @@ interface NavProps {
   onLinkClick?: () => void;
 }
 
+/** Primary navigation — a bar on desktop, a stacked list in the mobile menu. */
 export function Nav({ links, pathname, variant, onLinkClick }: NavProps) {
-  // The active route is marked three ways, never by colour alone: the accent
-  // colour, the underscore caret (`.nav-link`, driven by aria-current), and
-  // aria-current itself for assistive tech.
-  const linkClassName = (href: string) =>
-    cn(
-      "nav-link relative font-mono text-xs uppercase tracking-wider transition-colors",
-      variant === "desktop" ? "px-3 py-2" : "block px-3 py-2",
-      pathname === href
-        ? "text-accent"
-        : "text-text-secondary hover:text-text-primary"
-    );
-
   // Keyed on the Contentstack per-item uid, not href: two menu items may
   // legitimately point at the same path, which would collide as a React key.
   const linkItems = links.map((link, i) => (
-    <Link
+    <NavLink
       key={link.uid ?? `${link.href}-${i}`}
       href={link.href}
-      target={link.open_in_new_tab ? "_blank" : undefined}
-      rel={link.open_in_new_tab ? "noopener noreferrer" : undefined}
+      label={link.label}
+      active={pathname === link.href}
+      display={variant === "mobile" ? "block" : "inline"}
+      newTab={link.open_in_new_tab}
       onClick={onLinkClick}
-      className={linkClassName(link.href)}
-      aria-current={pathname === link.href ? "page" : undefined}
-      {...link.$?.label}
-    >
-      {link.label}
-      {link.open_in_new_tab && <span className="sr-only"> (opens in new tab)</span>}
-    </Link>
+      editable={link.$?.label}
+    />
   ));
 
   if (variant === "mobile") {

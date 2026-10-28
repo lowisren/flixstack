@@ -1,5 +1,5 @@
 import { CheckCircle, Circle, ExternalLink, Layers, Users, Bot, Zap, Database, Tags, type LucideIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge, Heading, IconTile, LinkCard, PageShell, Panel, SetupStepList, TextLink } from "@/design-system";
 import { isCSConfigured } from "@/lib/contentstack/client";
 import { getSetupGuide, parseLivePreviewParams } from "@/lib/contentstack/queries";
 
@@ -22,7 +22,7 @@ export default async function SetupPage({
   const guide = await getSetupGuide(parseLivePreviewParams(await searchParams));
 
   return (
-    <div className="grid-backdrop relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
+    <PageShell width="narrow" padding="lg" className="grid-backdrop relative">
       {/* Header */}
       <div className="mb-10">
         {guide.badge_label && (
@@ -30,9 +30,9 @@ export default async function SetupPage({
             {guide.badge_label}
           </Badge>
         )}
-        <h1 className="font-display text-4xl uppercase text-text-primary mb-4" {...guide.$?.title}>
+        <Heading as="h1" size="4xl" className="mb-4" {...guide.$?.title}>
           {guide.title}
-        </h1>
+        </Heading>
         <div
           className="text-lg text-text-secondary max-w-2xl leading-relaxed break-words [&_p]:mb-3 [&_p:last-child]:mb-0"
           dangerouslySetInnerHTML={{ __html: guide.intro }}
@@ -64,67 +64,17 @@ export default async function SetupPage({
 
       {/* Setup steps */}
       <section aria-label="Setup steps" className="mb-16">
-        <h2 className="font-display text-2xl uppercase text-text-primary mb-6" {...guide.$?.steps_heading}>
+        <Heading as="h2" size="2xl" className="mb-6" {...guide.$?.steps_heading}>
           {guide.steps_heading}
-        </h2>
-        <ol className="flex flex-col gap-6" role="list">
-          {guide.steps.map((step, i) => (
-            <li
-              key={i}
-              className="notch relative flex gap-4 sm:gap-5 p-4 sm:p-6 border border-border bg-surface"
-            >
-              <div
-                className="notch-sm shrink-0 flex h-8 w-8 items-center justify-center bg-accent text-accent-foreground font-mono font-bold text-sm tabular-nums"
-                aria-hidden="true"
-              >
-                {i + 1}
-              </div>
-              <div className="flex-1 min-w-0 break-words">
-                <h3 className="font-display uppercase text-text-primary mb-1" {...step.$?.heading}>
-                  {step.heading}
-                </h3>
-                <div
-                  className="text-sm text-text-secondary mb-3 break-words [&_p]:mb-2 [&_p:last-child]:mb-0"
-                  dangerouslySetInnerHTML={{ __html: step.description }}
-                  {...step.$?.description}
-                />
-                {step.detail && (
-                  <div
-                    className="text-sm text-text-secondary bg-elevated rounded-panel px-4 py-3 mb-3 break-words [&_p]:mb-2 [&_p:last-child]:mb-0"
-                    dangerouslySetInnerHTML={{ __html: step.detail }}
-                    {...step.$?.detail}
-                  />
-                )}
-                {step.code && (
-                  <pre
-                    className="text-xs font-mono bg-elevated border border-border-control text-text-primary rounded-panel p-4 overflow-x-auto whitespace-pre mb-3"
-                    {...step.$?.code}
-                  >
-                    {step.code}
-                  </pre>
-                )}
-                {step.docs_link && (
-                  <a
-                    href={step.docs_link.href}
-                    target={step.docs_link.open_in_new_tab ? "_blank" : undefined}
-                    rel={step.docs_link.open_in_new_tab ? "noopener noreferrer" : undefined}
-                    className="focus-inset inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-accent hover:underline"
-                  >
-                    <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                    {step.docs_link.label || "View Documentation"}
-                  </a>
-                )}
-              </div>
-            </li>
-          ))}
-        </ol>
+        </Heading>
+        <SetupStepList steps={guide.steps} />
       </section>
 
       {/* Feature deep-dives */}
       <section aria-label="Contentstack features" className="mb-16">
-        <h2 className="font-display text-2xl uppercase text-text-primary mb-2" {...guide.$?.features_heading}>
+        <Heading as="h2" size="2xl" className="mb-2" {...guide.$?.features_heading}>
           {guide.features_heading}
-        </h2>
+        </Heading>
         <div
           className="text-text-secondary mb-8 [&_p]:mb-3 [&_p:last-child]:mb-0"
           dangerouslySetInnerHTML={{ __html: guide.features_intro }}
@@ -135,19 +85,15 @@ export default async function SetupPage({
           {guide.features.map((feature, i) => {
             const Icon = ICON_MAP[feature.icon] ?? Database;
             return (
-              <div
-                key={feature.anchor_id || i}
-                id={feature.anchor_id}
-                className="notch relative p-6 border border-border bg-surface"
-              >
+              <Panel key={feature.anchor_id || i} id={feature.anchor_id} padding="md">
                 <div className="flex items-start gap-4">
-                  <div className="notch-sm flex h-10 w-10 items-center justify-center bg-accent-subtle shrink-0">
+                  <IconTile as="div" tone="subtle" size="md" className="shrink-0">
                     <Icon className="h-5 w-5 text-accent" aria-hidden="true" />
-                  </div>
+                  </IconTile>
                   <div className="flex-1">
-                    <h3 className="font-display uppercase text-text-primary text-lg mb-2" {...feature.$?.heading}>
+                    <Heading as="h3" size="lg" className="mb-2" {...feature.$?.heading}>
                       {feature.heading}
-                    </h3>
+                    </Heading>
                     <div
                       className="text-sm text-text-secondary leading-relaxed mb-4 [&_p]:mb-2 [&_p:last-child]:mb-0"
                       dangerouslySetInnerHTML={{ __html: feature.description }}
@@ -164,19 +110,19 @@ export default async function SetupPage({
                       ))}
                     </div>
                     {feature.learn_link && (
-                      <a
+                      <TextLink
+                        variant="action"
                         href={feature.learn_link.href}
-                        target={feature.learn_link.open_in_new_tab ? "_blank" : undefined}
-                        rel={feature.learn_link.open_in_new_tab ? "noopener noreferrer" : undefined}
-                        className="focus-inset inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-accent hover:underline"
+                        newTab={feature.learn_link.open_in_new_tab}
+                        className="inline-flex items-center gap-1.5"
                       >
                         <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         {feature.learn_link.label || "Learn More"}
-                      </a>
+                      </TextLink>
                     )}
                   </div>
                 </div>
-              </div>
+              </Panel>
             );
           })}
         </div>
@@ -184,29 +130,23 @@ export default async function SetupPage({
 
       {/* Quick links */}
       <section aria-label="Documentation links">
-        <h2 className="font-display text-2xl uppercase text-text-primary mb-6" {...guide.$?.docs_heading}>
+        <Heading as="h2" size="2xl" className="mb-6" {...guide.$?.docs_heading}>
           {guide.docs_heading}
-        </h2>
+        </Heading>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {guide.doc_links.map((item, i) => (
-            <a
+            <LinkCard
               key={item.link.href || i}
               href={item.link.href}
-              target={item.link.open_in_new_tab ? "_blank" : undefined}
-              rel={item.link.open_in_new_tab ? "noopener noreferrer" : undefined}
-              className="notch-sm group flex items-start gap-3 p-4 border border-border-control bg-surface hover:border-accent hover:bg-accent-subtle transition-colors"
-            >
-              <div className="flex-1">
-                <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-primary group-hover:text-accent transition-colors">
-                  {item.link.label}
-                </p>
-                <p className="text-xs text-text-secondary mt-0.5">{item.description}</p>
-              </div>
-              <ExternalLink className="h-4 w-4 text-text-disabled shrink-0 mt-0.5" aria-hidden="true" />
-            </a>
+              newTab={item.link.open_in_new_tab}
+              icon={ExternalLink}
+              title={item.link.label}
+              description={item.description}
+              layout="inline"
+            />
           ))}
         </div>
       </section>
-    </div>
+    </PageShell>
   );
 }

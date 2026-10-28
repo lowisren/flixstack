@@ -3,7 +3,7 @@
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
 import { useSyncExternalStore } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../primitives/button";
 
 // "Am I hydrated yet?" without setState-in-an-effect: the server snapshot is
 // false and the client snapshot is true, so the first client render matches SSR
