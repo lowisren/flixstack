@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { isStudioCanvasPath } from "@/studio/canvas-path";
 
 // window.jstag is typed in @/lib/lytics/client.
 
@@ -16,6 +17,7 @@ export function LyticsPageViews() {
   const queryString = searchParams.toString();
 
   useEffect(() => {
+    if (isStudioCanvasPath(pathname)) return;
     window.jstag?.pageView();
   }, [pathname, queryString]);
 
