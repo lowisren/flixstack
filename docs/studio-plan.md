@@ -257,6 +257,21 @@ Each phase ends with a check-in. Every stack write is listed before it runs.
   - The audit counts agree: the number of `registerComponent` entries equals the number of `wrap:false` and the number of `studioAttributes` spreads.
   - Every component appears in the Studio palette with a thumbnail.
 
+> **Phase 3 notes (2026-10-28):**
+> - **New design-system primitives:** `Stack`, `Row` and `Grid` share one gap scale (`gapClasses`), each with a `/design-system` specimen. `RatingBadge` and `Score` now pass HTML attributes through (a non-visual change), so edit tags can land on them.
+> - **Registration:** 18 components in `src/studio/register.ts`, with `strict: true` and breakpoints of 1440 / 1023 / 767.
+>   - The adapters live in `src/studio/components/{atoms,layout,composites}.tsx`; thumbnails are in `src/studio/thumbnails.ts`.
+>   - Audit: 18 registrations, 18 `wrap: false`, 18 thumbnails, and every adapter spreads `studioAttributes`.
+> - **Differences from §5:**
+>   - `flix-text` renders its own `<p>` rather than `Readout`.
+>   - `flix-title-card` takes an `array` prop, because the Delivery API returns even a single reference as an array.
+>   - Components are eager, not lazy, because they wrap design-system code the app already ships.
+> - **For Phase 6:** a template URL of `/collections/{{entry.slug}}` only resolves with a pattern URL source (`user_specified_pattern`). With `content_type_url_pattern`, only `{{entry.url}}` resolves.
+> - **Checks:**
+>   - typecheck, lint, build and contrast (80/80) pass;
+>   - axe is clean except the known light-mode `Score size="hero"` contrast follow-up (`docs/design-system-plan.md`). `flix-score` inherits it on artwork.
+>   - In headless Chrome the registrations run without throwing. Outside Studio the only messages are the expected "no Studio parent frame" ones.
+
 **Phase 4: Content model.** These are stack writes.
 - Create the `landing_page` content type.
 - Create the seed entry and publish it to `development` (and `studio-local`).

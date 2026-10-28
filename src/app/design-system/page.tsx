@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ExternalLink, Grid, Layers, Play, Plus, Search } from "lucide-react";
+import { ExternalLink, Grid as GridIcon, Layers, Play, Plus, Search } from "lucide-react";
 import {
   Badge,
   Button,
@@ -41,6 +41,9 @@ import {
   TitleFactsPanel,
   TitleGrid,
   VideoPlayer,
+  Stack,
+  Row,
+  Grid,
 } from "@/design-system";
 import { stripHtml } from "@/lib/utils";
 import {
@@ -84,7 +87,7 @@ const GROUPS: TocGroup[] = [
     id: "ds-primitives",
     title: "Primitives",
     items: [
-      "Button", "IconButton", "IconTile", "Badge", "Heading", "Eyebrow", "TextLink", "Panel",
+      "Button", "IconButton", "IconTile", "Badge", "Heading", "Eyebrow", "TextLink", "Panel", "Stack", "Row", "Grid",
       "Switch", "ToggleChip", "Select", "Skeleton", "Spinner", "LogoMark", "FallbackImage",
     ],
   },
@@ -544,6 +547,76 @@ export default async function DesignSystemPage() {
         </Specimen>
 
         <Specimen
+          name="Stack"
+          level="Primitive"
+          source="primitives/stack.tsx"
+          description="Children in a vertical column with even spacing. Gaps come from one shared scale (gap-2 to gap-12) used by Stack, Row and Grid. Also registered in Contentstack Studio."
+          props={[
+            ["as", "div | section | article | header | footer"],
+            ["gap", "none | xs | sm | md | lg | xl"],
+            ["align", "start | center | end | stretch"],
+          ]}
+        >
+          <Stack gap="xs" className="max-w-sm">
+            <Eyebrow tone="accent">gap=xs</Eyebrow>
+            <Heading as="h3" size="xl">Stacked heading</Heading>
+            <p className="text-sm text-text-secondary">Body copy sits under the heading at the same spacing.</p>
+          </Stack>
+        </Specimen>
+
+        <Specimen
+          name="Row"
+          level="Primitive"
+          source="primitives/row.tsx"
+          description="Children side by side with even spacing. collapse stacks them below 768px; reverse flips the order from 768px up without changing reading order. Also registered in Contentstack Studio."
+          props={[
+            ["as", "div | section | header | footer"],
+            ["gap", "none | xs | sm | md | lg | xl"],
+            ["align", "start | center | end | stretch | baseline"],
+            ["justify", "start | center | end | between"],
+            ["wrap", "boolean"],
+            ["collapse", "boolean — stack below md"],
+            ["reverse", "boolean — reverse from md up"],
+          ]}
+        >
+          <Stack gap="md">
+            <Row gap="xs" wrap>
+              <Badge variant="accent">New</Badge>
+              <Badge variant="premium">Premium</Badge>
+              <Badge>4K</Badge>
+            </Row>
+            <Row gap="sm" collapse reverse>
+              <Panel padding="sm" className="md:flex-1">
+                <Eyebrow>collapse reverse — first in source</Eyebrow>
+              </Panel>
+              <Panel padding="sm" className="md:flex-1">
+                <Eyebrow>second in source</Eyebrow>
+              </Panel>
+            </Row>
+          </Stack>
+        </Specimen>
+
+        <Specimen
+          name="Grid"
+          level="Primitive"
+          source="primitives/grid.tsx"
+          description="Children in equal responsive columns. The column count is the widest-breakpoint count; narrower screens step down. Also registered in Contentstack Studio."
+          props={[
+            ["as", "div | section"],
+            ["columns", "1 | 2 | 3 | 4 | 6"],
+            ["gap", "none | xs | sm | md | lg | xl"],
+          ]}
+        >
+          <Grid columns="3" gap="sm">
+            {["One", "Two", "Three"].map((label) => (
+              <Panel key={label} padding="sm">
+                <Eyebrow>{label}</Eyebrow>
+              </Panel>
+            ))}
+          </Grid>
+        </Specimen>
+
+        <Specimen
           name="Switch"
           level="Primitive"
           source="primitives/switch.tsx"
@@ -787,7 +860,7 @@ export default async function DesignSystemPage() {
           ]}
         >
           <EmptyState
-            icon={Grid}
+            icon={GridIcon}
             title="No titles found"
             description="Try adjusting your filters."
             className="mx-auto max-w-md flex flex-col items-center justify-center py-16 px-6"
