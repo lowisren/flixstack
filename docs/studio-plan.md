@@ -342,6 +342,29 @@ Each phase ends with a check-in. Every stack write is listed before it runs.
 
 Then run `verify-setup` layers 0–7, each recorded as passed, failed or unverified.
 
+> **Phase 7 results (2026-10-29), definition-of-done audit:**
+>
+> | # | Item | Status |
+> |---|---|---|
+> | 1 | `cslp.appendTags` | ✅ in `src/lib/studio/sdk.ts` |
+> | 2 | `studioAttributes` + `wrap:false` + `$` twins | ✅ all 18 adapters |
+> | 3 | `thumbnailUrl` | ✅ all 18 |
+> | 4 | `ui_preview` | ✅ all 7 sections (generated schematics; Save in Studio for screenshots) |
+> | 5 | Live Preview + preview token | ⚠️ Live Preview is on for `development`, but the deployed development bundle doesn't contain `NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN` (checked 2026-10-29). Studio shows published content until it's set and redeployed |
+> | 6 | `/canvas` | ✅ live on development: 200, CSP, no chrome |
+> | 7 | Published | ✅ 7 sections + template, with `publish_details` on development |
+> | 8 | Template composed of Sections | ✅ 6 section nodes = 6 `linked_sections` |
+> | 9 | Live Preview `mode:"builder"` | ✅ `LivePreviewInit` |
+> | 10 | New entries editable | ⏳ to confirm in Studio (Visual Editor on a new Landing Page) |
+>
+> **Also fixed:** composite placeholders ("Bind … to show content here") now render only inside Studio (`isStudioCanvas()`), never for visitors.
+
+> **Phase 8 results (2026-10-29):**
+> - **Deploy:** #18, #20 (Studio, re-opened against `main` after #19 merged into `feat/design-system` by mistake) and #21 are merged, and both Launch sites rebuilt from `main`.
+> - **Development:** `/canvas` 200 with CSP, `/collections/halloween-thrills` 200 with the right title, unknown slugs 404, existing routes 200. The live page matches the local screenshot, with no console errors.
+> - **Production:** `/canvas` 200 (inert outside Studio), `/collections/*` 404, as intended.
+> - **Docs:** `docs/studio.md`, a how-to for editors and developers.
+
 **Phase 8: Deploy to Launch development.**
 - Set the new environment variable on **the Launch development environment**. Launch environments don't share variables, which is what broke production last time.
 - Switch the Studio project to the `development` environment.
