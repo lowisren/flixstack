@@ -5,6 +5,7 @@ import { Providers } from "@/components/layout/providers";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { LivePreviewInit } from "@/components/contentstack/live-preview-init";
 import { Lytics } from "@/components/analytics/lytics";
+import { StudioInit } from "./studio-init";
 import { getFooter, getHeader, getSiteConfig } from "@/lib/contentstack/queries";
 
 const geistSans = Geist({
@@ -75,6 +76,7 @@ export default async function RootLayout({
         />
         <Lytics />
         <LivePreviewInit />
+        <StudioInit />
         <Providers>
           <SiteChrome initialHeader={header} initialFooter={footer} siteName={siteConfig.site_name}>
             {children}

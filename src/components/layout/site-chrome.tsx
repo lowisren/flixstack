@@ -1,9 +1,10 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import ContentstackLivePreview from "@contentstack/live-preview-utils";
 import { Footer, Header } from "@/design-system";
+import { isStudioCanvasPath } from "@/studio/canvas-path";
 import type { Footer as FooterData, Header as HeaderData } from "@/lib/types";
 
 interface SiteChromeProps {
@@ -57,6 +58,9 @@ export function SiteChrome({ initialHeader, initialFooter, siteName, children }:
     });
     return () => ContentstackLivePreview.unsubscribeOnEntryChange(callbackUid);
   }, [previewQuery, refetch]);
+
+  const pathname = usePathname();
+  if (isStudioCanvasPath(pathname)) return <>{children}</>;
 
   return (
     <>

@@ -22,12 +22,14 @@
     "fix-url-patterns": "node scripts/fix-url-patterns.mjs",
     "a11y": "node scripts/a11y.mjs",
     "check-contrast": "node scripts/check-contrast.mjs",
-    "snapshot": "node scripts/snapshot.mjs"
+    "snapshot": "node scripts/snapshot.mjs",
+    "studio:seed": "tsx scripts/studio/seed-compositions.ts"
   },
   "dependencies": {
     "@contentstack/delivery-sdk": "^5.2.2",
     "@contentstack/live-preview-utils": "^4.4.4",
     "@contentstack/management": "^1.30.4",
+    "@contentstack/studio-react": "2.0.1",
     "@contentstack/utils": "^1.9.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.42.1",
