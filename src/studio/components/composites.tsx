@@ -9,6 +9,7 @@
 // into the design system's types and attach edit tags for each entry, so a title
 // or banner inside a rail stays clickable in Visual Editor.
 
+import { isStudioCanvas } from "@contentstack/studio-react";
 import { Hero, Rail, TitleCard, TitleGrid } from "@/design-system";
 import { normalizeHeroBanner, normalizeTitle } from "@/lib/contentstack/normalize";
 import type { HomepageRail, Movie, Title, TvSeries } from "@/lib/types";
@@ -20,8 +21,13 @@ function titles(value: unknown): Title[] {
   return entries(value).map((e) => normalizeTitle(clone(e)));
 }
 
-/** Shown on the canvas when nothing is bound yet, in place of an empty box. */
+/**
+ * Shown in Studio when nothing is bound yet, in place of an empty box. Visitors
+ * get nothing: an unfilled field simply omits its section. (`isStudioCanvas` is
+ * false on the server and for visitors, so server and client agree.)
+ */
 function Unbound({ what }: { what: string }) {
+  if (!isStudioCanvas()) return null;
   return (
     <p className="border border-dashed border-border-control px-4 py-8 text-center font-mono text-xs uppercase tracking-wider text-text-secondary">
       Bind {what} to show content here
